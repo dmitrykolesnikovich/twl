@@ -44,6 +44,7 @@ import java.util.ArrayList;
 public final class StyleAttribute<T> {
 
     // cascading attributes
+    private static final ArrayList<StyleAttribute<?>> attributes = new ArrayList<StyleAttribute<?>>(); // should be first in this list
     public static final StyleAttribute<HAlignment> HORIZONTAL_ALIGNMENT = new StyleAttribute<HAlignment>(true, HAlignment.class, HAlignment.LEFT);
     public static final StyleAttribute<VAlignment> VERTICAL_ALIGNMENT = new StyleAttribute<VAlignment>(true, VAlignment.class, VAlignment.BOTTOM);
     public static final StyleAttribute<Value> TEXT_INDENT = new StyleAttribute<Value>(true, Value.class, Value.ZERO_PX);
@@ -81,7 +82,6 @@ public final class StyleAttribute<T> {
     // boxes
     public static final BoxAttribute MARGIN = new BoxAttribute(MARGIN_TOP, MARGIN_LEFT, MARGIN_RIGHT, MARGIN_BOTTOM);
     public static final BoxAttribute PADDING = new BoxAttribute(PADDING_TOP, PADDING_LEFT, PADDING_RIGHT, PADDING_BOTTOM);
-    private static final ArrayList<StyleAttribute<?>> attributes = new ArrayList<StyleAttribute<?>>();
     private final boolean inherited;
     private final Class<T> dataType;
     private final T defaultValue;

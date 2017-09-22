@@ -33,6 +33,7 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
+import de.matthiasmann.twl.textarea.StyleSheet;
 
 /**
  * @author Matthias Mann

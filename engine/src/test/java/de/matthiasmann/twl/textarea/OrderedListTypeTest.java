@@ -34,6 +34,8 @@ import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+import de.matthiasmann.twl.textarea.StyleSheet;
+
 /**
  * @author Matthias Mann
  */
