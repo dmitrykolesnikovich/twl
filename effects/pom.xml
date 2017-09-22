@@ -1,0 +1,24 @@
+<project>
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>twl</groupId>
+    <artifactId>effects</artifactId>
+    <packaging>jar</packaging>    
+    <version>1</version>    
+	
+	<parent>
+        <groupId>twl</groupId>
+        <artifactId>twl</artifactId>
+        <version>1</version>
+    </parent>
+
+    <dependencies>
+		<dependency>
+            <groupId>twl</groupId>
+            <artifactId>engine</artifactId>
+            <version>1</version>
+        </dependency>     
+    </dependencies>
+    
+</project>
+
