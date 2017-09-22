@@ -29,13 +29,7 @@
  */
 package de.matthiasmann.twl.model;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.Closeable;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
+import java.io.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
@@ -45,17 +39,15 @@ import java.util.zip.InflaterInputStream;
 
 /**
  * A persistent MRU list model.
- *
+ * <p>
  * Entries are stored compressed (deflate) using serialization and
  * <code>putByteArray</code> except Strings which use <code>put</code>
  *
  * @param <T> the data type stored in this MRU model
- * 
+ * @author Matthias Mann
  * @see java.util.zip.Deflater
  * @see java.util.prefs.Preferences#putByteArray(java.lang.String, byte[])
  * @see java.util.prefs.Preferences#put(java.lang.String, java.lang.String)
- * 
- * @author Matthias Mann
  */
 public class PersistentMRUListModel<T extends Serializable> extends SimpleMRUListModel<T> {
 
@@ -65,13 +57,13 @@ public class PersistentMRUListModel<T extends Serializable> extends SimpleMRULis
 
     public PersistentMRUListModel(int maxEntries, Class<T> clazz, Preferences prefs, String prefKey) {
         super(maxEntries);
-        if(clazz == null) {
+        if (clazz == null) {
             throw new NullPointerException("clazz");
         }
-        if(prefs == null) {
+        if (prefs == null) {
             throw new NullPointerException("prefs");
         }
-        if(prefKey == null) {
+        if (prefKey == null) {
             throw new NullPointerException("prefKey");
         }
         this.clazz = clazz;
@@ -79,17 +71,17 @@ public class PersistentMRUListModel<T extends Serializable> extends SimpleMRULis
         this.prefKey = prefKey;
 
         int numEntries = Math.min(prefs.getInt(keyForNumEntries(), 0), maxEntries);
-        for(int i=0 ; i<numEntries ; ++i) {
+        for (int i = 0; i < numEntries; ++i) {
             T entry = null;
-            if(clazz == String.class) {
+            if (clazz == String.class) {
                 entry = clazz.cast(prefs.get(keyForIndex(i), null));
             } else {
                 byte[] data = prefs.getByteArray(keyForIndex(i), null);
-                if(data != null && data.length > 0) {
+                if (data != null && data.length > 0) {
                     entry = deserialize(data);
                 }
             }
-            if(entry != null) {
+            if (entry != null) {
                 entries.add(entry);
             }
         }
@@ -97,7 +89,7 @@ public class PersistentMRUListModel<T extends Serializable> extends SimpleMRULis
 
     @Override
     public void addEntry(T entry) {
-        if(!clazz.isInstance(entry)) {
+        if (!clazz.isInstance(entry)) {
             throw new ClassCastException();
         }
         super.addEntry(entry);
@@ -105,13 +97,13 @@ public class PersistentMRUListModel<T extends Serializable> extends SimpleMRULis
 
     @Override
     protected void saveEntries() {
-        for(int i=0 ; i<entries.size() ; ++i) {
+        for (int i = 0; i < entries.size(); ++i) {
             T obj = entries.get(i);
-            if(clazz == String.class) {
-                prefs.put(keyForIndex(i), (String)obj);
+            if (clazz == String.class) {
+                prefs.put(keyForIndex(i), (String) obj);
             } else {
                 byte[] data = serialize(obj);
-                assert(data != null);
+                assert (data != null);
                 prefs.putByteArray(keyForIndex(i), data);
             }
         }
@@ -143,7 +135,7 @@ public class PersistentMRUListModel<T extends Serializable> extends SimpleMRULis
             try {
                 ObjectInputStream ois = new ObjectInputStream(iis);
                 Object obj = ois.readObject();
-                if(clazz.isInstance(obj)) {
+                if (clazz.isInstance(obj)) {
                     return clazz.cast(obj);
                 }
                 getLogger().log(Level.WARNING, "Deserialized object of type " + obj.getClass() + " expected " + clazz);
@@ -155,10 +147,11 @@ public class PersistentMRUListModel<T extends Serializable> extends SimpleMRULis
         }
         return null;
     }
-    
+
     protected String keyForIndex(int idx) {
         return prefKey + "_" + idx;
     }
+
     protected String keyForNumEntries() {
         return prefKey + "_entries";
     }

@@ -3,17 +3,17 @@
 
     <groupId>twl</groupId>
     <artifactId>engine</artifactId>
-    <packaging>jar</packaging>    
-    <version>1</version>    
-	
-	<parent>
+    <packaging>jar</packaging>
+    <version>1</version>
+
+    <parent>
         <groupId>twl</groupId>
         <artifactId>twl</artifactId>
         <version>1</version>
     </parent>
 
     <dependencies>
-		<dependency>
+        <dependency>
             <groupId>xpp3</groupId>
             <artifactId>xpp3</artifactId>
             <version>1.1.4c</version>
@@ -22,8 +22,8 @@
             <groupId>org.lwjgl.lwjgl</groupId>
             <artifactId>lwjgl</artifactId>
             <version>2.8.5</version>
-        </dependency>       
+        </dependency>
     </dependencies>
-    
+
 </project>
 

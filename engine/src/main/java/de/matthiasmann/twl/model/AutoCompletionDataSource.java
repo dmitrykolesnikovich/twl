@@ -31,7 +31,7 @@ package de.matthiasmann.twl.model;
 
 /**
  * An auto completion data source
- * 
+ *
  * @author Matthias Mann
  */
 public interface AutoCompletionDataSource {
@@ -39,9 +39,9 @@ public interface AutoCompletionDataSource {
     /**
      * Collects auto completion results
      *
-     * @param text The new text for which to compute auto completion
+     * @param text      The new text for which to compute auto completion
      * @param cursorPos The cursor position for which to compute the auto completion
-     * @param prev The previous AutoCompletionResult - can be used to speed up the computation
+     * @param prev      The previous AutoCompletionResult - can be used to speed up the computation
      * @return The AutoCompletionResult object or null if no reults could be found
      */
     public AutoCompletionResult collectSuggestions(String text, int cursorPos, AutoCompletionResult prev);

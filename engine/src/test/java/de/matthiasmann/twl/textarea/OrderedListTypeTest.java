@@ -30,10 +30,11 @@
 package de.matthiasmann.twl.textarea;
 
 import org.junit.Test;
-import static org.junit.Assert.*;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
- *
  * @author Matthias Mann
  */
 public class OrderedListTypeTest {
@@ -45,7 +46,7 @@ public class OrderedListTypeTest {
     static final OrderedListType LOWER_GREEK = CSSStyle.OLT.get("lower-greek");
     static final OrderedListType UPPER_RUSSIAN_SHORT = CSSStyle.OLT.get("upper-russian-short");
     static final OrderedListType LOWER_RUSSIAN_SHORT = CSSStyle.OLT.get("lower-russian-short");
-    
+
     public OrderedListTypeTest() {
     }
 
@@ -84,8 +85,8 @@ public class OrderedListTypeTest {
         assertEquals("-1", UPPER_ALPHA.format(-1));
         assertEquals("0", UPPER_ALPHA.format(0));
         assertEquals("A", UPPER_ALPHA.format(1));
-        for(int i=1 ; i<26 ; i++) {
-            assertEquals(Character.toString((char)('A' + i - 1)), UPPER_ALPHA.format(i));
+        for (int i = 1; i < 26; i++) {
+            assertEquals(Character.toString((char) ('A' + i - 1)), UPPER_ALPHA.format(i));
         }
         assertEquals("Z", UPPER_ALPHA.format(26));
         assertEquals("AA", UPPER_ALPHA.format(27));
@@ -106,8 +107,8 @@ public class OrderedListTypeTest {
         assertEquals("-1", LOWER_ALPHA.format(-1));
         assertEquals("0", LOWER_ALPHA.format(0));
         assertEquals("a", LOWER_ALPHA.format(1));
-        for(int i=1 ; i<26 ; i++) {
-            assertEquals(Character.toString((char)('a' + i - 1)), LOWER_ALPHA.format(i));
+        for (int i = 1; i < 26; i++) {
+            assertEquals(Character.toString((char) ('a' + i - 1)), LOWER_ALPHA.format(i));
         }
         assertEquals("fxshrxw", LOWER_ALPHA.format(Integer.MAX_VALUE));
     }
@@ -122,14 +123,14 @@ public class OrderedListTypeTest {
     public void testLowerGreekNumbers1() {
         final String ref =
                 "\u03B1\u03B2\u03B3\u03B4\u03B5" + // alpha  beta  gamma  delta  epsilon
-                "\u03B6\u03B7\u03B8\u03B9\u03BA" + // zeta   eta   theta  iota   kappa
-                "\u03BB\u03BC\u03BD\u03BE\u03BF" + // lamda  mu    nu     xi     omicron
-                "\u03C0\u03C1\u03C3\u03C4\u03C5" + // pi     rho   sigma  tau    upsilon
-                "\u03C6\u03C7\u03C8\u03C9";        // phi    chi   psi    omega
+                        "\u03B6\u03B7\u03B8\u03B9\u03BA" + // zeta   eta   theta  iota   kappa
+                        "\u03BB\u03BC\u03BD\u03BE\u03BF" + // lamda  mu    nu     xi     omicron
+                        "\u03C0\u03C1\u03C3\u03C4\u03C5" + // pi     rho   sigma  tau    upsilon
+                        "\u03C6\u03C7\u03C8\u03C9";        // phi    chi   psi    omega
         // ensure that correct encoding was used to compile CSSStyle.java
         assertEquals(ref, LOWER_GREEK.characterList);
-        for(int i=1 ; i<=ref.length() ; i++) {
-            assertEquals(ref.substring(i-1, i), LOWER_GREEK.format(i));
+        for (int i = 1; i <= ref.length(); i++) {
+            assertEquals(ref.substring(i - 1, i), LOWER_GREEK.format(i));
         }
         assertEquals("-1", LOWER_GREEK.format(-1));
         assertEquals("0", LOWER_GREEK.format(0));
@@ -154,11 +155,11 @@ public class OrderedListTypeTest {
     public void testUpperRussianNumbers1() {
         final String ref =
                 "\u0410\u0411\u0412\u0413\u0414" +
-                "\u0415\u0416\u0417\u0418\u041A" +
-                "\u041B\u041C\u041D\u041E\u041F" +
-                "\u0420\u0421\u0422\u0423\u0424" +
-                "\u0425\u0426\u0427\u0428\u0429" +
-                "\u042D\u042E\u042F";
+                        "\u0415\u0416\u0417\u0418\u041A" +
+                        "\u041B\u041C\u041D\u041E\u041F" +
+                        "\u0420\u0421\u0422\u0423\u0424" +
+                        "\u0425\u0426\u0427\u0428\u0429" +
+                        "\u042D\u042E\u042F";
         // ensure that correct encoding was used to compile CSSStyle.java
         assertEquals(ref, UPPER_RUSSIAN_SHORT.characterList);
         // assume that toCharListNumber() works as already tested above
@@ -168,11 +169,11 @@ public class OrderedListTypeTest {
     public void testLowerRussianNumbers1() {
         final String ref =
                 "\u0430\u0431\u0432\u0433\u0434" +
-                "\u0435\u0436\u0437\u0438\u043A" +
-                "\u043B\u043C\u043D\u043E\u043F" +
-                "\u0440\u0441\u0442\u0443\u0444" +
-                "\u0445\u0446\u0447\u0448\u0449" +
-                "\u044D\u044E\u044F";
+                        "\u0435\u0436\u0437\u0438\u043A" +
+                        "\u043B\u043C\u043D\u043E\u043F" +
+                        "\u0440\u0441\u0442\u0443\u0444" +
+                        "\u0445\u0446\u0447\u0448\u0449" +
+                        "\u044D\u044E\u044F";
         // ensure that correct encoding was used to compile CSSStyle.java
         assertEquals(ref, LOWER_RUSSIAN_SHORT.characterList);
         // assume that toCharListNumber() works as already tested above

@@ -30,7 +30,6 @@
 package de.matthiasmann.twl.textarea;
 
 /**
- *
  * @author Matthias Mann
  */
 public interface StyleSheetResolver {

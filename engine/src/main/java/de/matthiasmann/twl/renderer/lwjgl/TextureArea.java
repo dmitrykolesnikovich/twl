@@ -38,17 +38,17 @@ import org.lwjgl.opengl.GL11;
 
 /**
  * A area inside a OpenGL texture used as UI image
- * 
+ *
  * @author Matthias Mann
  */
 public class TextureArea extends TextureAreaBase implements Image, SupportsDrawRepeat, QueriablePixels {
 
     protected static final int REPEAT_CACHE_SIZE = 10;
-    
+
     protected final LWJGLTexture texture;
     protected final Color tintColor;
     protected int repeatCacheID = -1;
-    
+
     public TextureArea(LWJGLTexture texture, int x, int y, int width, int height, Color tintColor) {
         super(x, y, width, height, texture.getTexWidth(), texture.getTexHeight());
         this.texture = texture;
@@ -62,40 +62,40 @@ public class TextureArea extends TextureAreaBase implements Image, SupportsDrawR
     }
 
     public int getPixelValue(int x, int y) {
-        if(x < 0 || y < 0 || x >= width || y >= height) {
+        if (x < 0 || y < 0 || x >= width || y >= height) {
             throw new IllegalArgumentException();
         }
-        
+
         int texWidth = texture.getTexWidth();
         int texHeight = texture.getTexHeight();
-        
-        int baseX = (int)(tx0*texWidth);
-        int baseY = (int)(ty0*texHeight);
-        
-        if(tx0 > tx1) {
+
+        int baseX = (int) (tx0 * texWidth);
+        int baseY = (int) (ty0 * texHeight);
+
+        if (tx0 > tx1) {
             x = baseX - x;
         } else {
             x = baseX + x;
         }
-        
-        if(ty0 > ty1) {
+
+        if (ty0 > ty1) {
             y = baseY - y;
         } else {
             y = baseY + y;
         }
-        
-        if(x < 0) {
+
+        if (x < 0) {
             x = 0;
-        } else if(x >= texWidth) {
-            x = texWidth-1;
+        } else if (x >= texWidth) {
+            x = texWidth - 1;
         }
-        
-        if(y < 0) {
+
+        if (y < 0) {
             y = 0;
-        } else if(y >= texHeight) {
-            y = texHeight-1;
+        } else if (y >= texHeight) {
+            y = texHeight - 1;
         }
-        
+
         return texture.getPixelValue(x, y);
     }
 
@@ -104,7 +104,7 @@ public class TextureArea extends TextureAreaBase implements Image, SupportsDrawR
     }
 
     public void draw(AnimationState as, int x, int y, int w, int h) {
-        if(texture.bind(tintColor)) {
+        if (texture.bind(tintColor)) {
             GL11.glBegin(GL11.GL_QUADS);
             drawQuad(x, y, w, h);
             GL11.glEnd();
@@ -112,12 +112,12 @@ public class TextureArea extends TextureAreaBase implements Image, SupportsDrawR
     }
 
     public void draw(AnimationState as, int x, int y, int width, int height, int repeatCountX, int repeatCountY) {
-        if(texture.bind(tintColor)) {
-            if((repeatCountX * this.width != width) || (repeatCountY * this.height != height)) {
+        if (texture.bind(tintColor)) {
+            if ((repeatCountX * this.width != width) || (repeatCountY * this.height != height)) {
                 drawRepeatSlow(x, y, width, height, repeatCountX, repeatCountY);
                 return;
             }
-            if(repeatCountX < REPEAT_CACHE_SIZE || repeatCountY < REPEAT_CACHE_SIZE) {
+            if (repeatCountX < REPEAT_CACHE_SIZE || repeatCountY < REPEAT_CACHE_SIZE) {
                 drawRepeat(x, y, repeatCountX, repeatCountY);
                 return;
             }
@@ -127,13 +127,13 @@ public class TextureArea extends TextureAreaBase implements Image, SupportsDrawR
 
     private void drawRepeatSlow(int x, int y, int width, int height, int repeatCountX, int repeatCountY) {
         GL11.glBegin(GL11.GL_QUADS);
-        while(repeatCountY > 0) {
+        while (repeatCountY > 0) {
             int rowHeight = height / repeatCountY;
 
             int cx = 0;
-            for(int xi=0 ; xi<repeatCountX ;) {
+            for (int xi = 0; xi < repeatCountX; ) {
                 int nx = ++xi * width / repeatCountX;
-                drawQuad(x+cx, y, nx-cx, rowHeight);
+                drawQuad(x + cx, y, nx - cx, rowHeight);
                 cx = nx;
             }
 
@@ -143,15 +143,15 @@ public class TextureArea extends TextureAreaBase implements Image, SupportsDrawR
         }
         GL11.glEnd();
     }
-    
+
     protected void drawRepeat(int x, int y, int repeatCountX, int repeatCountY) {
         final int w = width;
         final int h = height;
         GL11.glBegin(GL11.GL_QUADS);
-        while(repeatCountY-- > 0) {
+        while (repeatCountY-- > 0) {
             int curX = x;
             int cntX = repeatCountX;
-            while(cntX-- > 0) {
+            while (cntX-- > 0) {
                 drawQuad(curX, y, w, h);
                 curX += w;
             }
@@ -161,14 +161,14 @@ public class TextureArea extends TextureAreaBase implements Image, SupportsDrawR
     }
 
     protected void drawRepeatCached(int x, int y, int repeatCountX, int repeatCountY) {
-        if(repeatCacheID < 0) {
+        if (repeatCacheID < 0) {
             createRepeatCache();
         }
-        
+
         int cacheBlocksX = repeatCountX / REPEAT_CACHE_SIZE;
         int repeatsByCacheX = cacheBlocksX * REPEAT_CACHE_SIZE;
 
-        if(repeatCountX > repeatsByCacheX) {
+        if (repeatCountX > repeatsByCacheX) {
             drawRepeat(x + width * repeatsByCacheX, y,
                     repeatCountX - repeatsByCacheX, repeatCountY);
         }
@@ -178,7 +178,7 @@ public class TextureArea extends TextureAreaBase implements Image, SupportsDrawR
             GL11.glTranslatef(x, y, 0f);
             GL11.glCallList(repeatCacheID);
 
-            for(int i=1 ; i<cacheBlocksX ; i++) {
+            for (int i = 1; i < cacheBlocksX; i++) {
                 GL11.glTranslatef(width * REPEAT_CACHE_SIZE, 0f, 0f);
                 GL11.glCallList(repeatCacheID);
             }
@@ -186,9 +186,9 @@ public class TextureArea extends TextureAreaBase implements Image, SupportsDrawR
             GL11.glPopMatrix();
             repeatCountY -= REPEAT_CACHE_SIZE;
             y += height * REPEAT_CACHE_SIZE;
-        } while(repeatCountY >= REPEAT_CACHE_SIZE);
-        
-        if(repeatCountY > 0) {
+        } while (repeatCountY >= REPEAT_CACHE_SIZE);
+
+        if (repeatCountY > 0) {
             drawRepeat(x, y, repeatsByCacheX, repeatCountY);
         }
     }
@@ -208,11 +208,11 @@ public class TextureArea extends TextureAreaBase implements Image, SupportsDrawR
     }
 
     public Image createTintedVersion(Color color) {
-        if(color == null) {
+        if (color == null) {
             throw new NullPointerException("color");
         }
         Color newTintColor = tintColor.multiply(color);
-        if(newTintColor.equals(tintColor)) {
+        if (newTintColor.equals(tintColor)) {
             return this;
         }
         return new TextureArea(this, newTintColor);

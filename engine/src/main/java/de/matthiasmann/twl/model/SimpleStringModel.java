@@ -31,7 +31,7 @@ package de.matthiasmann.twl.model;
 
 /**
  * A simple string model. Doesn't support null values.
- * 
+ *
  * @author Matthias Mann
  */
 public class SimpleStringModel extends HasCallback implements StringModel {
@@ -43,24 +43,24 @@ public class SimpleStringModel extends HasCallback implements StringModel {
     }
 
     public SimpleStringModel(String value) {
-        if(value == null) {
+        if (value == null) {
             throw new NullPointerException("value");
         }
         this.value = value;
     }
-    
+
     public String getValue() {
         return value;
     }
 
     public void setValue(String value) {
-        if(value == null) {
+        if (value == null) {
             throw new NullPointerException("value");
         }
-        if(!this.value.equals(value)) {
+        if (!this.value.equals(value)) {
             this.value = value;
             doCallback();
         }
     }
-    
+
 }

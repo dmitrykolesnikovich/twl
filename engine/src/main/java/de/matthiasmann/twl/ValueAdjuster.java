@@ -34,12 +34,12 @@ import de.matthiasmann.twl.renderer.AnimationState.StateKey;
 /**
  * Base class for value adjuster widgets.
  * It has a value display/edit widget and 2 buttons.
- *
+ * <p>
  * You can adjust the value via drag&drop on the display
  * or by clicking on the display which will open an edit field
  * or using the +/- buttons
  * or using the left/right keys
- * 
+ *
  * @author Matthias Mann
  */
 public abstract class ValueAdjuster extends Widget {
@@ -48,7 +48,7 @@ public abstract class ValueAdjuster extends Widget {
 
     private static final int INITIAL_DELAY = 300;
     private static final int REPEAT_DELAY = 75;
-    
+
     private final DraggableButton label;
     private final EditField editField;
     private final Button decButton;
@@ -63,14 +63,14 @@ public abstract class ValueAdjuster extends Widget {
     private boolean acceptValueOnFocusLoss = true;
     private boolean wasInEditOnFocusLost;
     private int width;
-    
+
     public ValueAdjuster() {
         this.label = new DraggableButton(getAnimationState(), true);
         // EditField always inherits from the passed animation state
         this.editField = new EditField(getAnimationState());
         this.decButton = new Button(getAnimationState(), true);
         this.incButton = new Button(getAnimationState(), true);
-        
+
         label.setClip(true);
         label.setTheme("valueDisplay");
         editField.setTheme("valueEdit");
@@ -95,10 +95,10 @@ public abstract class ValueAdjuster extends Widget {
         listeners = new L();
         label.addCallback(listeners);
         label.setListener(listeners);
-        
+
         editField.setVisible(false);
         editField.addCallback(listeners);
-        
+
         add(label);
         add(editField);
         add(decButton);
@@ -113,7 +113,7 @@ public abstract class ValueAdjuster extends Widget {
 
     /**
      * Sets the display prefix which is displayed before the value.
-     *
+     * <p>
      * If this is property is null then the value from the theme is used,
      * otherwise this one.
      *
@@ -129,16 +129,12 @@ public abstract class ValueAdjuster extends Widget {
     }
 
     /**
-     * Controls the behavior on focus loss when editing the value.
-     * If true then the value is accepted (like pressing RETURN).
-     * If false then it is discard (like pressing ESCAPE).
-     * 
-     * Default is true.
+     * Controls if the ValueAdjuster should respond to the mouse wheel or not
      *
-     * @param acceptValueOnFocusLoss true if focus loss should accept the edited value.
+     * @param useMouseWheel true if the mouse wheel is used
      */
-    public void setAcceptValueOnFocusLoss(boolean acceptValueOnFocusLoss) {
-        this.acceptValueOnFocusLoss = acceptValueOnFocusLoss;
+    public void setUseMouseWheel(boolean useMouseWheel) {
+        this.useMouseWheel = useMouseWheel;
     }
 
     public boolean isAcceptValueOnFocusLoss() {
@@ -146,12 +142,16 @@ public abstract class ValueAdjuster extends Widget {
     }
 
     /**
-     * Controls if the ValueAdjuster should respond to the mouse wheel or not
+     * Controls the behavior on focus loss when editing the value.
+     * If true then the value is accepted (like pressing RETURN).
+     * If false then it is discard (like pressing ESCAPE).
+     * <p>
+     * Default is true.
      *
-     * @param useMouseWheel true if the mouse wheel is used
+     * @param acceptValueOnFocusLoss true if focus loss should accept the edited value.
      */
-    public void setUseMouseWheel(boolean useMouseWheel) {
-        this.useMouseWheel = useMouseWheel;
+    public void setAcceptValueOnFocusLoss(boolean acceptValueOnFocusLoss) {
+        this.acceptValueOnFocusLoss = acceptValueOnFocusLoss;
     }
 
     @Override
@@ -161,7 +161,7 @@ public abstract class ValueAdjuster extends Widget {
     }
 
     public void startEdit() {
-        if(label.isVisible()) {
+        if (label.isVisible()) {
             editField.setErrorMessage(null);
             editField.setText(onEditStart());
             editField.setVisible(true);
@@ -172,9 +172,9 @@ public abstract class ValueAdjuster extends Widget {
             getAnimationState().setAnimationState(STATE_EDIT_ACTIVE, true);
         }
     }
-    
+
     public void cancelEdit() {
-        if(editField.isVisible()) {
+        if (editField.isVisible()) {
             onEditCanceled();
             label.setVisible(true);
             editField.setVisible(false);
@@ -184,8 +184,8 @@ public abstract class ValueAdjuster extends Widget {
     }
 
     public void cancelOrAcceptEdit() {
-        if(editField.isVisible()) {
-            if(acceptValueOnFocusLoss) {
+        if (editField.isVisible()) {
+            if (acceptValueOnFocusLoss) {
                 onEditEnd(editField.getText());
             }
             cancelEdit();
@@ -209,9 +209,9 @@ public abstract class ValueAdjuster extends Widget {
         int minWidth = super.getMinWidth();
         minWidth = Math.max(minWidth,
                 getBorderHorizontal() +
-                decButton.getMinWidth() +
-                Math.max(width, label.getMinWidth()) +
-                incButton.getMinWidth());
+                        decButton.getMinWidth() +
+                        Math.max(width, label.getMinWidth()) +
+                        incButton.getMinWidth());
         return minWidth;
     }
 
@@ -261,7 +261,7 @@ public abstract class ValueAdjuster extends Widget {
     @Override
     public void setVisible(boolean visible) {
         super.setVisible(visible);
-        if(!visible) {
+        if (!visible) {
             cancelEdit();
         }
     }
@@ -286,7 +286,7 @@ public abstract class ValueAdjuster extends Widget {
         editField.setSize(labelWidth, height);
         editField.setPosition(labelX, y);
     }
-    
+
     protected void setDisplayText() {
         String prefix = (displayPrefix != null) ? displayPrefix : displayPrefixTheme;
         label.setText(prefix.concat(formatText()));
@@ -295,12 +295,12 @@ public abstract class ValueAdjuster extends Widget {
     protected abstract String formatText();
 
     void checkStartEditOnFocusGained(FocusGainedCause cause, Widget previousWidget) {
-        if(cause == FocusGainedCause.FOCUS_KEY) {
-            if(previousWidget != null && !(previousWidget instanceof ValueAdjuster)) {
+        if (cause == FocusGainedCause.FOCUS_KEY) {
+            if (previousWidget != null && !(previousWidget instanceof ValueAdjuster)) {
                 previousWidget = previousWidget.getParent();
             }
-            if(previousWidget != this && (previousWidget instanceof ValueAdjuster)) {
-                if(((ValueAdjuster)previousWidget).wasInEditOnFocusLost) {
+            if (previousWidget != this && (previousWidget instanceof ValueAdjuster)) {
+                if (((ValueAdjuster) previousWidget).wasInEditOnFocusLost) {
                     startEdit();
                 }
             }
@@ -309,19 +309,19 @@ public abstract class ValueAdjuster extends Widget {
 
     void onTimer(int nextDelay) {
         timer.setDelay(nextDelay);
-        if(incButton.getModel().isArmed()) {
+        if (incButton.getModel().isArmed()) {
             cancelEdit();
             doIncrement();
-        } else if(decButton.getModel().isArmed()) {
+        } else if (decButton.getModel().isArmed()) {
             cancelEdit();
             doDecrement();
         }
     }
 
     void updateTimer() {
-        if(timer != null) {
-            if(incButton.getModel().isArmed() || decButton.getModel().isArmed()) {
-                if(!timer.isRunning()) {
+        if (timer != null) {
+            if (incButton.getModel().isArmed() || decButton.getModel().isArmed()) {
+                if (!timer.isRunning()) {
                     onTimer(INITIAL_DELAY);
                     timer.start();
                 }
@@ -342,7 +342,7 @@ public abstract class ValueAdjuster extends Widget {
     @Override
     protected void beforeRemoveFromGUI(GUI gui) {
         super.beforeRemoveFromGUI(gui);
-        if(timer != null) {
+        if (timer != null) {
             timer.stop();
         }
         timer = null;
@@ -350,81 +350,90 @@ public abstract class ValueAdjuster extends Widget {
 
     @Override
     protected boolean handleEvent(Event evt) {
-        if(evt.isKeyEvent()) {
-            if(evt.isKeyPressedEvent() && evt.getKeyCode() == Event.KEY_ESCAPE && listeners.dragActive) {
+        if (evt.isKeyEvent()) {
+            if (evt.isKeyPressedEvent() && evt.getKeyCode() == Event.KEY_ESCAPE && listeners.dragActive) {
                 listeners.dragActive = false;
                 onDragCancelled();
                 return true;
             }
-            if(!editField.isVisible()) {
-                switch(evt.getType()) {
-                case KEY_PRESSED:
-                    switch(evt.getKeyCode()) {
-                    case Event.KEY_RIGHT:
-                        doIncrement();
-                        return true;
-                    case Event.KEY_LEFT:
-                        doDecrement();
-                        return true;
-                    case Event.KEY_RETURN:
-                    case Event.KEY_SPACE:
-                        startEdit();
-                        return true;
-                    default:
-                        if(evt.hasKeyCharNoModifiers() && shouldStartEdit(evt.getKeyChar())) {
-                            startEdit();
-                            editField.handleEvent(evt);
-                            return true;
+            if (!editField.isVisible()) {
+                switch (evt.getType()) {
+                    case KEY_PRESSED:
+                        switch (evt.getKeyCode()) {
+                            case Event.KEY_RIGHT:
+                                doIncrement();
+                                return true;
+                            case Event.KEY_LEFT:
+                                doDecrement();
+                                return true;
+                            case Event.KEY_RETURN:
+                            case Event.KEY_SPACE:
+                                startEdit();
+                                return true;
+                            default:
+                                if (evt.hasKeyCharNoModifiers() && shouldStartEdit(evt.getKeyChar())) {
+                                    startEdit();
+                                    editField.handleEvent(evt);
+                                    return true;
+                                }
                         }
-                    }
                 }
                 return false;
             }
-        } else if(!editField.isVisible() && useMouseWheel && evt.getType() == Event.Type.MOUSE_WHEEL) {
-            if(evt.getMouseWheelDelta() < 0) {
+        } else if (!editField.isVisible() && useMouseWheel && evt.getType() == Event.Type.MOUSE_WHEEL) {
+            if (evt.getMouseWheelDelta() < 0) {
                 doDecrement();
-            } else if(evt.getMouseWheelDelta() > 0) {
+            } else if (evt.getMouseWheelDelta() > 0) {
                 doIncrement();
             }
             return true;
         }
         return super.handleEvent(evt);
     }
-    
-    protected abstract String onEditStart();
-    protected abstract boolean onEditEnd(String text);
-    protected abstract String validateEdit(String text);
-    protected abstract void onEditCanceled();
-    protected abstract boolean shouldStartEdit(char ch);
-    
-    protected abstract void onDragStart();
-    protected abstract void onDragUpdate(int dragDelta);
-    protected abstract void onDragCancelled();
-    protected void onDragEnd() {}
-    
-    protected abstract void doDecrement();
-    protected abstract void doIncrement();
-    
-    void handleEditCallback(int key) {
-        switch(key) {
-        case Event.KEY_RETURN:
-            if(onEditEnd(editField.getText())) {
-                label.setVisible(true);
-                editField.setVisible(false);
-            }
-            break;
 
-        case Event.KEY_ESCAPE:
-            cancelEdit();
-            break;
-            
-        default:
-            editField.setErrorMessage(validateEdit(editField.getText()));
+    protected abstract String onEditStart();
+
+    protected abstract boolean onEditEnd(String text);
+
+    protected abstract String validateEdit(String text);
+
+    protected abstract void onEditCanceled();
+
+    protected abstract boolean shouldStartEdit(char ch);
+
+    protected abstract void onDragStart();
+
+    protected abstract void onDragUpdate(int dragDelta);
+
+    protected abstract void onDragCancelled();
+
+    protected void onDragEnd() {
+    }
+
+    protected abstract void doDecrement();
+
+    protected abstract void doIncrement();
+
+    void handleEditCallback(int key) {
+        switch (key) {
+            case Event.KEY_RETURN:
+                if (onEditEnd(editField.getText())) {
+                    label.setVisible(true);
+                    editField.setVisible(false);
+                }
+                break;
+
+            case Event.KEY_ESCAPE:
+                cancelEdit();
+                break;
+
+            default:
+                editField.setErrorMessage(validateEdit(editField.getText()));
         }
     }
-    
+
     protected abstract void syncWithModel();
-    
+
     class ModelCallback implements Runnable {
         public void run() {
             syncWithModel();
@@ -433,22 +442,27 @@ public abstract class ValueAdjuster extends Widget {
 
     class L implements Runnable, DraggableButton.DragListener, EditField.Callback {
         boolean dragActive;
+
         public void run() {
             startEdit();
         }
+
         public void dragStarted() {
             dragActive = true;
             onDragStart();
         }
+
         public void dragged(int deltaX, int deltaY) {
-            if(dragActive) {
+            if (dragActive) {
                 onDragUpdate(deltaX);
             }
         }
+
         public void dragStopped() {
             dragActive = false;
             onDragEnd();
         }
+
         public void callback(int key) {
             handleEditCallback(key);
         }

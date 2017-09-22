@@ -33,7 +33,6 @@ package de.matthiasmann.twl.model;
  * A simple implementation of a property
  *
  * @param <T> the type of the property value
- *
  * @author Matthias Mann
  */
 public class SimpleProperty<T> extends AbstractProperty<T> {
@@ -77,18 +76,18 @@ public class SimpleProperty<T> extends AbstractProperty<T> {
     /**
      * Changes the property value. It calls {@code valueChanged} to determine if
      * the value has really changed and if so updates the value and calls the callbacks.
-     * 
+     *
      * @param value the new value for the property
      * @throws IllegalArgumentException is not thrown but part of the Property interface
-     * @throws NullPointerException if value is null and canBeNull returned false
+     * @throws NullPointerException     if value is null and canBeNull returned false
      * @see #canBeNull()
-     * @see #valueChanged(java.lang.Object) 
+     * @see #valueChanged(java.lang.Object)
      */
     public void setPropertyValue(T value) throws IllegalArgumentException {
-        if(value == null && !canBeNull()) {
+        if (value == null && !canBeNull()) {
             throw new NullPointerException("value");
         }
-        if(valueChanged(value)) {
+        if (valueChanged(value)) {
             this.value = value;
             fireValueChangedCallback();
         }
@@ -100,9 +99,9 @@ public class SimpleProperty<T> extends AbstractProperty<T> {
 
     /**
      * This method is used by setPropertyValue to check if the callback should be fired or not
-     *
+     * <p>
      * The default implementation calls equals on the current value.
-     * 
+     *
      * @param newValue the new value passed to setPropertyValue
      * @return true if the value has changed and the callback should be fired
      */

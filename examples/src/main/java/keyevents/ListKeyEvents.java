@@ -44,10 +44,27 @@ import org.lwjgl.opengl.GL11;
 import test.TestUtils;
 
 /**
- *
  * @author Matthias Mann
  */
 public class ListKeyEvents extends Container {
+
+    private final StringBuilder sb;
+    private final SimpleTextAreaModel textAreaModel;
+    private final TextArea textArea;
+    private final ScrollPane scrollPane;
+    public boolean quit;
+
+    public ListKeyEvents() {
+        sb = new StringBuilder();
+        sb.append("Press any key - the keyboard events are displayed below\n");
+
+        textAreaModel = new SimpleTextAreaModel(sb.toString());
+        textArea = new TextArea(textAreaModel);
+        scrollPane = new ScrollPane(textArea);
+        scrollPane.setFixed(Fixed.HORIZONTAL);
+
+        add(scrollPane);
+    }
 
     public static void main(String[] args) {
         try {
@@ -64,7 +81,7 @@ public class ListKeyEvents extends Container {
                     ListKeyEvents.class.getResource("ListKeyEvents.xml"), renderer);
             gui.applyTheme(theme);
 
-            while(!Display.isCloseRequested() && !demo.quit) {
+            while (!Display.isCloseRequested() && !demo.quit) {
                 GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
 
                 demo.listKeyEvents();
@@ -80,35 +97,16 @@ public class ListKeyEvents extends Container {
         Display.destroy();
     }
 
-    private final StringBuilder sb;
-    private final SimpleTextAreaModel textAreaModel;
-    private final TextArea textArea;
-    private final ScrollPane scrollPane;
-
-    public boolean quit;
-
-    public ListKeyEvents() {
-        sb = new StringBuilder();
-        sb.append("Press any key - the keyboard events are displayed below\n");
-        
-        textAreaModel = new SimpleTextAreaModel(sb.toString());
-        textArea = new TextArea(textAreaModel);
-        scrollPane = new ScrollPane(textArea);
-        scrollPane.setFixed(Fixed.HORIZONTAL);
-        
-        add(scrollPane);
-    }
-    
     public void listKeyEvents() {
         boolean hadEvents = false;
-        while(Keyboard.next()) {
-            if(Keyboard.getEventCharacter() != Keyboard.CHAR_NONE) {
+        while (Keyboard.next()) {
+            if (Keyboard.getEventCharacter() != Keyboard.CHAR_NONE) {
                 sb.append(String.format("%s %s (code %d) char %c (%d)\n",
                         Keyboard.getEventKeyState() ? "PRESSED " : "RELEASED",
                         Keyboard.getKeyName(Keyboard.getEventKey()),
                         Keyboard.getEventKey(),
                         Keyboard.getEventCharacter(),
-                        (int)Keyboard.getEventCharacter()));
+                        (int) Keyboard.getEventCharacter()));
             } else {
                 sb.append(String.format("%s %s (code %d)\n",
                         Keyboard.getEventKeyState() ? "PRESSED " : "RELEASED",
@@ -117,14 +115,14 @@ public class ListKeyEvents extends Container {
             }
             hadEvents = true;
         }
-        if(hadEvents) {
+        if (hadEvents) {
             boolean atEnd = scrollPane.getScrollPositionY() == scrollPane.getMaxScrollPosY();
             textAreaModel.setText(sb.toString());
-            if(atEnd) {
+            if (atEnd) {
                 scrollPane.validateLayout();
                 scrollPane.setScrollPositionY(scrollPane.getMaxScrollPosY());
             }
         }
     }
-    
+
 }

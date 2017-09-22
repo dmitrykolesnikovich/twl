@@ -31,7 +31,7 @@ package de.matthiasmann.twl.model;
 
 /**
  * A simple date model
- * 
+ *
  * @author Matthias Mann
  */
 public class SimpleDateModel extends HasCallback implements DateModel {
@@ -40,7 +40,8 @@ public class SimpleDateModel extends HasCallback implements DateModel {
 
     /**
      * Initializes the date to the current system date
-     * @see System#currentTimeMillis() 
+     *
+     * @see System#currentTimeMillis()
      */
     public SimpleDateModel() {
         this.date = System.currentTimeMillis();
@@ -49,13 +50,13 @@ public class SimpleDateModel extends HasCallback implements DateModel {
     public SimpleDateModel(long date) {
         this.date = date;
     }
-    
+
     public long getValue() {
         return date;
     }
 
     public void setValue(long date) {
-        if(this.date != date) {
+        if (this.date != date) {
             this.date = date;
             doCallback();
         }

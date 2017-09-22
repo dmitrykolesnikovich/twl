@@ -34,7 +34,7 @@ import org.lwjgl.opengl.GL11;
 
 /**
  * A helper class to implement tinting.
- * 
+ *
  * @author Matthias Mann
  */
 public class TintStack {
@@ -43,7 +43,7 @@ public class TintStack {
 
     final TintStack prev;
     TintStack next;
-    float r,g,b,a;
+    float r, g, b, a;
 
     @SuppressWarnings("LeakingThisInConstructor")
     public TintStack() {
@@ -57,9 +57,9 @@ public class TintStack {
     private TintStack(TintStack prev) {
         this.prev = prev;
     }
-    
+
     public TintStack pushReset() {
-        if(next == null) {
+        if (next == null) {
             next = new TintStack(this);
         }
         next.r = ONE_OVER_255;
@@ -68,9 +68,9 @@ public class TintStack {
         next.a = ONE_OVER_255;
         return next;
     }
-    
+
     public TintStack push(float r, float g, float b, float a) {
-        if(next == null) {
+        if (next == null) {
             next = new TintStack(this);
         }
         next.r = this.r * r;
@@ -79,7 +79,7 @@ public class TintStack {
         next.a = this.a * a;
         return next;
     }
-    
+
     public TintStack push(Color color) {
         return push(
                 color.getRedFloat(),
@@ -87,7 +87,7 @@ public class TintStack {
                 color.getBlueFloat(),
                 color.getAlphaFloat());
     }
-    
+
     public TintStack pop() {
         return prev;
     }
@@ -115,12 +115,12 @@ public class TintStack {
      */
     public void setColor(Color color) {
         GL11.glColor4f(
-                r*color.getRed(),
-                g*color.getGreen(),
-                b*color.getBlue(),
-                a*color.getAlpha());
+                r * color.getRed(),
+                g * color.getGreen(),
+                b * color.getBlue(),
+                a * color.getAlpha());
     }
-    
+
     /**
      * GL11.glColor4f(color * tint);
      *

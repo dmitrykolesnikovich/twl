@@ -43,7 +43,7 @@ import org.lwjgl.opengl.GL11;
 public class TextureAreaRotated implements Image {
 
     protected static final int REPEAT_CACHE_SIZE = 10;
-    
+
     private final LWJGLTexture texture;
     private final Color tintColor;
     private final float txTL;
@@ -58,42 +58,42 @@ public class TextureAreaRotated implements Image {
     private final char height;
     private final boolean tiled;
     protected int repeatCacheID = -1;
-    
+
     public TextureAreaRotated(LWJGLTexture texture, int x, int y, int width, int height,
-            Color tintColor, boolean tiled, Texture.Rotation rotation) {
+                              Color tintColor, boolean tiled, Texture.Rotation rotation) {
         // negative size allows for flipping
-        if(rotation == Texture.Rotation.CLOCKWISE_90 || rotation == Texture.Rotation.CLOCKWISE_270) {
-            this.width = (char)Math.abs(height);
-            this.height = (char)Math.abs(width);
+        if (rotation == Texture.Rotation.CLOCKWISE_90 || rotation == Texture.Rotation.CLOCKWISE_270) {
+            this.width = (char) Math.abs(height);
+            this.height = (char) Math.abs(width);
         } else {
-            this.width = (char)Math.abs(width);
-            this.height = (char)Math.abs(height);
+            this.width = (char) Math.abs(width);
+            this.height = (char) Math.abs(height);
         }
-        
+
         float fx = x;
         float fy = y;
-        if(width == 1) {
+        if (width == 1) {
             fx += 0.5f;
             width = 0;
-        } else if(width < -1) {
+        } else if (width < -1) {
             fx -= width + 1;
         }
-        if(height == 1) {
+        if (height == 1) {
             fy += 0.5f;
             height = 0;
-        } else if(height < -1) {
+        } else if (height < -1) {
             fy -= height + 1;
         }
-        
+
         float texWidth = texture.getTexWidth();
         float texHeight = texture.getTexHeight();
-        
+
         float tx0 = fx / texWidth;
         float ty0 = fy / texHeight;
         float tx1 = tx0 + (width / texWidth);
         float ty1 = ty0 + (height / texHeight);
-        
-        switch(rotation) {
+
+        switch (rotation) {
             default:
                 txTL = txBL = tx0;
                 txTR = txBR = tx1;
@@ -101,22 +101,34 @@ public class TextureAreaRotated implements Image {
                 tyBL = tyBR = ty1;
                 break;
             case CLOCKWISE_90:
-                txTL = tx0; tyTL = ty1;
-                txTR = tx0; tyTR = ty0;
-                txBL = tx1; tyBL = ty1;
-                txBR = tx1; tyBR = ty0;
+                txTL = tx0;
+                tyTL = ty1;
+                txTR = tx0;
+                tyTR = ty0;
+                txBL = tx1;
+                tyBL = ty1;
+                txBR = tx1;
+                tyBR = ty0;
                 break;
             case CLOCKWISE_180:
-                txTL = tx1; tyTL = ty1;
-                txTR = tx0; tyTR = ty1;
-                txBL = tx1; tyBL = ty0;
-                txBR = tx0; tyBR = ty0;
+                txTL = tx1;
+                tyTL = ty1;
+                txTR = tx0;
+                tyTR = ty1;
+                txBL = tx1;
+                tyBL = ty0;
+                txBR = tx0;
+                tyBR = ty0;
                 break;
             case CLOCKWISE_270:
-                txTL = tx1; tyTL = ty0;
-                txTR = tx1; tyTR = ty1;
-                txBL = tx0; tyBL = ty0;
-                txBR = tx0; tyBR = ty1;
+                txTL = tx1;
+                tyTL = ty0;
+                txTR = tx1;
+                tyTR = ty1;
+                txBL = tx0;
+                tyBL = ty0;
+                txBR = tx0;
+                tyBR = ty1;
                 break;
         }
         this.texture = texture;
@@ -153,8 +165,8 @@ public class TextureAreaRotated implements Image {
     }
 
     public void draw(AnimationState as, int x, int y, int w, int h) {
-        if(texture.bind(tintColor)) {
-            if(tiled) {
+        if (texture.bind(tintColor)) {
+            if (tiled) {
                 drawTiled(x, y, w, h);
             } else {
                 GL11.glBegin(GL11.GL_QUADS);
@@ -163,15 +175,15 @@ public class TextureAreaRotated implements Image {
             }
         }
     }
-    
+
     private void drawRepeat(int x, int y, int repeatCountX, int repeatCountY) {
         GL11.glBegin(GL11.GL_QUADS);
         final int w = width;
         final int h = height;
-        while(repeatCountY-- > 0) {
+        while (repeatCountY-- > 0) {
             int curX = x;
             int cntX = repeatCountX;
-            while(cntX-- > 0) {
+            while (cntX-- > 0) {
                 drawQuad(curX, y, w, h);
                 curX += w;
             }
@@ -179,12 +191,12 @@ public class TextureAreaRotated implements Image {
         }
         GL11.glEnd();
     }
-    
+
     private void drawTiled(int x, int y, int w, int h) {
         int repeatCountX = w / this.width;
         int repeatCountY = h / this.height;
 
-        if(repeatCountX < REPEAT_CACHE_SIZE || repeatCountY < REPEAT_CACHE_SIZE) {
+        if (repeatCountX < REPEAT_CACHE_SIZE || repeatCountY < REPEAT_CACHE_SIZE) {
             drawRepeat(x, y, repeatCountX, repeatCountY);
         } else {
             drawRepeatCached(x, y, repeatCountX, repeatCountY);
@@ -194,33 +206,33 @@ public class TextureAreaRotated implements Image {
         int drawnY = repeatCountY * this.height;
         int restWidth = w - drawnX;
         int restHeight = h - drawnY;
-        if(restWidth > 0 || restHeight > 0) {
+        if (restWidth > 0 || restHeight > 0) {
             GL11.glBegin(GL11.GL_QUADS);
-            if(restWidth > 0 && repeatCountY > 0) {
+            if (restWidth > 0 && repeatCountY > 0) {
                 drawClipped(x + drawnX, y, restWidth, this.height, 1, repeatCountY);
             }
-            if(restHeight > 0) {
-                if(repeatCountX > 0) {
+            if (restHeight > 0) {
+                if (repeatCountX > 0) {
                     drawClipped(x, y + drawnY, this.width, restHeight, repeatCountX, 1);
                 }
-                if(restWidth > 0) {
+                if (restWidth > 0) {
                     drawClipped(x + drawnX, y + drawnY, restWidth, restHeight, 1, 1);
                 }
             }
             GL11.glEnd();
         }
     }
-    
+
 
     protected void drawRepeatCached(int x, int y, int repeatCountX, int repeatCountY) {
-        if(repeatCacheID < 0) {
+        if (repeatCacheID < 0) {
             createRepeatCache();
         }
-        
+
         int cacheBlocksX = repeatCountX / REPEAT_CACHE_SIZE;
         int repeatsByCacheX = cacheBlocksX * REPEAT_CACHE_SIZE;
 
-        if(repeatCountX > repeatsByCacheX) {
+        if (repeatCountX > repeatsByCacheX) {
             drawRepeat(x + width * repeatsByCacheX, y,
                     repeatCountX - repeatsByCacheX, repeatCountY);
         }
@@ -230,7 +242,7 @@ public class TextureAreaRotated implements Image {
             GL11.glTranslatef(x, y, 0f);
             GL11.glCallList(repeatCacheID);
 
-            for(int i=1 ; i<cacheBlocksX ; i++) {
+            for (int i = 1; i < cacheBlocksX; i++) {
                 GL11.glTranslatef(width * REPEAT_CACHE_SIZE, 0f, 0f);
                 GL11.glCallList(repeatCacheID);
             }
@@ -238,9 +250,9 @@ public class TextureAreaRotated implements Image {
             GL11.glPopMatrix();
             repeatCountY -= REPEAT_CACHE_SIZE;
             y += height * REPEAT_CACHE_SIZE;
-        } while(repeatCountY >= REPEAT_CACHE_SIZE);
-        
-        if(repeatCountY > 0) {
+        } while (repeatCountY >= REPEAT_CACHE_SIZE);
+
+        if (repeatCountY > 0) {
             drawRepeat(x, y, repeatsByCacheX, repeatCountY);
         }
     }
@@ -254,31 +266,35 @@ public class TextureAreaRotated implements Image {
         float ctyBL = tyBL;
         float ctxBR = txBR;
         float ctyBR = tyBR;
-        
-        if(this.width > 1) {
-            float f = width / (float)this.width;
+
+        if (this.width > 1) {
+            float f = width / (float) this.width;
             ctxTR = ctxTL + (ctxTR - ctxTL) * f;
             ctyTR = ctyTL + (ctyTR - ctyTL) * f;
             ctxBR = ctxBL + (ctxBR - ctxBL) * f;
             ctyBR = ctyBL + (ctyBR - ctyBL) * f;
         }
-        if(this.height > 1) {
-            float f = height / (float)this.height;
+        if (this.height > 1) {
+            float f = height / (float) this.height;
             ctxBL = ctxTL + (ctxBL - ctxTL) * f;
             ctyBL = ctyTL + (ctyBL - ctyTL) * f;
             ctxBR = ctxTR + (ctxBR - ctxTR) * f;
             ctyBR = ctyTR + (ctyBR - ctyTR) * f;
         }
 
-        while(repeatCountY-- > 0) {
+        while (repeatCountY-- > 0) {
             int y1 = y + height;
             int x0 = x;
-            for(int cx=repeatCountX ; cx-- > 0 ;) {
+            for (int cx = repeatCountX; cx-- > 0; ) {
                 int x1 = x0 + width;
-                GL11.glTexCoord2f(ctxTL, ctyTL); GL11.glVertex2i(x0, y );
-                GL11.glTexCoord2f(ctxBL, ctyBL); GL11.glVertex2i(x0, y1);
-                GL11.glTexCoord2f(ctxBR, ctyBR); GL11.glVertex2i(x1, y1);
-                GL11.glTexCoord2f(ctxTR, ctyTR); GL11.glVertex2i(x1, y );
+                GL11.glTexCoord2f(ctxTL, ctyTL);
+                GL11.glVertex2i(x0, y);
+                GL11.glTexCoord2f(ctxBL, ctyBL);
+                GL11.glVertex2i(x0, y1);
+                GL11.glTexCoord2f(ctxBR, ctyBR);
+                GL11.glVertex2i(x1, y1);
+                GL11.glTexCoord2f(ctxTR, ctyTR);
+                GL11.glVertex2i(x1, y);
                 x0 = x1;
             }
             y = y1;
@@ -286,10 +302,14 @@ public class TextureAreaRotated implements Image {
     }
 
     private void drawQuad(int x, int y, int w, int h) {
-        GL11.glTexCoord2f(txTL, tyTL); GL11.glVertex2i(x    , y    );
-        GL11.glTexCoord2f(txBL, tyBL); GL11.glVertex2i(x    , y + h);
-        GL11.glTexCoord2f(txBR, tyBR); GL11.glVertex2i(x + w, y + h);
-        GL11.glTexCoord2f(txTR, tyTR); GL11.glVertex2i(x + w, y    );
+        GL11.glTexCoord2f(txTL, tyTL);
+        GL11.glVertex2i(x, y);
+        GL11.glTexCoord2f(txBL, tyBL);
+        GL11.glVertex2i(x, y + h);
+        GL11.glTexCoord2f(txBR, tyBR);
+        GL11.glVertex2i(x + w, y + h);
+        GL11.glTexCoord2f(txTR, tyTR);
+        GL11.glVertex2i(x + w, y);
     }
 
     private void createRepeatCache() {
@@ -305,13 +325,13 @@ public class TextureAreaRotated implements Image {
         GL11.glDeleteLists(repeatCacheID, 1);
         repeatCacheID = -1;
     }
-    
+
     public Image createTintedVersion(Color color) {
-        if(color == null) {
+        if (color == null) {
             throw new NullPointerException("color");
         }
         Color newTintColor = tintColor.multiply(color);
-        if(newTintColor.equals(tintColor)) {
+        if (newTintColor.equals(tintColor)) {
             return this;
         }
         return new TextureAreaRotated(this, newTintColor);

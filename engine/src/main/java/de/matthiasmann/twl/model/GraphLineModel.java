@@ -31,14 +31,15 @@ package de.matthiasmann.twl.model;
 
 /**
  * A generic line model for a graph.
- * 
+ *
  * @author Matthias Mann
  */
 public interface GraphLineModel {
-    
+
     /**
      * Returns the name of the visual style.
      * The style will be looked up in the theme data of the graph widget.
+     *
      * @return the name of the visual style.
      */
     public String getVisualStyleName();
@@ -46,12 +47,14 @@ public interface GraphLineModel {
     /**
      * Returns the number of points on the lines.
      * A line is only drawn if atleast one point is available.
+     *
      * @return the number of points on the lines
      */
     public int getNumPoints();
 
     /**
      * Returns the value of the desired point.
+     *
      * @param idx The index of the point. Will be &gt;= 0 and &lt; getNumPoints()
      * @return the value of the desired point.
      * @see #getNumPoints()
@@ -60,12 +63,14 @@ public interface GraphLineModel {
 
     /**
      * Returns the smallest value which should be used to scale the graph.
+     *
      * @return the smallest value which should be used to scale the graph
      */
     public float getMinValue();
 
     /**
      * Returns the largest value which should be used to scale the graph.
+     *
      * @return the largest value which should be used to scale the graph
      */
     public float getMaxValue();

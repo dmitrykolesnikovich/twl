@@ -32,7 +32,6 @@ package de.matthiasmann.twl.model;
 import java.util.prefs.Preferences;
 
 /**
- *
  * @author Matthias Mann
  */
 public class PersistentIntegerModel extends AbstractIntegerModel {
@@ -43,15 +42,15 @@ public class PersistentIntegerModel extends AbstractIntegerModel {
     private final int maxValue;
 
     private int value;
-    
+
     public PersistentIntegerModel(Preferences prefs, String prefKey, int minValue, int maxValue, int defaultValue) {
-        if(maxValue < minValue) {
+        if (maxValue < minValue) {
             throw new IllegalArgumentException("maxValue < minValue");
         }
-        if(prefs == null) {
+        if (prefs == null) {
             throw new NullPointerException("prefs");
         }
-        if(prefKey == null) {
+        if (prefKey == null) {
             throw new NullPointerException("prefKey");
         }
         this.prefs = prefs;
@@ -62,7 +61,7 @@ public class PersistentIntegerModel extends AbstractIntegerModel {
     }
 
     public PersistentIntegerModel(int minValue, int maxValue, int value) {
-        if(maxValue < minValue) {
+        if (maxValue < minValue) {
             throw new IllegalArgumentException("maxValue < minValue");
         }
         this.prefs = null;
@@ -76,6 +75,19 @@ public class PersistentIntegerModel extends AbstractIntegerModel {
         return value;
     }
 
+    public void setValue(int value) {
+        if (value > maxValue) {
+            value = maxValue;
+        } else if (value < minValue) {
+            value = minValue;
+        }
+        if (this.value != value) {
+            this.value = value;
+            storeSetting();
+            doCallback();
+        }
+    }
+
     public int getMinValue() {
         return minValue;
     }
@@ -84,23 +96,10 @@ public class PersistentIntegerModel extends AbstractIntegerModel {
         return maxValue;
     }
 
-    public void setValue(int value) {
-        if(value > maxValue) {
-            value = maxValue;
-        } else if(value < minValue) {
-            value = minValue;
-        }
-        if(this.value != value) {
-            this.value = value;
-            storeSetting();
-            doCallback();
-        }
-    }
-
     private void storeSetting() {
-        if(prefs != null) {
+        if (prefs != null) {
             prefs.putInt(prefKey, value);
         }
     }
-    
+
 }

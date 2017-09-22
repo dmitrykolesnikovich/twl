@@ -37,28 +37,42 @@ import de.matthiasmann.twl.renderer.Font;
 import de.matthiasmann.twl.renderer.Image;
 import de.matthiasmann.twl.renderer.MouseCursor;
 import de.matthiasmann.twl.utils.CascadedHashMap;
+
 import java.util.Map;
 
 /**
- *
  * @author Matthias Mann
  */
 class ParameterMapImpl extends ThemeChildImpl implements ParameterMap {
-    
+
+    private static final Class<?> BASE_CLASSES[] = {
+            Image.class,
+            Font.class,
+            MouseCursor.class
+    };
     private final CascadedHashMap<String, Object> params;
 
     ParameterMapImpl(ThemeManager manager, ThemeInfoImpl parent) {
         super(manager, parent);
         this.params = new CascadedHashMap<String, Object>();
     }
-    
+
+    private static boolean areTypesCompatible(Class<?> classA, Class<?> classB) {
+        for (Class<?> clazz : BASE_CLASSES) {
+            if (clazz.isAssignableFrom(classA) && clazz.isAssignableFrom(classB)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     void copy(ParameterMapImpl src) {
         params.collapseAndSetFallback(src.params);
     }
 
     public Font getFont(String name) {
         Font value = getParameterValue(name, true, Font.class);
-        if(value != null) {
+        if (value != null) {
             return value;
         }
         return manager.getDefaultFont();
@@ -66,7 +80,7 @@ class ParameterMapImpl extends ThemeChildImpl implements ParameterMap {
 
     public Image getImage(String name) {
         Image img = getParameterValue(name, true, Image.class);
-        if(img == ImageManager.NONE) {
+        if (img == ImageManager.NONE) {
             return null;
         }
         return img;
@@ -79,7 +93,7 @@ class ParameterMapImpl extends ThemeChildImpl implements ParameterMap {
 
     public ParameterMap getParameterMap(String name) {
         ParameterMap value = getParameterValue(name, true, ParameterMap.class);
-        if(value == null) {
+        if (value == null) {
             return manager.emptyMap;
         }
         return value;
@@ -87,7 +101,7 @@ class ParameterMapImpl extends ThemeChildImpl implements ParameterMap {
 
     public ParameterList getParameterList(String name) {
         ParameterList value = getParameterValue(name, true, ParameterList.class);
-        if(value == null) {
+        if (value == null) {
             return manager.emptyList;
         }
         return value;
@@ -95,7 +109,7 @@ class ParameterMapImpl extends ThemeChildImpl implements ParameterMap {
 
     public boolean getParameter(String name, boolean defaultValue) {
         Boolean value = getParameterValue(name, true, Boolean.class);
-        if(value != null) {
+        if (value != null) {
             return value.booleanValue();
         }
         return defaultValue;
@@ -103,7 +117,7 @@ class ParameterMapImpl extends ThemeChildImpl implements ParameterMap {
 
     public int getParameter(String name, int defaultValue) {
         Integer value = getParameterValue(name, true, Integer.class);
-        if(value != null) {
+        if (value != null) {
             return value.intValue();
         }
         return defaultValue;
@@ -111,7 +125,7 @@ class ParameterMapImpl extends ThemeChildImpl implements ParameterMap {
 
     public float getParameter(String name, float defaultValue) {
         Float value = getParameterValue(name, true, Float.class);
-        if(value != null) {
+        if (value != null) {
             return value.floatValue();
         }
         return defaultValue;
@@ -119,7 +133,7 @@ class ParameterMapImpl extends ThemeChildImpl implements ParameterMap {
 
     public String getParameter(String name, String defaultValue) {
         String value = getParameterValue(name, true, String.class);
-        if(value != null) {
+        if (value != null) {
             return value;
         }
         return defaultValue;
@@ -127,7 +141,7 @@ class ParameterMapImpl extends ThemeChildImpl implements ParameterMap {
 
     public Color getParameter(String name, Color defaultValue) {
         Color value = getParameterValue(name, true, Color.class);
-        if(value != null) {
+        if (value != null) {
             return value;
         }
         return defaultValue;
@@ -136,7 +150,7 @@ class ParameterMapImpl extends ThemeChildImpl implements ParameterMap {
     public <E extends Enum<E>> E getParameter(String name, E defaultValue) {
         Class<E> enumType = defaultValue.getDeclaringClass();
         E value = getParameterValue(name, true, enumType);
-        if(value != null) {
+        if (value != null) {
             return value;
         }
         return defaultValue;
@@ -144,7 +158,7 @@ class ParameterMapImpl extends ThemeChildImpl implements ParameterMap {
 
     public Object getParameterValue(String name, boolean warnIfNotPresent) {
         Object value = params.get(name);
-        if(value == null && warnIfNotPresent) {
+        if (value == null && warnIfNotPresent) {
             missingParameter(name, null);
         }
         return value;
@@ -156,18 +170,17 @@ class ParameterMapImpl extends ThemeChildImpl implements ParameterMap {
 
     public <T> T getParameterValue(String name, boolean warnIfNotPresent, Class<T> clazz, T defaultValue) {
         Object value = params.get(name);
-        if(value == null && warnIfNotPresent) {
+        if (value == null && warnIfNotPresent) {
             missingParameter(name, clazz);
         }
-        if(!clazz.isInstance(value)) {
-            if(value != null) {
+        if (!clazz.isInstance(value)) {
+            if (value != null) {
                 wrongParameterType(name, clazz, value.getClass());
             }
             return defaultValue;
         }
         return clazz.cast(value);
     }
-
 
     protected void wrongParameterType(String paramName, Class<?> expectedType, Class<?> foundType) {
         DebugHook.getDebugHook().wrongParameterType(this, paramName, expectedType, foundType, getParentDescription());
@@ -176,7 +189,7 @@ class ParameterMapImpl extends ThemeChildImpl implements ParameterMap {
     protected void missingParameter(String paramName, Class<?> dataType) {
         DebugHook.getDebugHook().missingParameter(this, paramName, getParentDescription(), dataType);
     }
-    
+
     protected void replacingWithDifferentType(String paramName, Class<?> oldType, Class<?> newType) {
         DebugHook.getDebugHook().replacingWithDifferentType(this, paramName, oldType, newType, getParentDescription());
     }
@@ -184,37 +197,22 @@ class ParameterMapImpl extends ThemeChildImpl implements ParameterMap {
     Object getParam(String name) {
         return params.get(name);
     }
-    
+
     void put(Map<String, ?> params) {
-        for(Map.Entry<String, ?> e : params.entrySet()) {
+        for (Map.Entry<String, ?> e : params.entrySet()) {
             put(e.getKey(), e.getValue());
         }
     }
-    
+
     void put(String paramName, Object value) {
         Object old = params.put(paramName, value);
-        if(old != null && value != null) {
+        if (old != null && value != null) {
             Class<?> oldClass = old.getClass();
             Class<?> newClass = value.getClass();
 
-            if(oldClass != newClass && !areTypesCompatible(oldClass, newClass)) {
+            if (oldClass != newClass && !areTypesCompatible(oldClass, newClass)) {
                 replacingWithDifferentType(paramName, oldClass, newClass);
             }
         }
     }
-    
-    private static boolean areTypesCompatible(Class<?> classA, Class<?> classB) {
-        for(Class<?> clazz : BASE_CLASSES) {
-            if(clazz.isAssignableFrom(classA) && clazz.isAssignableFrom(classB)) {
-                return true;
-            }
-        }
-        return false;
-    }
-    
-    private static final Class<?> BASE_CLASSES[] = {
-        Image.class,
-        Font.class,
-        MouseCursor.class
-    };
 }

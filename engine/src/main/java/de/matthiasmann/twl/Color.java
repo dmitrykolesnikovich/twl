@@ -58,19 +58,19 @@ public final class Color {
     public static final Color TEAL = new Color(0xFF008080);
     public static final Color AQUA = new Color(0xFF00FFFF);
     public static final Color SKYBLUE = new Color(0xFF87CEEB);
-    
-    public static final Color LIGHTBLUE    = new Color(0xFFADD8E6);
-    public static final Color LIGHTCORAL   = new Color(0xFFF08080);
-    public static final Color LIGHTCYAN    = new Color(0xFFE0FFFF);
-    public static final Color LIGHTGRAY    = new Color(0xFFD3D3D3);
-    public static final Color LIGHTGREEN   = new Color(0xFF90EE90);
-    public static final Color LIGHTPINK    = new Color(0xFFFFB6C1);
-    public static final Color LIGHTSALMON  = new Color(0xFFFFA07A);
+
+    public static final Color LIGHTBLUE = new Color(0xFFADD8E6);
+    public static final Color LIGHTCORAL = new Color(0xFFF08080);
+    public static final Color LIGHTCYAN = new Color(0xFFE0FFFF);
+    public static final Color LIGHTGRAY = new Color(0xFFD3D3D3);
+    public static final Color LIGHTGREEN = new Color(0xFF90EE90);
+    public static final Color LIGHTPINK = new Color(0xFFFFB6C1);
+    public static final Color LIGHTSALMON = new Color(0xFFFFA07A);
     public static final Color LIGHTSKYBLUE = new Color(0xFF87CEFA);
-    public static final Color LIGHTYELLOW  = new Color(0xFFFFFFE0);
-    
+    public static final Color LIGHTYELLOW = new Color(0xFFFFFFE0);
+
     public static final Color TRANSPARENT = new Color(0);
-    
+
     private final byte r;
     private final byte g;
     private final byte b;
@@ -85,19 +85,83 @@ public final class Color {
 
     /**
      * Creates a new color object from an integer in ARGB order.
-     * 
+     * <p>
      * bits  0- 7 are blue
      * bits  8-15 are green
      * bits 16-23 are red
      * bits 24-31 are alpha
-     * 
+     *
      * @param argb the color value as integer
      */
     public Color(int argb) {
-        this.a = (byte)(argb >> 24);
-        this.r = (byte)(argb >> 16);
-        this.g = (byte)(argb >>  8);
-        this.b = (byte)(argb      );
+        this.a = (byte) (argb >> 24);
+        this.r = (byte) (argb >> 16);
+        this.g = (byte) (argb >> 8);
+        this.b = (byte) (argb);
+    }
+
+    /**
+     * Retrieves a color by it's name. This uses the case insensitive lookup
+     * for the color constants defined in this class.
+     *
+     * @param name the color name to lookup
+     * @return a Color or null if the name was not found
+     */
+    public static Color getColorByName(String name) {
+        name = name.toUpperCase(Locale.ENGLISH);
+        try {
+            Field f = Color.class.getField(name);
+            if (Modifier.isStatic(f.getModifiers()) && f.getType() == Color.class) {
+                return (Color) f.get(null);
+            }
+        } catch (Throwable ex) {
+            // ignore
+        }
+        return null;
+    }
+
+    /**
+     * Parses a numeric or symbolic color. Symbolic names are resolved by getColorByName
+     * <p>
+     * The following hex formats are supported:
+     * #RGB
+     * #ARGB
+     * #RRGGBB
+     * #AARRGGBB
+     *
+     * @param value the color to parse
+     * @return a Color object or null
+     * @throws NumberFormatException if the hex color code can't be parsed
+     * @see #getColorByName(java.lang.String)
+     */
+    public static Color parserColor(String value) throws NumberFormatException {
+        if (value.length() > 0 && value.charAt(0) == '#') {
+            String hexcode = value.substring(1);
+            switch (value.length()) {
+                case 4: {
+                    int rgb4 = Integer.parseInt(hexcode, 16);
+                    int r = ((rgb4 >> 8) & 0xF) * 0x11;
+                    int g = ((rgb4 >> 4) & 0xF) * 0x11;
+                    int b = ((rgb4) & 0xF) * 0x11;
+                    return new Color(0xFF000000 | (r << 16) | (g << 8) | b);
+                }
+                case 5: {
+                    int rgb4 = Integer.parseInt(hexcode, 16);
+                    int a = ((rgb4 >> 12) & 0xF) * 0x11;
+                    int r = ((rgb4 >> 8) & 0xF) * 0x11;
+                    int g = ((rgb4 >> 4) & 0xF) * 0x11;
+                    int b = ((rgb4) & 0xF) * 0x11;
+                    return new Color((a << 24) | (r << 16) | (g << 8) | b);
+                }
+                case 7:
+                    return new Color(0xFF000000 | Integer.parseInt(hexcode, 16));
+                case 9:
+                    return new Color((int) Long.parseLong(hexcode, 16));
+                default:
+                    throw new NumberFormatException("Can't parse '" + value + "' as hex color");
+            }
+        }
+        return Color.getColorByName(value);
     }
 
     /**
@@ -109,8 +173,8 @@ public final class Color {
     public int toARGB() {
         return ((a & 255) << 24) |
                 ((r & 255) << 16) |
-                ((g & 255) <<  8) |
-                ((b & 255)      );
+                ((g & 255) << 8) |
+                ((b & 255));
     }
 
     public byte getR() {
@@ -130,19 +194,19 @@ public final class Color {
     }
 
     public int getRed() {
-        return r&255;
+        return r & 255;
     }
 
     public int getGreen() {
-        return g&255;
+        return g & 255;
     }
 
     public int getBlue() {
-        return b&255;
+        return b & 255;
     }
 
     public int getAlpha() {
-        return a&255;
+        return a & 255;
     }
 
     public float getRedFloat() {
@@ -162,79 +226,15 @@ public final class Color {
     }
 
     public void getFloats(float[] dst, int off) {
-        dst[off+0] = getRedFloat();
-        dst[off+1] = getGreenFloat();
-        dst[off+2] = getBlueFloat();
-        dst[off+3] = getAlphaFloat();
-    }
-
-    /**
-     * Retrieves a color by it's name. This uses the case insensitive lookup
-     * for the color constants defined in this class.
-     *
-     * @param name the color name to lookup
-     * @return a Color or null if the name was not found
-     */
-    public static Color getColorByName(String name) {
-        name = name.toUpperCase(Locale.ENGLISH);
-        try {
-            Field f = Color.class.getField(name);
-            if(Modifier.isStatic(f.getModifiers()) && f.getType() == Color.class) {
-                return (Color)f.get(null);
-            }
-        } catch (Throwable ex) {
-            // ignore
-        }
-        return null;
-    }
-
-    /**
-     * Parses a numeric or symbolic color. Symbolic names are resolved by getColorByName
-     *
-     * The following hex formats are supported:
-     * #RGB
-     * #ARGB
-     * #RRGGBB
-     * #AARRGGBB
-     *
-     * @param value the color to parse
-     * @return a Color object or null
-     * @throws NumberFormatException if the hex color code can't be parsed
-     * @see #getColorByName(java.lang.String)
-     */
-    public static Color parserColor(String value) throws NumberFormatException {
-        if(value.length() > 0 && value.charAt(0) == '#') {
-            String hexcode = value.substring(1);
-            switch (value.length()) {
-                case 4: {
-                    int rgb4 = Integer.parseInt(hexcode, 16);
-                    int r = ((rgb4 >> 8) & 0xF) * 0x11;
-                    int g = ((rgb4 >> 4) & 0xF) * 0x11;
-                    int b = ((rgb4     ) & 0xF) * 0x11;
-                    return new Color(0xFF000000 | (r << 16) | (g << 8) | b);
-                }
-                case 5: {
-                    int rgb4 = Integer.parseInt(hexcode, 16);
-                    int a = ((rgb4 >> 12) & 0xF) * 0x11;
-                    int r = ((rgb4 >>  8) & 0xF) * 0x11;
-                    int g = ((rgb4 >>  4) & 0xF) * 0x11;
-                    int b = ((rgb4      ) & 0xF) * 0x11;
-                    return new Color((a << 24) | (r << 16) | (g << 8) | b);
-                }
-                case 7:
-                    return new Color(0xFF000000 | Integer.parseInt(hexcode, 16));
-                case 9:
-                    return new Color((int)Long.parseLong(hexcode, 16));
-                default:
-                    throw new NumberFormatException("Can't parse '" + value + "' as hex color");
-            }
-        }
-        return Color.getColorByName(value);
+        dst[off + 0] = getRedFloat();
+        dst[off + 1] = getGreenFloat();
+        dst[off + 2] = getBlueFloat();
+        dst[off + 3] = getAlphaFloat();
     }
 
     /**
      * Converts this color into it's hex string.
-     *
+     * <p>
      * If alpha is 255 then a string in "#RRGGBB" format is created,
      * otherwise the "#AARRGGBB" format is created
      *
@@ -242,7 +242,7 @@ public final class Color {
      */
     @Override
     public String toString() {
-        if(a != -1) {
+        if (a != -1) {
             return String.format("#%08X", toARGB());
         } else {
             return String.format("#%06X", toARGB() & 0xFFFFFF);
@@ -251,10 +251,10 @@ public final class Color {
 
     @Override
     public boolean equals(Object obj) {
-        if(!(obj instanceof Color)) {
+        if (!(obj instanceof Color)) {
             return false;
         }
-        final Color other = (Color)obj;
+        final Color other = (Color) obj;
         return this.toARGB() == other.toARGB();
     }
 
@@ -272,6 +272,6 @@ public final class Color {
     }
 
     private byte mul(byte a, byte b) {
-        return (byte)(((a & 255) * (b & 255)) / 255);
+        return (byte) (((a & 255) * (b & 255)) / 255);
     }
 }

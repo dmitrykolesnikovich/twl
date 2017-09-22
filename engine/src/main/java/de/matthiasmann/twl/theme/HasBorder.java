@@ -33,7 +33,7 @@ import de.matthiasmann.twl.Border;
 
 /**
  * A helper interface to allow border extraction from an Image object
- * 
+ *
  * @author Matthias Mann
  */
 interface HasBorder {

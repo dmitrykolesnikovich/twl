@@ -34,13 +34,12 @@ import de.matthiasmann.twl.renderer.Image;
 import de.matthiasmann.twl.renderer.MouseCursor;
 
 /**
- *
  * @author Matthias Mann
  */
 public interface ParameterList {
 
     public int getSize();
-    
+
     /**
      * Returns the font at the given list index.
      * If no font with that name was found then the default font is returned.
@@ -100,6 +99,7 @@ public interface ParameterList {
 
     /**
      * Retrives a parameter.
+     *
      * @param idx The index in the list
      * @return the parameter value
      */
@@ -107,8 +107,9 @@ public interface ParameterList {
 
     /**
      * Retrieves a parameter and ensures that it has the desired type.
-     * @param <T> The desired return type generic
-     * @param idx The index in the list
+     *
+     * @param <T>   The desired return type generic
+     * @param idx   The index in the list
      * @param clazz the required data type
      * @return the parameter value or null if the type does not match
      */

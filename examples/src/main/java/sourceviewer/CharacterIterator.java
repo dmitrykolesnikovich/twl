@@ -33,7 +33,6 @@ import java.io.IOException;
 import java.io.Reader;
 
 /**
- *
  * @author Matthias Mann
  */
 public final class CharacterIterator {
@@ -41,7 +40,7 @@ public final class CharacterIterator {
     public static final int EOF = -1;
 
     private final Reader r;
-    
+
     private char[] buffer;
     private int bufferStart;
     private int pos;
@@ -56,16 +55,16 @@ public final class CharacterIterator {
         this.r = null;
         this.buffer = new char[len];
         this.end = len;
-        
-        if(cs instanceof String) {
-            ((String)cs).getChars(0, len, buffer, 0);
+
+        if (cs instanceof String) {
+            ((String) cs).getChars(0, len, buffer, 0);
         } else {
-            for(int i=0 ; i<len ; i++) {
+            for (int i = 0; i < len; i++) {
                 buffer[i] = cs.charAt(i);
             }
         }
     }
-    
+
     public CharacterIterator(Reader r) {
         this.r = r;
         this.buffer = new char[4096];
@@ -86,16 +85,16 @@ public final class CharacterIterator {
     }
 
     public int peek() {
-        if(pos < end || refill()) {
+        if (pos < end || refill()) {
             char ch = buffer[pos];
-            if(ch == '\r') {
-                if(skipCR) {
+            if (ch == '\r') {
+                if (skipCR) {
                     ++pos;
                     skipCR = false;
                     return peek();
                 }
                 ch = '\n';
-            } else if(ch == '\n') {
+            } else if (ch == '\n') {
                 skipCR = true;
             }
             return ch;
@@ -105,16 +104,16 @@ public final class CharacterIterator {
     }
 
     public void pushback() {
-        if(pos > start && !atEOF) {
+        if (pos > start && !atEOF) {
             pos--;
             marker = -1;
         }
     }
-    
+
     public void advanceToEOL() {
-        for(;;) {
+        for (; ; ) {
             int ch = peek();
-            if(ch < 0 || ch == '\n') {
+            if (ch < 0 || ch == '\n') {
                 return;
             }
             pos++;
@@ -122,21 +121,21 @@ public final class CharacterIterator {
     }
 
     public void advanceIdentifier() {
-        while(Character.isJavaIdentifierPart(peek())) {
+        while (Character.isJavaIdentifierPart(peek())) {
             pos++;
         }
     }
 
     public int next() {
         int ch = peek();
-        if(ch >= 0) {
+        if (ch >= 0) {
             pos++;
         }
         return ch;
     }
 
     public boolean check(String characters) {
-        if(pos < end || refill()) {
+        if (pos < end || refill()) {
             return characters.indexOf(buffer[pos]) >= 0;
         }
         return false;
@@ -144,7 +143,7 @@ public final class CharacterIterator {
 
     public void setMarker(boolean pushback) {
         marker = pos;
-        if(pushback && pos > start) {
+        if (pushback && pos > start) {
             marker--;
         }
     }
@@ -152,9 +151,9 @@ public final class CharacterIterator {
     public boolean isMarkerAtStart() {
         return marker == start;
     }
-    
+
     public void rewindToMarker() {
-        if(marker >= start) {
+        if (marker >= start) {
             pos = marker;
             marker = -1;
         }
@@ -167,32 +166,32 @@ public final class CharacterIterator {
     public int getCurrentPosition() {
         return bufferStart + pos;
     }
-    
+
     private void compact() {
         bufferStart += start;
         pos -= start;
         marker -= start;
         end -= start;
-        if(pos > buffer.length*3/2) {
+        if (pos > buffer.length * 3 / 2) {
             char[] newBuffer = new char[buffer.length * 2];
             System.arraycopy(buffer, start, newBuffer, 0, end);
             buffer = newBuffer;
-        } else if(end > 0) {
+        } else if (end > 0) {
             System.arraycopy(buffer, start, buffer, 0, end);
         }
         start = 0;
     }
 
     private boolean refill() {
-        if(r == null) {
+        if (r == null) {
             return false;
         }
-        
+
         compact();
 
         try {
             int read = r.read(buffer, end, buffer.length - end);
-            if(read <= 0) {
+            if (read <= 0) {
                 return false;
             }
             end += read;

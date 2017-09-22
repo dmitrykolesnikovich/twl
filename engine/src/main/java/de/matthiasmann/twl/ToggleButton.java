@@ -29,22 +29,17 @@
  */
 package de.matthiasmann.twl;
 
-import de.matthiasmann.twl.model.BooleanModel;
-import de.matthiasmann.twl.model.EnumModel;
-import de.matthiasmann.twl.model.IntegerModel;
-import de.matthiasmann.twl.model.OptionBooleanModel;
-import de.matthiasmann.twl.model.OptionEnumModel;
-import de.matthiasmann.twl.model.ToggleButtonModel;
+import de.matthiasmann.twl.model.*;
 
 /**
  * A toggle button.
- * 
+ * <p>
  * <p>This class extends Button with the ablity to bind the selected state
  * to a {@link BooleanModel}.</p>
- * 
+ * <p>
  * <p>The prefert way to use this class is by using the callback on the
  * {@code BooleanModel}.</p>
- * 
+ * <p>
  * <p>To implement radio buttons one of the option models can be used:<ul>
  * <li>{@link OptionBooleanModel} which is backed by an {@link IntegerModel}</li>
  * <li>{@link OptionEnumModel} which is backed by an {@link EnumModel}</li>
@@ -61,21 +56,21 @@ public class ToggleButton extends Button {
     public ToggleButton(BooleanModel model) {
         super(new ToggleButtonModel(model));
     }
-    
+
     public ToggleButton(String text) {
         this();
         setText(text);
     }
 
     public void setModel(BooleanModel model) {
-        ((ToggleButtonModel)getModel()).setModel(model);
+        ((ToggleButtonModel) getModel()).setModel(model);
     }
-    
+
     public boolean isActive() {
         return getModel().isSelected();
     }
-    
-    public void setActive(boolean  active) {
+
+    public void setActive(boolean active) {
         getModel().setSelected(active);
     }
 }

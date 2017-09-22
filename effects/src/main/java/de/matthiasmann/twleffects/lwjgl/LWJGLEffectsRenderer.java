@@ -37,18 +37,17 @@ import org.lwjgl.opengl.ContextCapabilities;
 import org.lwjgl.opengl.GLContext;
 
 /**
- *
  * @author Matthias Mann
  */
 public class LWJGLEffectsRenderer extends LWJGLRenderer {
 
     private final LWJGLOffscreenRenderer offscreenRenderer;
-    
+
     public LWJGLEffectsRenderer() throws LWJGLException {
         super();
-        
+
         ContextCapabilities caps = GLContext.getCapabilities();
-        if(caps.GL_EXT_framebuffer_object && caps.OpenGL14) {
+        if (caps.GL_EXT_framebuffer_object && caps.OpenGL14) {
             offscreenRenderer = new LWJGLOffscreenRenderer(this);
         } else {
             offscreenRenderer = null;
@@ -62,27 +61,27 @@ public class LWJGLEffectsRenderer extends LWJGLRenderer {
 
     @Override
     protected void setClipRect() {
-        if(offscreenRenderer != null && offscreenRenderer.activeSurface != null) {
+        if (offscreenRenderer != null && offscreenRenderer.activeSurface != null) {
             setClipRectOffscreen();
         } else {
             super.setClipRect();
         }
     }
-    
+
     protected void setClipRectOffscreen() {
         final Rect rect = clipRectTemp;
-        if(clipStack.getClipRect(rect)) {
+        if (clipStack.getClipRect(rect)) {
             offscreenRenderer.setClipRect(rect);
         } else {
             offscreenRenderer.disableClipRect();
         }
     }
-    
+
     protected void startOffscreenRendering() {
         pushGlobalTintColorReset();
         clipStack.pushDisable();
     }
-    
+
     protected void endOffscreenRendering() {
         popGlobalTintColor();
         clipStack.pop();

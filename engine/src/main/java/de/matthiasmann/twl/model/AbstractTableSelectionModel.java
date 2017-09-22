@@ -32,7 +32,6 @@ package de.matthiasmann.twl.model;
 import de.matthiasmann.twl.utils.CallbackSupport;
 
 /**
- *
  * @author Matthias Mann
  */
 public abstract class AbstractTableSelectionModel implements TableSelectionModel {
@@ -50,12 +49,12 @@ public abstract class AbstractTableSelectionModel implements TableSelectionModel
         return anchorIndex;
     }
 
-    public int getLeadIndex() {
-        return leadIndex;
-    }
-
     public void setAnchorIndex(int index) {
         anchorIndex = index;
+    }
+
+    public int getLeadIndex() {
+        return leadIndex;
     }
 
     public void setLeadIndex(int index) {
@@ -71,19 +70,19 @@ public abstract class AbstractTableSelectionModel implements TableSelectionModel
     }
 
     public void rowsDeleted(int index, int count) {
-        if(leadIndex >= index) {
+        if (leadIndex >= index) {
             leadIndex = Math.max(index, leadIndex - count);
         }
-        if(anchorIndex >= index) {
+        if (anchorIndex >= index) {
             anchorIndex = Math.max(index, anchorIndex - count);
         }
     }
 
     public void rowsInserted(int index, int count) {
-        if(leadIndex >= index) {
+        if (leadIndex >= index) {
             leadIndex += count;
         }
-        if(anchorIndex >= index) {
+        if (anchorIndex >= index) {
             anchorIndex += count;
         }
     }
@@ -91,10 +90,10 @@ public abstract class AbstractTableSelectionModel implements TableSelectionModel
     protected void fireSelectionChange() {
         CallbackSupport.fireCallbacks(selectionChangeListener);
     }
-    
+
     protected void updateLeadAndAnchor(int index0, int index1) {
         anchorIndex = index0;
         leadIndex = index1;
     }
-    
+
 }

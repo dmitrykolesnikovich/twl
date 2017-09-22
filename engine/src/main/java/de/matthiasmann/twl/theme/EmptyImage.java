@@ -39,7 +39,7 @@ import de.matthiasmann.twl.renderer.Image;
  * @author Matthias Mann
  */
 public class EmptyImage implements Image {
-    
+
     private final int width;
     private final int height;
 

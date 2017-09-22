@@ -29,13 +29,12 @@
  */
 package test;
 
-import de.matthiasmann.twl.model.SimpleGraphLineModel;
-import de.matthiasmann.twl.model.SimpleGraphModel;
 import de.matthiasmann.twl.GUI;
 import de.matthiasmann.twl.Graph;
+import de.matthiasmann.twl.model.SimpleGraphLineModel;
+import de.matthiasmann.twl.model.SimpleGraphModel;
 
 /**
- *
  * @author Matthias Mann
  */
 public class GraphDemoDialog1 extends FadeFrame {
@@ -45,7 +44,7 @@ public class GraphDemoDialog1 extends FadeFrame {
 
     public GraphDemoDialog1() {
         gmMsPerFrame = new SimpleGraphLineModel("default", 100, 0, 30);
-        
+
         Graph graph = new Graph(new SimpleGraphModel(gmMsPerFrame));
         graph.setTheme("/graph");
 
@@ -57,10 +56,10 @@ public class GraphDemoDialog1 extends FadeFrame {
     @Override
     protected void paint(GUI gui) {
         long time = System.nanoTime();
-        gmMsPerFrame.addPoint((float)(time - lastTime) * 1e-6f);
+        gmMsPerFrame.addPoint((float) (time - lastTime) * 1e-6f);
         lastTime = time;
 
         super.paint(gui);
     }
-    
+
 }

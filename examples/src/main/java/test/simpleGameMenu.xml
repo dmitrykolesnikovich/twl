@@ -28,28 +28,56 @@
     </inputMapDef>
 
     <theme name="-defaults">
-        <param name="background"><image>none</image></param>
-        <param name="overlay"><image>none</image></param>
-        <param name="font"><font>normal</font></param>
-        <param name="textAlignment"><enum type="alignment">left</enum></param>
-        <param name="minWidth"><int>0</int></param>
-        <param name="minHeight"><int>0</int></param>
-        <param name="maxWidth"><int>0</int></param>
-        <param name="maxHeight"><int>0</int></param>
-        <param name="inputMap"><inputMap>-defaultInputMap</inputMap></param>
+        <param name="background">
+            <image>none</image>
+        </param>
+        <param name="overlay">
+            <image>none</image>
+        </param>
+        <param name="font">
+            <font>normal</font>
+        </param>
+        <param name="textAlignment">
+            <enum type="alignment">left</enum>
+        </param>
+        <param name="minWidth">
+            <int>0</int>
+        </param>
+        <param name="minHeight">
+            <int>0</int>
+        </param>
+        <param name="maxWidth">
+            <int>0</int>
+        </param>
+        <param name="maxHeight">
+            <int>0</int>
+        </param>
+        <param name="inputMap">
+            <inputMap>-defaultInputMap</inputMap>
+        </param>
     </theme>
 
     <theme name="button" ref="-defaults" allowWildcard="true">
-        <param name=""><image>button.*</image></param>
-        <param name="border"><border>background.border</border></param>
-        <param name="textAlignment"><enum type="alignment">center</enum></param>
+        <param name="">
+            <image>button.*</image>
+        </param>
+        <param name="border">
+            <border>background.border</border>
+        </param>
+        <param name="textAlignment">
+            <enum type="alignment">center</enum>
+        </param>
     </theme>
 
     <theme name="simplegamemenu" ref="-defaults">
-        <param name="background"><image>chaos_sphere</image></param>
+        <param name="background">
+            <image>chaos_sphere</image>
+        </param>
         <theme name="" ref="*"/>
         <theme name="fpscounter" ref="-defaults">
-            <param name="font"><font>white</font></param>
+            <param name="font">
+                <font>white</font>
+            </param>
         </theme>
     </theme>
 </themes>

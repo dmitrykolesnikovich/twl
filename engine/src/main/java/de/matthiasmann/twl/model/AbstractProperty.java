@@ -54,7 +54,7 @@ public abstract class AbstractProperty<T> implements Property<T> {
     public boolean hasValueChangedCallbacks() {
         return valueChangedCallbacks != null;
     }
-    
+
     protected void fireValueChangedCallback() {
         CallbackSupport.fireCallbacks(valueChangedCallbacks);
     }

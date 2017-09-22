@@ -32,7 +32,6 @@ package de.matthiasmann.twl.model;
 import de.matthiasmann.twl.utils.CallbackSupport;
 
 /**
- *
  * @author Matthias Mann
  */
 public abstract class AbstractTableModel extends AbstractTableColumnHeaderModel implements TableModel {
@@ -54,66 +53,66 @@ public abstract class AbstractTableModel extends AbstractTableColumnHeaderModel 
     protected boolean hasCallbacks() {
         return callbacks != null;
     }
-    
+
     protected void fireRowsInserted(int idx, int count) {
-        if(callbacks != null) {
-            for(ChangeListener cl : callbacks) {
+        if (callbacks != null) {
+            for (ChangeListener cl : callbacks) {
                 cl.rowsInserted(idx, count);
             }
         }
     }
 
     protected void fireRowsDeleted(int idx, int count) {
-        if(callbacks != null) {
-            for(ChangeListener cl : callbacks) {
+        if (callbacks != null) {
+            for (ChangeListener cl : callbacks) {
                 cl.rowsDeleted(idx, count);
             }
         }
     }
 
     protected void fireRowsChanged(int idx, int count) {
-        if(callbacks != null) {
-            for(ChangeListener cl : callbacks) {
+        if (callbacks != null) {
+            for (ChangeListener cl : callbacks) {
                 cl.rowsChanged(idx, count);
             }
         }
     }
 
     protected void fireColumnInserted(int idx, int count) {
-        if(callbacks != null) {
-            for(ChangeListener cl : callbacks) {
+        if (callbacks != null) {
+            for (ChangeListener cl : callbacks) {
                 cl.columnInserted(idx, count);
             }
         }
     }
 
     protected void fireColumnDeleted(int idx, int count) {
-        if(callbacks != null) {
-            for(ChangeListener cl : callbacks) {
+        if (callbacks != null) {
+            for (ChangeListener cl : callbacks) {
                 cl.columnDeleted(idx, count);
             }
         }
     }
 
     protected void fireColumnHeaderChanged(int column) {
-        if(callbacks != null) {
-            for(ChangeListener cl : callbacks) {
+        if (callbacks != null) {
+            for (ChangeListener cl : callbacks) {
                 cl.columnHeaderChanged(column);
             }
         }
     }
 
     protected void fireCellChanged(int row, int column) {
-        if(callbacks != null) {
-            for(ChangeListener cl : callbacks) {
+        if (callbacks != null) {
+            for (ChangeListener cl : callbacks) {
                 cl.cellChanged(row, column);
             }
         }
     }
 
     protected void fireAllChanged() {
-        if(callbacks != null) {
-            for(ChangeListener cl : callbacks) {
+        if (callbacks != null) {
+            for (ChangeListener cl : callbacks) {
                 cl.allChanged();
             }
         }

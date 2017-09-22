@@ -35,17 +35,16 @@ import de.matthiasmann.twl.model.StringAttributes;
 import de.matthiasmann.twl.renderer.AnimationState.StateKey;
 
 /**
- *
  * @author Matthias Mann
  */
 public class StringSyntaxHighlighter {
-    
-    public static final StateKey STATE_COMMENT     = StateKey.get("comment");
+
+    public static final StateKey STATE_COMMENT = StateKey.get("comment");
     public static final StateKey STATE_COMMENT_TAG = StateKey.get("commentTag");
-    public static final StateKey STATE_KEYWORD     = StateKey.get("keyword");
-    public static final StateKey STATE_STRING      = StateKey.get("string");
+    public static final StateKey STATE_KEYWORD = StateKey.get("keyword");
+    public static final StateKey STATE_STRING = StateKey.get("string");
     private final Callback callback;
-    
+
     private final ObservableCharSequence sequence;
     private final StringAttributes attributes;
 
@@ -57,27 +56,27 @@ public class StringSyntaxHighlighter {
                 doHighlight();
             }
         };
-        
+
         doHighlight();
     }
-    
+
     public void registerCallback() {
         sequence.addCallback(callback);
     }
-    
+
     public void unregisterCallback() {
         sequence.removeCallback(callback);
     }
-    
+
     final void doHighlight() {
         attributes.clearAnimationStates();
-        
+
         JavaScanner js = new JavaScanner(sequence);
         int start = js.getCurrentPosition();
         JavaScanner.Kind kind;
-        while((kind=js.scan()) != JavaScanner.Kind.EOF) {
+        while ((kind = js.scan()) != JavaScanner.Kind.EOF) {
             int pos = js.getCurrentPosition();
-            switch(kind) {
+            switch (kind) {
                 case COMMENT:
                     attributes.setAnimationState(STATE_COMMENT, start, pos, true);
                     break;

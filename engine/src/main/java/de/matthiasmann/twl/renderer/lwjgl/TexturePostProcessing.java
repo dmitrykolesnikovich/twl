@@ -32,11 +32,10 @@ package de.matthiasmann.twl.renderer.lwjgl;
 import java.nio.ByteBuffer;
 
 /**
- *
  * @author Matthias Mann
  */
 public interface TexturePostProcessing {
 
     public void process(ByteBuffer buffer, int stride, int width, int height, LWJGLTexture.Format fmt);
-    
+
 }

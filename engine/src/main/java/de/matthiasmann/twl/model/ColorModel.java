@@ -34,13 +34,13 @@ import de.matthiasmann.twl.utils.WithRunnableCallback;
 
 /**
  * A model which stores a color value.
- * 
+ *
  * @author Matthias Mann
  */
 public interface ColorModel extends WithRunnableCallback {
-    
+
     public Color getValue();
-    
+
     public void setValue(Color value);
-    
+
 }

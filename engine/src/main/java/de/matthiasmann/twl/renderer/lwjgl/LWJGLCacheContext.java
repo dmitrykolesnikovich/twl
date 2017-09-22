@@ -31,17 +31,17 @@ package de.matthiasmann.twl.renderer.lwjgl;
 
 import de.matthiasmann.twl.renderer.CacheContext;
 import de.matthiasmann.twl.utils.PNGDecoder;
+import org.lwjgl.BufferUtils;
+import org.lwjgl.opengl.GLContext;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
-import org.lwjgl.BufferUtils;
-import org.lwjgl.opengl.GLContext;
 
 /**
- *
  * @author Matthias Mann
  */
 public class LWJGLCacheContext implements CacheContext {
@@ -60,149 +60,17 @@ public class LWJGLCacheContext implements CacheContext {
         valid = true;
     }
 
-    LWJGLTexture loadTexture(URL url, LWJGLTexture.Format fmt, LWJGLTexture.Filter filter) throws IOException {
-        String urlString = url.toString();
-        LWJGLTexture texture = textures.get(urlString);
-        if(texture == null) {
-            texture = createTexture(url, fmt, filter, null);
-            textures.put(urlString, texture);
-        }
-        return texture;
-    }
-
-    LWJGLTexture createTexture(URL textureUrl, LWJGLTexture.Format fmt, LWJGLTexture.Filter filter, TexturePostProcessing tpp) throws IOException {
-        if(!valid) {
-            throw new IllegalStateException("CacheContext already destroyed");
-        }
-        TextureDecoder decoder = (TextureDecoder)textureUrl.getContent(new Class<?>[]{TextureDecoder.class});
-        if(decoder != null) {
-            return createDecoderTexture(textureUrl, decoder, fmt, filter, tpp);
-        } else {
-            return createPNGTexture(textureUrl, fmt, filter, tpp);
-        }
-    }
-    
-    private LWJGLTexture createDecoderTexture(URL textureUrl, TextureDecoder dec, LWJGLTexture.Format fmt, LWJGLTexture.Filter filter, TexturePostProcessing tpp) throws IOException {
-        dec.open();
-        try {
-            fmt = dec.decideTextureFormat(fmt);
-            if(fmt == null) {
-                throw new NullPointerException("TextureDecoder.decideTextureFormat() returned null");
-            }
-            int width = dec.getWidth();
-            int height = dec.getHeight();
-            int maxTextureSize = renderer.maxTextureSize;
-
-            if(width > maxTextureSize || height > maxTextureSize) {
-                throw new IOException("Texture size too large. Maximum supported texture by this system is " + maxTextureSize);
-            }
-
-            int stride = width * fmt.getPixelSize();
-            ByteBuffer buf = BufferUtils.createByteBuffer(stride * height);
-            dec.decode(buf, stride, fmt);
-            buf.flip();
-
-            if(tpp != null) {
-                tpp.process(buf, stride, width, height, fmt);
-            }
-
-            LWJGLTexture texture = new LWJGLTexture(renderer, width, height, buf, fmt, filter);
-            allTextures.add(texture);
-            return texture;
-        } catch (IOException ex) {
-            throw (IOException)(new IOException("Unable to load texture via decoder: " + textureUrl).initCause(ex));
-        } finally {
-            try {
-                dec.close();
-            } catch (IOException ex) {
-            }
-        }
-    }
-    
-    private LWJGLTexture createPNGTexture(URL textureUrl, LWJGLTexture.Format fmt, LWJGLTexture.Filter filter, TexturePostProcessing tpp) throws IOException {
-        InputStream is = textureUrl.openStream();
-        try {
-            PNGDecoder dec = new PNGDecoder(is);
-            fmt = decideTextureFormat(dec, fmt);
-            int width = dec.getWidth();
-            int height = dec.getHeight();
-            int maxTextureSize = renderer.maxTextureSize;
-
-            if(width > maxTextureSize || height > maxTextureSize) {
-                throw new IOException("Texture size too large. Maximum supported texture by this system is " + maxTextureSize);
-            }
-
-            if(GLContext.getCapabilities().GL_EXT_abgr) {
-                if(fmt == LWJGLTexture.Format.RGBA) {
-                    fmt = LWJGLTexture.Format.ABGR;
-                }
-            } else if(fmt == LWJGLTexture.Format.ABGR) {
-                fmt = LWJGLTexture.Format.RGBA;
-            }
-
-            int stride = width * fmt.getPixelSize();
-            ByteBuffer buf = BufferUtils.createByteBuffer(stride * height);
-            dec.decode(buf, stride, fmt.getPngFormat());
-            buf.flip();
-
-            if(tpp != null) {
-                tpp.process(buf, stride, width, height, fmt);
-            }
-
-            LWJGLTexture texture = new LWJGLTexture(renderer, width, height, buf, fmt, filter);
-            allTextures.add(texture);
-            return texture;
-        } catch (IOException ex) {
-            throw (IOException)(new IOException("Unable to load PNG file: " + textureUrl).initCause(ex));
-        } finally {
-            try {
-                is.close();
-            } catch (IOException ex) {
-            }
-        }
-    }
-
-    BitmapFont loadBitmapFont(URL url) throws IOException {
-        String urlString = url.toString();
-        BitmapFont bmFont = fontCache.get(urlString);
-        if(bmFont == null) {
-            bmFont = BitmapFont.loadFont(renderer, url);
-            fontCache.put(urlString, bmFont);
-        }
-        return bmFont;
-    }
-
-    public boolean isValid() {
-        return valid;
-    }
-
-    public void destroy() {
-        try {
-            for(LWJGLTexture t : allTextures) {
-                t.destroy();
-            }
-            for(BitmapFont f : fontCache.values()) {
-                f.destroy();
-            }
-        } finally {
-            textures.clear();
-            fontCache.clear();
-            allTextures.clear();
-            valid = false;
-        }
-    }
-
     private static LWJGLTexture.Format decideTextureFormat(PNGDecoder decoder, LWJGLTexture.Format fmt) {
-        if(fmt == LWJGLTexture.Format.COLOR) {
+        if (fmt == LWJGLTexture.Format.COLOR) {
             fmt = autoColorFormat(decoder);
         }
-        
+
         PNGDecoder.Format pngFormat = decoder.decideTextureFormat(fmt.getPngFormat());
-        if(fmt.pngFormat == pngFormat) {
+        if (fmt.pngFormat == pngFormat) {
             return fmt;
         }
 
-        switch(pngFormat) {
+        switch (pngFormat) {
             case ALPHA:
                 return LWJGLTexture.Format.ALPHA;
             case LUMINANCE:
@@ -223,16 +91,148 @@ public class LWJGLCacheContext implements CacheContext {
     }
 
     private static LWJGLTexture.Format autoColorFormat(PNGDecoder decoder) {
-        if(decoder.hasAlpha()) {
-            if(decoder.isRGB()) {
+        if (decoder.hasAlpha()) {
+            if (decoder.isRGB()) {
                 return LWJGLTexture.Format.ABGR;
             } else {
                 return LWJGLTexture.Format.LUMINANCE_ALPHA;
             }
-        } else if(decoder.isRGB()) {
+        } else if (decoder.isRGB()) {
             return LWJGLTexture.Format.ABGR;
         } else {
             return LWJGLTexture.Format.LUMINANCE;
+        }
+    }
+
+    LWJGLTexture loadTexture(URL url, LWJGLTexture.Format fmt, LWJGLTexture.Filter filter) throws IOException {
+        String urlString = url.toString();
+        LWJGLTexture texture = textures.get(urlString);
+        if (texture == null) {
+            texture = createTexture(url, fmt, filter, null);
+            textures.put(urlString, texture);
+        }
+        return texture;
+    }
+
+    LWJGLTexture createTexture(URL textureUrl, LWJGLTexture.Format fmt, LWJGLTexture.Filter filter, TexturePostProcessing tpp) throws IOException {
+        if (!valid) {
+            throw new IllegalStateException("CacheContext already destroyed");
+        }
+        TextureDecoder decoder = (TextureDecoder) textureUrl.getContent(new Class<?>[]{TextureDecoder.class});
+        if (decoder != null) {
+            return createDecoderTexture(textureUrl, decoder, fmt, filter, tpp);
+        } else {
+            return createPNGTexture(textureUrl, fmt, filter, tpp);
+        }
+    }
+
+    private LWJGLTexture createDecoderTexture(URL textureUrl, TextureDecoder dec, LWJGLTexture.Format fmt, LWJGLTexture.Filter filter, TexturePostProcessing tpp) throws IOException {
+        dec.open();
+        try {
+            fmt = dec.decideTextureFormat(fmt);
+            if (fmt == null) {
+                throw new NullPointerException("TextureDecoder.decideTextureFormat() returned null");
+            }
+            int width = dec.getWidth();
+            int height = dec.getHeight();
+            int maxTextureSize = renderer.maxTextureSize;
+
+            if (width > maxTextureSize || height > maxTextureSize) {
+                throw new IOException("Texture size too large. Maximum supported texture by this system is " + maxTextureSize);
+            }
+
+            int stride = width * fmt.getPixelSize();
+            ByteBuffer buf = BufferUtils.createByteBuffer(stride * height);
+            dec.decode(buf, stride, fmt);
+            buf.flip();
+
+            if (tpp != null) {
+                tpp.process(buf, stride, width, height, fmt);
+            }
+
+            LWJGLTexture texture = new LWJGLTexture(renderer, width, height, buf, fmt, filter);
+            allTextures.add(texture);
+            return texture;
+        } catch (IOException ex) {
+            throw (IOException) (new IOException("Unable to load texture via decoder: " + textureUrl).initCause(ex));
+        } finally {
+            try {
+                dec.close();
+            } catch (IOException ex) {
+            }
+        }
+    }
+
+    private LWJGLTexture createPNGTexture(URL textureUrl, LWJGLTexture.Format fmt, LWJGLTexture.Filter filter, TexturePostProcessing tpp) throws IOException {
+        InputStream is = textureUrl.openStream();
+        try {
+            PNGDecoder dec = new PNGDecoder(is);
+            fmt = decideTextureFormat(dec, fmt);
+            int width = dec.getWidth();
+            int height = dec.getHeight();
+            int maxTextureSize = renderer.maxTextureSize;
+
+            if (width > maxTextureSize || height > maxTextureSize) {
+                throw new IOException("Texture size too large. Maximum supported texture by this system is " + maxTextureSize);
+            }
+
+            if (GLContext.getCapabilities().GL_EXT_abgr) {
+                if (fmt == LWJGLTexture.Format.RGBA) {
+                    fmt = LWJGLTexture.Format.ABGR;
+                }
+            } else if (fmt == LWJGLTexture.Format.ABGR) {
+                fmt = LWJGLTexture.Format.RGBA;
+            }
+
+            int stride = width * fmt.getPixelSize();
+            ByteBuffer buf = BufferUtils.createByteBuffer(stride * height);
+            dec.decode(buf, stride, fmt.getPngFormat());
+            buf.flip();
+
+            if (tpp != null) {
+                tpp.process(buf, stride, width, height, fmt);
+            }
+
+            LWJGLTexture texture = new LWJGLTexture(renderer, width, height, buf, fmt, filter);
+            allTextures.add(texture);
+            return texture;
+        } catch (IOException ex) {
+            throw (IOException) (new IOException("Unable to load PNG file: " + textureUrl).initCause(ex));
+        } finally {
+            try {
+                is.close();
+            } catch (IOException ex) {
+            }
+        }
+    }
+
+    BitmapFont loadBitmapFont(URL url) throws IOException {
+        String urlString = url.toString();
+        BitmapFont bmFont = fontCache.get(urlString);
+        if (bmFont == null) {
+            bmFont = BitmapFont.loadFont(renderer, url);
+            fontCache.put(urlString, bmFont);
+        }
+        return bmFont;
+    }
+
+    public boolean isValid() {
+        return valid;
+    }
+
+    public void destroy() {
+        try {
+            for (LWJGLTexture t : allTextures) {
+                t.destroy();
+            }
+            for (BitmapFont f : fontCache.values()) {
+                f.destroy();
+            }
+        } finally {
+            textures.clear();
+            fontCache.clear();
+            allTextures.clear();
+            valid = false;
         }
     }
 }

@@ -29,12 +29,13 @@
  */
 package de.matthiasmann.twl.textarea;
 
-import java.util.Iterator;
 import org.junit.Test;
+
+import java.util.Iterator;
+
 import static org.junit.Assert.*;
 
 /**
- *
  * @author Matthias Mann
  */
 public class HTMLTextAreaModelTest {
@@ -116,7 +117,7 @@ public class HTMLTextAreaModelTest {
         assertFalse(i.hasNext());
     }
 
-    private<T extends TextAreaModel.Element> T next(Iterator<TextAreaModel.Element> i, Class<T> clazz) {
+    private <T extends TextAreaModel.Element> T next(Iterator<TextAreaModel.Element> i, Class<T> clazz) {
         assertTrue(i.hasNext());
         TextAreaModel.Element e = i.next();
         assertTrue(clazz.isInstance(e));
@@ -132,7 +133,7 @@ public class HTMLTextAreaModelTest {
         TextAreaModel.BlockElement be = next(i, TextAreaModel.BlockElement.class);
         return be.iterator();
     }
-    
+
     private void assertLineBreak(Iterator<TextAreaModel.Element> i) {
         TextAreaModel.LineBreakElement br = next(i, TextAreaModel.LineBreakElement.class);
     }

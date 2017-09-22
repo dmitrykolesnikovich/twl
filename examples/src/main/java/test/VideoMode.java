@@ -32,7 +32,6 @@ package test;
 import org.lwjgl.opengl.DisplayMode;
 
 /**
- *
  * @author Matthias Mann
  */
 public class VideoMode {

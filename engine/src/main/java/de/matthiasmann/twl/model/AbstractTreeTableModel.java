@@ -30,10 +30,10 @@
 package de.matthiasmann.twl.model;
 
 import de.matthiasmann.twl.utils.CallbackSupport;
+
 import java.util.ArrayList;
 
 /**
- *
  * @author Matthias Mann
  */
 public abstract class AbstractTreeTableModel extends AbstractTableColumnHeaderModel implements TreeTableModel {
@@ -78,8 +78,8 @@ public abstract class AbstractTreeTableModel extends AbstractTableColumnHeaderMo
     }
 
     public int getChildIndex(TreeTableNode child) {
-        for(int i=0,n=children.size() ; i<n ; i++) {
-            if(children.get(i) == child) {
+        for (int i = 0, n = children.size(); i < n; i++) {
+            if (children.get(i) == child) {
                 return i;
             }
         }
@@ -92,7 +92,7 @@ public abstract class AbstractTreeTableModel extends AbstractTableColumnHeaderMo
         children.add(idx, node);
         fireNodesAdded(this, idx, 1);
     }
-    
+
     protected void removeChild(int idx) {
         children.remove(idx);
         fireNodesRemoved(this, idx, 1);
@@ -100,55 +100,55 @@ public abstract class AbstractTreeTableModel extends AbstractTableColumnHeaderMo
 
     protected void removeAllChildren() {
         int count = children.size();
-        if(count > 0) {
+        if (count > 0) {
             children.clear();
             fireNodesRemoved(this, 0, count);
         }
     }
 
     protected void fireNodesAdded(TreeTableNode parent, int idx, int count) {
-        if(callbacks != null) {
-            for(ChangeListener cl : callbacks) {
+        if (callbacks != null) {
+            for (ChangeListener cl : callbacks) {
                 cl.nodesAdded(parent, idx, count);
             }
         }
     }
 
     protected void fireNodesRemoved(TreeTableNode parent, int idx, int count) {
-        if(callbacks != null) {
-            for(ChangeListener cl : callbacks) {
+        if (callbacks != null) {
+            for (ChangeListener cl : callbacks) {
                 cl.nodesRemoved(parent, idx, count);
             }
         }
     }
 
     protected void fireNodesChanged(TreeTableNode parent, int idx, int count) {
-        if(callbacks != null) {
-            for(ChangeListener cl : callbacks) {
+        if (callbacks != null) {
+            for (ChangeListener cl : callbacks) {
                 cl.nodesChanged(parent, idx, count);
             }
         }
     }
 
     protected void fireColumnInserted(int idx, int count) {
-        if(callbacks != null) {
-            for(ChangeListener cl : callbacks) {
+        if (callbacks != null) {
+            for (ChangeListener cl : callbacks) {
                 cl.columnInserted(idx, count);
             }
         }
     }
 
     protected void fireColumnDeleted(int idx, int count) {
-        if(callbacks != null) {
-            for(ChangeListener cl : callbacks) {
+        if (callbacks != null) {
+            for (ChangeListener cl : callbacks) {
                 cl.columnDeleted(idx, count);
             }
         }
     }
 
     protected void fireColumnHeaderChanged(int column) {
-        if(callbacks != null) {
-            for(ChangeListener cl : callbacks) {
+        if (callbacks != null) {
+            for (ChangeListener cl : callbacks) {
                 cl.columnHeaderChanged(column);
             }
         }

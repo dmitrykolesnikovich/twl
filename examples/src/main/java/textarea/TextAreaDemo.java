@@ -29,38 +29,40 @@
  */
 package textarea;
 
-import de.matthiasmann.twl.DesktopArea;
-import de.matthiasmann.twl.Event;
-import de.matthiasmann.twl.FPSCounter;
-import de.matthiasmann.twl.GUI;
-import de.matthiasmann.twl.Rect;
-import de.matthiasmann.twl.ResizableFrame;
-import de.matthiasmann.twl.ScrollPane;
-import de.matthiasmann.twl.TextArea;
-import de.matthiasmann.twl.Timer;
-import de.matthiasmann.twl.ValueAdjusterInt;
-import de.matthiasmann.twl.textarea.HTMLTextAreaModel;
+import de.matthiasmann.twl.*;
 import de.matthiasmann.twl.model.SimpleIntegerModel;
 import de.matthiasmann.twl.renderer.lwjgl.LWJGLRenderer;
-import de.matthiasmann.twl.textarea.StyleAttribute;
-import de.matthiasmann.twl.textarea.StyleSheet;
-import de.matthiasmann.twl.textarea.TextAreaModel;
-import de.matthiasmann.twl.textarea.Value;
+import de.matthiasmann.twl.textarea.*;
 import de.matthiasmann.twl.theme.ThemeManager;
 import de.matthiasmann.twl.utils.TextUtil;
-import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
 import org.lwjgl.opengl.GL11;
 import test.TestUtils;
 
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 /**
- *
  * @author Matthias Mann
  */
 public class TextAreaDemo extends DesktopArea {
+
+    private final FPSCounter fpsCounter;
+    private final TextFrame textFrame;
+    public boolean quit;
+
+    public TextAreaDemo() {
+        fpsCounter = new FPSCounter();
+        add(fpsCounter);
+
+        textFrame = new TextFrame();
+        add(textFrame);
+
+        textFrame.setSize(600, 500);
+        textFrame.setPosition(40, 20);
+    }
 
     public static void main(String[] args) {
         try {
@@ -77,7 +79,7 @@ public class TextAreaDemo extends DesktopArea {
                     TextAreaDemo.class.getResource("demo.xml"), renderer);
             gui.applyTheme(theme);
 
-            while(!Display.isCloseRequested() && !demo.quit) {
+            while (!Display.isCloseRequested() && !demo.quit) {
                 GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
 
                 gui.update();
@@ -99,22 +101,6 @@ public class TextAreaDemo extends DesktopArea {
         Display.destroy();
     }
 
-    private final FPSCounter fpsCounter;
-    private final TextFrame textFrame;
-
-    public boolean quit;
-
-    public TextAreaDemo() {
-        fpsCounter = new FPSCounter();
-        add(fpsCounter);
-
-        textFrame = new TextFrame();
-        add(textFrame);
-
-        textFrame.setSize(600, 500);
-        textFrame.setPosition(40, 20);
-    }
-
     @Override
     protected void layout() {
         super.layout();
@@ -128,7 +114,7 @@ public class TextAreaDemo extends DesktopArea {
 
     @Override
     protected boolean handleEvent(Event evt) {
-        if(super.handleEvent(evt)) {
+        if (super.handleEvent(evt)) {
             return true;
         }
         switch (evt.getType()) {
@@ -143,15 +129,14 @@ public class TextAreaDemo extends DesktopArea {
     }
 
     static class TextFrame extends ResizableFrame {
+        private static final int MIN_SIZE = 128;
+        private static final int MAX_SIZE = 256;
         private final HTMLTextAreaModel textAreaModel;
         private final TextArea textArea;
         private final ScrollPane scrollPane;
         private Timer timer;
         private int size;
         private int dir;
-
-        private static final int MIN_SIZE = 128;
-        private static final int MAX_SIZE = 256;
 
         public TextFrame() {
             setTitle("Text");
@@ -163,13 +148,13 @@ public class TextAreaDemo extends DesktopArea {
 
             textArea.addCallback(new TextArea.Callback() {
                 public void handleLinkClicked(String href) {
-                    if(href.startsWith("javascript:")) {
+                    if (href.startsWith("javascript:")) {
                         handleAction(href.substring(11));
-                    } else if(href.startsWith("#")) {
+                    } else if (href.startsWith("#")) {
                         TextAreaModel.Element ankor = textAreaModel.getElementById(href.substring(1));
-                        if(ankor != null) {
+                        if (ankor != null) {
                             Rect rect = textArea.getElementRect(ankor);
-                            if(rect != null) {
+                            if (rect != null) {
                                 scrollPane.setScrollPositionY(rect.getY());
                             }
                         }
@@ -182,7 +167,7 @@ public class TextAreaDemo extends DesktopArea {
             ValueAdjusterInt vai = new ValueAdjusterInt(new SimpleIntegerModel(0, 100, 50));
             vai.setTooltipContent("Select a nice value");
             textArea.registerWidget("niceValueSlider", vai);
-            
+
             scrollPane = new ScrollPane(textArea);
             scrollPane.setFixed(ScrollPane.Fixed.HORIZONTAL);
 
@@ -214,28 +199,28 @@ public class TextAreaDemo extends DesktopArea {
                 textAreaModel.readHTMLFromURL(TextAreaDemo.class.getResource(name));
 
                 StyleSheet styleSheet = new StyleSheet();
-                for(String styleSheetLink : textAreaModel.getStyleSheetLinks()) {
+                for (String styleSheetLink : textAreaModel.getStyleSheetLinks()) {
                     try {
                         styleSheet.parse(TextAreaDemo.class.getResource(styleSheetLink));
-                    } catch(IOException ex) {
+                    } catch (IOException ex) {
                         Logger.getLogger(TextAreaDemo.class.getName()).log(Level.SEVERE,
                                 "Can't parse style sheet: " + styleSheetLink, ex);
                     }
                 }
                 textArea.setStyleClassResolver(styleSheet);
-                
+
                 setTitle(TextUtil.notNull(textAreaModel.getTitle()));
 
                 size = MIN_SIZE;
                 dir = -4;
-            } catch(IOException ex) {
+            } catch (IOException ex) {
                 Logger.getLogger(TextAreaDemo.class.getName()).log(Level.SEVERE, "Can't read HTML: " + name, ex);
             }
         }
 
         void handleAction(String what) {
-            if("zoomImage()".equals(what)) {
-                if(timer != null && !timer.isRunning()) {
+            if ("zoomImage()".equals(what)) {
+                if (timer != null && !timer.isRunning()) {
                     dir = -dir;
                     timer.start();
                 }
@@ -244,12 +229,12 @@ public class TextAreaDemo extends DesktopArea {
 
         void animate() {
             size = Math.max(MIN_SIZE, Math.min(MAX_SIZE, size + dir));
-            if(size == MIN_SIZE || size == MAX_SIZE) {
+            if (size == MIN_SIZE || size == MAX_SIZE) {
                 timer.stop();
             }
 
             TextAreaModel.Element e = textAreaModel.getElementById("portrait");
-            if(e != null) {
+            if (e != null) {
                 e.setStyle(e.getStyle().with(StyleAttribute.WIDTH, new Value(size, Value.Unit.PX)));
                 textAreaModel.domModified();
             }

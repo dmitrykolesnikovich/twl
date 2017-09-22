@@ -30,24 +30,18 @@
 package de.matthiasmann.twl.textarea;
 
 import de.matthiasmann.twl.Color;
-import de.matthiasmann.twl.textarea.TextAreaModel.Clear;
-import de.matthiasmann.twl.textarea.TextAreaModel.Display;
-import de.matthiasmann.twl.textarea.TextAreaModel.FloatPosition;
-import de.matthiasmann.twl.textarea.TextAreaModel.HAlignment;
-import de.matthiasmann.twl.textarea.TextAreaModel.VAlignment;
+import de.matthiasmann.twl.textarea.TextAreaModel.*;
 import de.matthiasmann.twl.utils.StringList;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 
 /**
- *
  * @param <T> the data type for this style attribute
  * @author Matthias Mann
  */
 public final class StyleAttribute<T> {
-
-    private static final ArrayList<StyleAttribute<?>> attributes = new ArrayList<StyleAttribute<?>>();
 
     // cascading attributes
     public static final StyleAttribute<HAlignment> HORIZONTAL_ALIGNMENT = new StyleAttribute<HAlignment>(true, HAlignment.class, HAlignment.LEFT);
@@ -67,7 +61,6 @@ public final class StyleAttribute<T> {
     public static final StyleAttribute<Color> COLOR = new StyleAttribute<Color>(true, Color.class, Color.WHITE);
     public static final StyleAttribute<Color> COLOR_HOVER = new StyleAttribute<Color>(true, Color.class, null);
     public static final StyleAttribute<Boolean> INHERIT_HOVER = new StyleAttribute<Boolean>(true, Boolean.class, Boolean.FALSE);
-
     // non cascading attribute
     public static final StyleAttribute<Clear> CLEAR = new StyleAttribute<Clear>(false, Clear.class, Clear.NONE);
     public static final StyleAttribute<Display> DISPLAY = new StyleAttribute<Display>(false, Display.class, Display.INLINE);
@@ -85,61 +78,10 @@ public final class StyleAttribute<T> {
     public static final StyleAttribute<Value> PADDING_LEFT = new StyleAttribute<Value>(false, Value.class, Value.ZERO_PX);
     public static final StyleAttribute<Value> PADDING_RIGHT = new StyleAttribute<Value>(false, Value.class, Value.ZERO_PX);
     public static final StyleAttribute<Value> PADDING_BOTTOM = new StyleAttribute<Value>(false, Value.class, Value.ZERO_PX);
-
     // boxes
     public static final BoxAttribute MARGIN = new BoxAttribute(MARGIN_TOP, MARGIN_LEFT, MARGIN_RIGHT, MARGIN_BOTTOM);
     public static final BoxAttribute PADDING = new BoxAttribute(PADDING_TOP, PADDING_LEFT, PADDING_RIGHT, PADDING_BOTTOM);
-    
-    /**
-     * A inherited attribute will be looked up in the parent style if it is not set.
-     *
-     * @return true if this attribute is inherited from the parent.
-     */
-    public boolean isInherited() {
-        return inherited;
-    }
-    
-    public Class<T> getDataType() {
-        return dataType;
-    }
-
-    public T getDefaultValue() {
-        return defaultValue;
-    }
-
-    /**
-     * Returns a unique id for this StyleAttribute. This value is may change
-     * when this class is modified and should not be used for persistent storage.
-     * @return a unique id &lt; {@code getNumAttributes}
-     * @see #getNumAttributes()
-     */
-    public int ordinal() {
-        return ordinal;
-    }
-
-    /**
-     * Returns the name of this StyleAttribute.
-     * This method uses reflection to search for the field name.
-     * @return the name of this StyleAttribute.
-     */
-    public String name() {
-        try {
-            for(Field f : StyleAttribute.class.getFields()) {
-                if(Modifier.isStatic(f.getModifiers()) && f.get(null) == this) {
-                    return f.getName();
-                }
-            }
-        } catch(Throwable ex) {
-            // ignore
-        }
-        return "?";
-    }
-
-    @Override
-    public String toString() {
-        return name();
-    }
-
+    private static final ArrayList<StyleAttribute<?>> attributes = new ArrayList<StyleAttribute<?>>();
     private final boolean inherited;
     private final Class<T> dataType;
     private final T defaultValue;
@@ -153,9 +95,10 @@ public final class StyleAttribute<T> {
         this.ordinal = attributes.size();
         attributes.add(this);
     }
-    
+
     /**
      * Returns the number of implemented StyleAttributes.
+     *
      * @return the number of implemented StyleAttributes.
      */
     public static int getNumAttributes() {
@@ -164,6 +107,7 @@ public final class StyleAttribute<T> {
 
     /**
      * Returns the StyleAttribute given it's unique id.
+     *
      * @param ordinal the unique id of the desired StyleAttribute.
      * @return the StyleAttribute given it's unique id.
      * @throws IndexOutOfBoundsException if the given id is invalid.
@@ -175,21 +119,74 @@ public final class StyleAttribute<T> {
 
     /**
      * Returns the StyleAttribute given it's name.
+     *
      * @param name the name of the StyleAttribute.
      * @return the StyleAttribute
      * @throws IllegalArgumentException if no StyleAttribute with the given name exists.
-     * @see #name() 
+     * @see #name()
      */
     public static StyleAttribute<?> getAttribute(String name) throws IllegalArgumentException {
         try {
             Field f = StyleAttribute.class.getField(name);
-            if(Modifier.isStatic(f.getModifiers()) &&
+            if (Modifier.isStatic(f.getModifiers()) &&
                     f.getType() == StyleAttribute.class) {
-                return (StyleAttribute<?>)f.get(null);
+                return (StyleAttribute<?>) f.get(null);
             }
-        } catch(Throwable ex) {
+        } catch (Throwable ex) {
             // ignore
         }
         throw new IllegalArgumentException("No style attribute " + name);
+    }
+
+    /**
+     * A inherited attribute will be looked up in the parent style if it is not set.
+     *
+     * @return true if this attribute is inherited from the parent.
+     */
+    public boolean isInherited() {
+        return inherited;
+    }
+
+    public Class<T> getDataType() {
+        return dataType;
+    }
+
+    public T getDefaultValue() {
+        return defaultValue;
+    }
+
+    /**
+     * Returns a unique id for this StyleAttribute. This value is may change
+     * when this class is modified and should not be used for persistent storage.
+     *
+     * @return a unique id &lt; {@code getNumAttributes}
+     * @see #getNumAttributes()
+     */
+    public int ordinal() {
+        return ordinal;
+    }
+
+    /**
+     * Returns the name of this StyleAttribute.
+     * This method uses reflection to search for the field name.
+     *
+     * @return the name of this StyleAttribute.
+     */
+    public String name() {
+        try {
+            for (Field f : StyleAttribute.class.getFields()) {
+                if (Modifier.isStatic(f.getModifiers()) && f.get(null) == this) {
+                    return f.getName();
+                }
+            }
+        } catch (Throwable ex) {
+            // ignore
+        }
+        return "?";
+    }
+
+    @Override
+    public String toString() {
+        return name();
     }
 }

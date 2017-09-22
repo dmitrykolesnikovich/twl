@@ -45,10 +45,10 @@ public class SimpleIntegerModel extends HasCallback implements IntegerModel {
      *
      * @param minValue the minimum allowed value
      * @param maxValue the maximum allowed value
-     * @param value the initial value
+     * @param value    the initial value
      */
     public SimpleIntegerModel(int minValue, int maxValue, int value) {
-        if(maxValue < minValue) {
+        if (maxValue < minValue) {
             throw new IllegalArgumentException("maxValue < minValue");
         }
         this.minValue = minValue;
@@ -69,7 +69,7 @@ public class SimpleIntegerModel extends HasCallback implements IntegerModel {
     }
 
     public void setValue(int value) {
-        if(this.value != value) {
+        if (this.value != value) {
             this.value = value;
             doCallback();
         }

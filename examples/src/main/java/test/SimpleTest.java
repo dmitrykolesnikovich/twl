@@ -29,29 +29,20 @@
  */
 package test;
 
-import de.matthiasmann.twl.Event;
-import de.matthiasmann.twl.renderer.lwjgl.LWJGLRenderer;
-import de.matthiasmann.twl.theme.ThemeManager;
-import de.matthiasmann.twl.BoxLayout;
-import de.matthiasmann.twl.Button;
-import de.matthiasmann.twl.CallbackWithReason;
-import de.matthiasmann.twl.DesktopArea;
-import de.matthiasmann.twl.GUI;
-import de.matthiasmann.twl.Label;
-import de.matthiasmann.twl.PopupWindow;
-import de.matthiasmann.twl.TextArea;
-import de.matthiasmann.twl.ToggleButton;
-import de.matthiasmann.twl.Widget;
-import de.matthiasmann.twl.textarea.HTMLTextAreaModel;
+import de.matthiasmann.twl.*;
 import de.matthiasmann.twl.model.PersistentIntegerModel;
 import de.matthiasmann.twl.model.SimpleBooleanModel;
+import de.matthiasmann.twl.renderer.lwjgl.LWJGLRenderer;
+import de.matthiasmann.twl.textarea.HTMLTextAreaModel;
+import de.matthiasmann.twl.theme.ThemeManager;
 import de.matthiasmann.twleffects.lwjgl.LWJGLEffectsRenderer;
-import java.io.IOException;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.PixelFormat;
+
+import java.io.IOException;
 
 /**
  * A simple test for TWL.
@@ -60,37 +51,14 @@ import org.lwjgl.opengl.PixelFormat;
  */
 public class SimpleTest {
 
-    private static final int WIDTH = 800;
-    private static final int HEIGHT = 600;
-
     static final String WITH_TITLE = "resizableframe-title";
     static final String WITHOUT_TITLE = "resizableframe";
-
-    static class StyleItem {
-        public final String theme;
-        public final String name;
-
-        public StyleItem(String theme, String name) {
-            this.theme = theme;
-            this.name = name;
-        }
-
-        @Override
-        public String toString() {
-            return name;
-        }
-    }
-    
-    public static void main(String[] arg) throws LWJGLException {
-        SimpleTest test = new SimpleTest();
-        test.run(new VideoMode(new DisplayMode(WIDTH, HEIGHT), false));
-    }
-
+    private static final int WIDTH = 800;
+    private static final int HEIGHT = 600;
     private static final String[] THEME_FILES = {
-        "simple_demo.xml",
-        "guiTheme.xml"
+            "simple_demo.xml",
+            "guiTheme.xml"
     };
-
     protected final DisplayMode desktopMode;
     protected boolean closeRequested;
     protected ThemeManager theme;
@@ -98,7 +66,6 @@ public class SimpleTest {
     protected GUI gui;
     protected VideoSettings.CallbackReason vidDlgCloseReason;
     protected PersistentIntegerModel curThemeIdx;
-
     public SimpleTest() {
         desktopMode = Display.getDisplayMode();
         curThemeIdx = new PersistentIntegerModel(
@@ -106,9 +73,14 @@ public class SimpleTest {
                 "currentThemeIndex", 0, THEME_FILES.length, 0);
     }
 
+    public static void main(String[] arg) throws LWJGLException {
+        SimpleTest test = new SimpleTest();
+        test.run(new VideoMode(new DisplayMode(WIDTH, HEIGHT), false));
+    }
+
     private void loadTheme() throws IOException {
         renderer.syncViewportSize();
-        System.out.println("width="+renderer.getWidth()+" height="+renderer.getHeight());
+        System.out.println("width=" + renderer.getWidth() + " height=" + renderer.getHeight());
 
         long startTime = System.nanoTime();
         // NOTE: this code destroys the old theme manager (including it's cache context)
@@ -117,15 +89,15 @@ public class SimpleTest {
         // If you want fast theme switching without reloading then use the existing
         // cache context for loading the new theme and don't destroy the old theme.
         ThemeManager newTheme = ThemeManager.createThemeManager(
-            SimpleTest.class.getResource(THEME_FILES[curThemeIdx.getValue()]), renderer);
+                SimpleTest.class.getResource(THEME_FILES[curThemeIdx.getValue()]), renderer);
         long duration = System.nanoTime() - startTime;
-        System.out.println("Loaded theme in " + (duration/1000) + " us");
+        System.out.println("Loaded theme in " + (duration / 1000) + " us");
 
-        if(theme != null) {
+        if (theme != null) {
             theme.destroy();
         }
         theme = newTheme;
-        
+
         gui.setSize();
         gui.applyTheme(theme);
         gui.setBackground(theme.getImageNoWarning("gui.background"));
@@ -181,14 +153,14 @@ public class SimpleTest {
 
         TextAreaDemoDialog1 fInfo = new TextAreaDemoDialog1();
         root.desk.add(fInfo);
-        fInfo.setSize(gui.getWidth()*2/3, gui.getHeight()*2/3);
+        fInfo.setSize(gui.getWidth() * 2 / 3, gui.getHeight() * 2 / 3);
         fInfo.center(0.5f, 0.5f);
         fInfo.addCloseCallback();
 
         TextAreaDemoDialog2 fTextAreaTest = new TextAreaDemoDialog2();
         fTextAreaTest.setHardVisible(false);
         root.desk.add(fTextAreaTest);
-        fTextAreaTest.setSize(gui.getWidth()*2/3, gui.getHeight()*2/3);
+        fTextAreaTest.setSize(gui.getWidth() * 2 / 3, gui.getHeight() * 2 / 3);
         fTextAreaTest.center(0.5f, 0.5f);
         fTextAreaTest.addCloseCallback();
 
@@ -221,7 +193,7 @@ public class SimpleTest {
         });
         root.addButton("Info", "Shows TWL license", new ToggleFadeFrame(fInfo)).setTooltipContent(makeComplexTooltip());
         root.addButton("TA", "Shows a text area test", new ToggleFadeFrame(fTextAreaTest));
-        if(!isApplet) {
+        if (!isApplet) {
             root.addButton("Settings", "Opens a dialog which might be used to change video settings", new Runnable() {
                 public void run() {
                     settings.readSettings();
@@ -235,7 +207,7 @@ public class SimpleTest {
                 curThemeIdx.setValue((curThemeIdx.getValue() + 1) % THEME_FILES.length);
                 try {
                     loadTheme();
-                } catch(IOException ex) {
+                } catch (IOException ex) {
                     ex.printStackTrace();
                 }
             }
@@ -257,17 +229,17 @@ public class SimpleTest {
 
         fInfo.requestKeyboardFocus();
 
-        while(!Display.isCloseRequested() && !closeRequested) {
+        while (!Display.isCloseRequested() && !closeRequested) {
             GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
 
             gui.update();
             Display.update();
 
-            if(root.reduceLag) {
+            if (root.reduceLag) {
                 TestUtils.reduceInputLag();
             }
 
-            if(!isApplet && vidDlgCloseReason == VideoSettings.CallbackReason.ACCEPT) {
+            if (!isApplet && vidDlgCloseReason == VideoSettings.CallbackReason.ACCEPT) {
                 settings.storeSettings();
                 VideoMode vm = settings.getSelectedVideoMode();
                 gui.destroy();
@@ -278,12 +250,12 @@ public class SimpleTest {
             }
             vidDlgCloseReason = null;
 
-            if(!Display.isActive()) {
+            if (!Display.isActive()) {
                 gui.clearKeyboardState();
                 gui.clearMouseState();
             }
-            
-            if(!Display.isVisible()) {
+
+            if (!Display.isVisible()) {
                 try {
                     Thread.sleep(100);
                 } catch (InterruptedException unused) {
@@ -314,6 +286,21 @@ public class SimpleTest {
         System.exit(0);
     }
 
+    static class StyleItem {
+        public final String theme;
+        public final String name;
+
+        public StyleItem(String theme, String name) {
+            this.theme = theme;
+            this.name = name;
+        }
+
+        @Override
+        public String toString() {
+            return name;
+        }
+    }
+
     static class RootPane extends Widget {
         final DesktopArea desk;
         final BoxLayout btnBox;
@@ -322,7 +309,7 @@ public class SimpleTest {
 
         public RootPane() {
             setTheme("");
-            
+
             desk = new DesktopArea();
             desk.setTheme("");
 
@@ -365,7 +352,7 @@ public class SimpleTest {
             btn.setTooltipContent(ttolTip);
             return btn;
         }
-        
+
         @Override
         protected void layout() {
             btnBox.adjustSize();
@@ -385,7 +372,7 @@ public class SimpleTest {
 
         @Override
         protected boolean handleEvent(Event evt) {
-            if(evt.getType() == Event.Type.KEY_PRESSED &&
+            if (evt.getType() == Event.Type.KEY_PRESSED &&
                     evt.getKeyCode() == Event.KEY_L &&
                     (evt.getModifiers() & Event.MODIFIER_CTRL) != 0 &&
                     (evt.getModifiers() & Event.MODIFIER_SHIFT) != 0) {

@@ -35,7 +35,6 @@ import de.matthiasmann.twl.model.SimpleProperty;
 import de.matthiasmann.twl.model.SimplePropertyList;
 
 /**
- *
  * @author Matthias Mann
  */
 public class PropertySheetDemoDialog extends FadeFrame {

@@ -34,7 +34,7 @@ import java.io.Reader;
 
 /**
  * A Reader which reads the content of several strings
- * 
+ *
  * @author Matthias Mann
  */
 public class MultiStringReader extends Reader {
@@ -43,14 +43,14 @@ public class MultiStringReader extends Reader {
     private int nr;
     private int pos;
 
-    public MultiStringReader(String ... strings) {
+    public MultiStringReader(String... strings) {
         this.strings = strings;
     }
 
     @Override
     public int read(char[] cbuf, int off, int len) throws IOException {
-        while(cur == null || pos == cur.length()) {
-            if(nr == strings.length) {
+        while (cur == null || pos == cur.length()) {
+            if (nr == strings.length) {
                 return -1;
             }
             cur = strings[nr++];
@@ -58,7 +58,7 @@ public class MultiStringReader extends Reader {
         }
 
         int remain = cur.length() - pos;
-        if(len > remain) {
+        if (len > remain) {
             len = remain;
         }
         cur.getChars(pos, pos += len, cbuf, off);

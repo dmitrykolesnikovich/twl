@@ -30,17 +30,26 @@
 package de.matthiasmann.twl.model;
 
 /**
- *
  * @author Matthias Mann
  */
 public interface TableModel extends TableColumnHeaderModel {
+
+    public int getNumRows();
+
+    public Object getCell(int row, int column);
+
+    public Object getTooltipContent(int row, int column);
+
+    public void addChangeListener(ChangeListener listener);
+
+    public void removeChangeListener(ChangeListener listener);
 
     public interface ChangeListener extends ColumnHeaderChangeListener {
         /**
          * New rows have been inserted. The existing rows starting at idx
          * have been shifted. The range idx to idx+count-1 (inclusive) are new.
          *
-         * @param idx the first new row
+         * @param idx   the first new row
          * @param count the number of inserted rows. Must be >= 1.
          */
         public void rowsInserted(int idx, int count);
@@ -49,7 +58,7 @@ public interface TableModel extends TableColumnHeaderModel {
          * Rows that were at the range idx to idx+count-1 (inclusive) have been removed.
          * Rows starting at idx+count have been shifted to idx.
          *
-         * @param idx the first removed row
+         * @param idx   the first removed row
          * @param count the number of removed rows. Must be >= 1.
          */
         public void rowsDeleted(int idx, int count);
@@ -57,14 +66,15 @@ public interface TableModel extends TableColumnHeaderModel {
         /**
          * Rows in the range idx to idx+count-1 (inclusive) have been changed.
          *
-         * @param idx the first changed row
+         * @param idx   the first changed row
          * @param count the number of changed rows. Must be >= 1.
          */
         public void rowsChanged(int idx, int count);
 
         /**
          * The specified cell has changed
-         * @param row the row of the cell
+         *
+         * @param row    the row of the cell
          * @param column the column of the cell
          */
         public void cellChanged(int row, int column);
@@ -76,14 +86,4 @@ public interface TableModel extends TableColumnHeaderModel {
          */
         public void allChanged();
     }
-
-    public int getNumRows();
-
-    public Object getCell(int row, int column);
-
-    public Object getTooltipContent(int row, int column);
-    
-    public void addChangeListener(ChangeListener listener);
-
-    public void removeChangeListener(ChangeListener listener);
 }

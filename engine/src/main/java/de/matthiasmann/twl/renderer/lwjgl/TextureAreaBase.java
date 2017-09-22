@@ -33,11 +33,11 @@ import org.lwjgl.opengl.GL11;
 
 /**
  * Base class to render a sub region of a GL texture
- * 
+ *
  * @author Matthias Mann
  */
 public class TextureAreaBase {
-    
+
     protected final float tx0;
     protected final float ty0;
     protected final float tx1;
@@ -47,20 +47,20 @@ public class TextureAreaBase {
 
     TextureAreaBase(int x, int y, int width, int height, float texWidth, float texHeight) {
         // negative size allows for flipping
-        this.width = (short)Math.abs(width);
-        this.height = (short)Math.abs(height);
+        this.width = (short) Math.abs(width);
+        this.height = (short) Math.abs(height);
         float fx = x;
         float fy = y;
-        if(width == 1 || width == -1) {
+        if (width == 1 || width == -1) {
             fx += 0.5f;
             width = 0;
-        } else if(width < 0) {
+        } else if (width < 0) {
             fx -= width;
         }
-        if(height == 1 || height == -1) {
+        if (height == 1 || height == -1) {
             fy += 0.5f;
             height = 0;
-        } else if(height < 0) {
+        } else if (height < 0) {
             fy -= height;
         }
         this.tx0 = fx / texWidth;
@@ -81,15 +81,19 @@ public class TextureAreaBase {
     public int getWidth() {
         return width;
     }
-    
+
     public int getHeight() {
         return height;
     }
 
     void drawQuad(int x, int y, int w, int h) {
-        GL11.glTexCoord2f(tx0, ty0); GL11.glVertex2i(x    , y    );
-        GL11.glTexCoord2f(tx0, ty1); GL11.glVertex2i(x    , y + h);
-        GL11.glTexCoord2f(tx1, ty1); GL11.glVertex2i(x + w, y + h);
-        GL11.glTexCoord2f(tx1, ty0); GL11.glVertex2i(x + w, y    );
+        GL11.glTexCoord2f(tx0, ty0);
+        GL11.glVertex2i(x, y);
+        GL11.glTexCoord2f(tx0, ty1);
+        GL11.glVertex2i(x, y + h);
+        GL11.glTexCoord2f(tx1, ty1);
+        GL11.glVertex2i(x + w, y + h);
+        GL11.glTexCoord2f(tx1, ty0);
+        GL11.glVertex2i(x + w, y);
     }
 }

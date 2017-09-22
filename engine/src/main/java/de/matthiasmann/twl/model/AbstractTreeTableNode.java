@@ -32,7 +32,6 @@ package de.matthiasmann.twl.model;
 import java.util.ArrayList;
 
 /**
- *
  * @author Matthias Mann
  */
 public abstract class AbstractTreeTableNode implements TreeTableNode {
@@ -42,7 +41,7 @@ public abstract class AbstractTreeTableNode implements TreeTableNode {
     private boolean leaf;
 
     protected AbstractTreeTableNode(TreeTableNode parent) {
-        if(parent == null) {
+        if (parent == null) {
             throw new NullPointerException("parent");
         }
         this.parent = parent;
@@ -61,6 +60,13 @@ public abstract class AbstractTreeTableNode implements TreeTableNode {
         return leaf;
     }
 
+    protected void setLeaf(boolean leaf) {
+        if (this.leaf != leaf) {
+            this.leaf = leaf;
+            fireNodeChanged();
+        }
+    }
+
     public int getNumChildren() {
         return (children != null) ? children.size() : 0;
     }
@@ -70,9 +76,9 @@ public abstract class AbstractTreeTableNode implements TreeTableNode {
     }
 
     public int getChildIndex(TreeTableNode child) {
-        if(children != null) {
-            for(int i=0,n=children.size() ; i<n ; i++) {
-                if(children.get(i) == child) {
+        if (children != null) {
+            for (int i = 0, n = children.size(); i < n; i++) {
+                if (children.get(i) == child) {
                     return i;
                 }
             }
@@ -80,17 +86,10 @@ public abstract class AbstractTreeTableNode implements TreeTableNode {
         return -1;
     }
 
-    protected void setLeaf(boolean leaf) {
-        if(this.leaf != leaf) {
-            this.leaf = leaf;
-            fireNodeChanged();
-        }
-    }
-
     protected void insertChild(TreeTableNode node, int idx) {
         assert getChildIndex(node) < 0;
         assert node.getParent() == this;
-        if(children == null) {
+        if (children == null) {
             children = new ArrayList<TreeTableNode>();
         }
         children.add(idx, node);
@@ -103,7 +102,7 @@ public abstract class AbstractTreeTableNode implements TreeTableNode {
     }
 
     protected void removeAllChildren() {
-        if(children != null) {
+        if (children != null) {
             int count = children.size();
             children.clear();
             getTreeTableModel().fireNodesRemoved(this, 0, count);
@@ -112,10 +111,10 @@ public abstract class AbstractTreeTableNode implements TreeTableNode {
 
     protected AbstractTreeTableModel getTreeTableModel() {
         TreeTableNode n = parent;
-        for(;;) {
+        for (; ; ) {
             TreeTableNode p = n.getParent();
-            if(p == null) {
-                return (AbstractTreeTableModel)n;
+            if (p == null) {
+                return (AbstractTreeTableModel) n;
             }
             n = p;
         }
@@ -123,7 +122,7 @@ public abstract class AbstractTreeTableNode implements TreeTableNode {
 
     protected void fireNodeChanged() {
         int selfIdxInParent = parent.getChildIndex(this);
-        if(selfIdxInParent >= 0) {
+        if (selfIdxInParent >= 0) {
             // a negative index means that we are not yet added to the parent
             getTreeTableModel().fireNodesChanged(parent, selfIdxInParent, 1);
         }

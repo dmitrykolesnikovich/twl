@@ -31,23 +31,27 @@ package de.matthiasmann.twl.utils;
 
 import de.matthiasmann.twl.renderer.AnimationState;
 import de.matthiasmann.twl.renderer.AnimationState.StateKey;
+
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.BitSet;
 
 /**
  * A class to handle animation state expression
- * 
+ *
  * @author Matthias Mann
  */
 public abstract class StateExpression {
 
-    public abstract boolean evaluate(AnimationState as);
+    boolean negate;
+
+    StateExpression() {
+    }
 
     public static StateExpression parse(String exp, boolean negate) throws ParseException {
         StringIterator si = new StringIterator(exp);
         StateExpression expr = parse(si);
-        if(si.hasMore()) {
+        if (si.hasMore()) {
             si.unexpected();
         }
         expr.negate ^= negate;
@@ -57,29 +61,29 @@ public abstract class StateExpression {
     private static StateExpression parse(StringIterator si) throws ParseException {
         ArrayList<StateExpression> children = new ArrayList<StateExpression>();
         char kind = ' ';
-        
-        for(;;) {
-            if(!si.skipSpaces()) {
+
+        for (; ; ) {
+            if (!si.skipSpaces()) {
                 si.unexpected();
             }
             char ch = si.peek();
             boolean negate = ch == '!';
-            if(negate) {
+            if (negate) {
                 si.pos++;
-                if(!si.skipSpaces()) {
+                if (!si.skipSpaces()) {
                     si.unexpected();
                 }
                 ch = si.peek();
             }
 
             StateExpression child = null;
-            if(Character.isJavaIdentifierStart(ch)) {
+            if (Character.isJavaIdentifierStart(ch)) {
                 child = new Check(StateKey.get(si.getIdent()));
-            } else if(ch == '(') {
+            } else if (ch == '(') {
                 si.pos++;
                 child = parse(si);
                 si.expect(')');
-            } else if(ch == ')') {
+            } else if (ch == ')') {
                 break;
             } else {
                 si.unexpected();
@@ -88,35 +92,39 @@ public abstract class StateExpression {
             child.negate = negate;
             children.add(child);
 
-            if(!si.skipSpaces()) {
+            if (!si.skipSpaces()) {
                 break;
             }
 
             ch = si.peek();
-            if("|+^".indexOf(ch) < 0) {
+            if ("|+^".indexOf(ch) < 0) {
                 break;
             }
 
-            if(children.size() == 1) {
+            if (children.size() == 1) {
                 kind = ch;
-            } else if(kind != ch) {
+            } else if (kind != ch) {
                 si.expect(kind);
             }
             si.pos++;
         }
 
-        if(children.isEmpty()) {
+        if (children.isEmpty()) {
             si.unexpected();
         }
-        
+
         assert kind != ' ' || children.size() == 1;
 
-        if(children.size() == 1) {
+        if (children.size() == 1) {
             return children.get(0);
         }
-        
+
         return new Logic(kind, children.toArray(new StateExpression[children.size()]));
     }
+
+    public abstract boolean evaluate(AnimationState as);
+
+    abstract void getUsedStateKeys(BitSet bs);
 
     private static class StringIterator {
         final String str;
@@ -135,8 +143,8 @@ public abstract class StateExpression {
         }
 
         void expect(char what) throws ParseException {
-            if(!hasMore() || peek() != what) {
-                throw new ParseException("Expected '"+what+"' got " + describePosition(), pos);
+            if (!hasMore() || peek() != what) {
+                throw new ParseException("Expected '" + what + "' got " + describePosition(), pos);
             }
             pos++;
         }
@@ -146,14 +154,14 @@ public abstract class StateExpression {
         }
 
         String describePosition() {
-            if(pos >= str.length()) {
+            if (pos >= str.length()) {
                 return "end of expression";
             }
-            return "'"+peek()+"' at " + (pos+1);
+            return "'" + peek() + "' at " + (pos + 1);
         }
 
         boolean skipSpaces() {
-            while(hasMore() && Character.isWhitespace(peek())) {
+            while (hasMore() && Character.isWhitespace(peek())) {
                 pos++;
             }
             return hasMore();
@@ -161,7 +169,7 @@ public abstract class StateExpression {
 
         String getIdent() {
             int start = pos;
-            while(hasMore() && Character.isJavaIdentifierPart(peek())) {
+            while (hasMore() && Character.isJavaIdentifierPart(peek())) {
                 pos++;
             }
             // intern string for faster HashMap lookup
@@ -169,20 +177,13 @@ public abstract class StateExpression {
         }
     }
 
-    StateExpression() {
-    }
-
-    abstract void getUsedStateKeys(BitSet bs);
-    
-    boolean negate;
-
     public static class Logic extends StateExpression {
         final StateExpression[] children;
         final boolean and;
         final boolean xor;
-        
-        public Logic(char kind, StateExpression ... children) {
-            if(kind != '|' && kind != '+' && kind != '^') {
+
+        public Logic(char kind, StateExpression... children) {
+            if (kind != '|' && kind != '+' && kind != '^') {
                 throw new IllegalArgumentException("kind");
             }
             this.children = children;
@@ -193,11 +194,11 @@ public abstract class StateExpression {
         @Override
         public boolean evaluate(AnimationState as) {
             boolean result = and ^ negate;
-            for(StateExpression e : children) {
+            for (StateExpression e : children) {
                 boolean value = e.evaluate(as);
-                if(xor) {
+                if (xor) {
                     result ^= value;
-                } else if(and != value) {
+                } else if (and != value) {
                     return result ^ true;
                 }
             }
@@ -206,12 +207,12 @@ public abstract class StateExpression {
 
         @Override
         void getUsedStateKeys(BitSet bs) {
-            for(StateExpression e : children) {
+            for (StateExpression e : children) {
                 e.getUsedStateKeys(bs);
             }
         }
     }
-    
+
     public static class Check extends StateExpression {
         final StateKey state;
 

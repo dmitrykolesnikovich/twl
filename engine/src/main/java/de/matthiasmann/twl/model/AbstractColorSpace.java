@@ -39,7 +39,7 @@ public abstract class AbstractColorSpace implements ColorSpace {
     private final String colorSpaceName;
     private final String[] names;
 
-    public AbstractColorSpace(String colorSpaceName, String ... names) {
+    public AbstractColorSpace(String colorSpaceName, String... names) {
         this.colorSpaceName = colorSpaceName;
         this.names = names;
     }

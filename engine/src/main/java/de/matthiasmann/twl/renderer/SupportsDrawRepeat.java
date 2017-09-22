@@ -38,6 +38,6 @@ package de.matthiasmann.twl.renderer;
 public interface SupportsDrawRepeat {
 
     public void draw(AnimationState as, int x, int y, int width, int height,
-            int repeatCountX, int repeatCountY);
+                     int repeatCountX, int repeatCountY);
 
 }

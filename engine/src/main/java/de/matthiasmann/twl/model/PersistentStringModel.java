@@ -32,7 +32,6 @@ package de.matthiasmann.twl.model;
 import java.util.prefs.Preferences;
 
 /**
- *
  * @author Matthias Mann
  */
 public class PersistentStringModel extends HasCallback implements StringModel {
@@ -42,13 +41,13 @@ public class PersistentStringModel extends HasCallback implements StringModel {
     private String value;
 
     public PersistentStringModel(Preferences prefs, String prefKey, String defaultValue) {
-        if(prefs == null) {
+        if (prefs == null) {
             throw new NullPointerException("prefs");
         }
-        if(prefKey == null) {
+        if (prefKey == null) {
             throw new NullPointerException("prefKey");
         }
-        if(defaultValue == null) {
+        if (defaultValue == null) {
             throw new NullPointerException("defaultValue");
         }
         this.prefs = prefs;
@@ -61,10 +60,10 @@ public class PersistentStringModel extends HasCallback implements StringModel {
     }
 
     public void setValue(String value) {
-        if(value == null) {
+        if (value == null) {
             throw new NullPointerException("value");
         }
-        if(!this.value.equals(value)) {
+        if (!this.value.equals(value)) {
             this.value = value;
             prefs.put(prefKey, value);
             doCallback();

@@ -36,19 +36,22 @@ import de.matthiasmann.twl.model.TableSelectionModel;
  * A row selection model manages table selection on a per row base.
  * Cells are never selected by this model.
  *
- * @see #isCellSelected(int, int)
  * @author Matthias Mann
+ * @see #isCellSelected(int, int)
  */
 public class TableRowSelectionManager implements TableSelectionManager {
 
+    protected static final int TOGGLE = 0;
+    protected static final int EXTEND = 1;
+    protected static final int SET = 2;
+    protected static final int MOVE = 3;
     protected final ActionMap actionMap;
     protected final TableSelectionModel selectionModel;
-
     protected TableBase tableBase;
 
     @SuppressWarnings("LeakingThisInConstructor")
     public TableRowSelectionManager(TableSelectionModel selectionModel) {
-        if(selectionModel == null) {
+        if (selectionModel == null) {
             throw new NullPointerException("selectionModel");
         }
         this.selectionModel = selectionModel;
@@ -71,8 +74,8 @@ public class TableRowSelectionManager implements TableSelectionManager {
     }
 
     public void setAssociatedTable(TableBase base) {
-        if(tableBase != base) {
-            if(tableBase != null && base != null) {
+        if (tableBase != base) {
+            if (tableBase != null && base != null) {
                 throw new IllegalStateException("selection manager still in use");
             }
             this.tableBase = base;
@@ -91,11 +94,11 @@ public class TableRowSelectionManager implements TableSelectionManager {
     public boolean handleMouseEvent(int row, int column, Event event) {
         boolean isShift = (event.getModifiers() & Event.MODIFIER_SHIFT) != 0;
         boolean isCtrl = (event.getModifiers() & Event.MODIFIER_CTRL) != 0;
-        if(event.getType() == Event.Type.MOUSE_BTNDOWN && event.getMouseButton() == Event.MOUSE_LBUTTON) {
+        if (event.getType() == Event.Type.MOUSE_BTNDOWN && event.getMouseButton() == Event.MOUSE_LBUTTON) {
             handleMouseDown(row, column, isShift, isCtrl);
             return true;
         }
-        if(event.getType() == Event.Type.MOUSE_CLICKED) {
+        if (event.getType() == Event.Type.MOUSE_CLICKED) {
             return handleMouseClick(row, column, isShift, isCtrl);
         }
         return false;
@@ -109,7 +112,7 @@ public class TableRowSelectionManager implements TableSelectionManager {
      * In a row selection model no cell can be selected. So this method always
      * returns false
      *
-     * @param row ignored
+     * @param row    ignored
      * @param column ignored
      * @return always false
      */
@@ -168,7 +171,7 @@ public class TableRowSelectionManager implements TableSelectionManager {
     @ActionMap.Action
     public void selectFirstRow() {
         int numRows = getNumRows();
-        if(numRows > 0) {
+        if (numRows > 0) {
             handleAbsoluteAction(0, SET);
         }
     }
@@ -176,8 +179,8 @@ public class TableRowSelectionManager implements TableSelectionManager {
     @ActionMap.Action
     public void selectLastRow() {
         int numRows = getNumRows();
-        if(numRows > 0) {
-            handleRelativeAction(numRows-1, SET);
+        if (numRows > 0) {
+            handleRelativeAction(numRows - 1, SET);
         }
     }
 
@@ -204,7 +207,7 @@ public class TableRowSelectionManager implements TableSelectionManager {
     @ActionMap.Action
     public void extendSelectionToFirstRow() {
         int numRows = getNumRows();
-        if(numRows > 0) {
+        if (numRows > 0) {
             handleAbsoluteAction(0, EXTEND);
         }
     }
@@ -212,8 +215,8 @@ public class TableRowSelectionManager implements TableSelectionManager {
     @ActionMap.Action
     public void extendSelectionToLastRow() {
         int numRows = getNumRows();
-        if(numRows > 0) {
-            handleRelativeAction(numRows-1, EXTEND);
+        if (numRows > 0) {
+            handleRelativeAction(numRows - 1, EXTEND);
         }
     }
 
@@ -240,7 +243,7 @@ public class TableRowSelectionManager implements TableSelectionManager {
     @ActionMap.Action
     public void moveLeadToFirstRow() {
         int numRows = getNumRows();
-        if(numRows > 0) {
+        if (numRows > 0) {
             handleAbsoluteAction(0, MOVE);
         }
     }
@@ -248,15 +251,15 @@ public class TableRowSelectionManager implements TableSelectionManager {
     @ActionMap.Action
     public void moveLeadToLastRow() {
         int numRows = getNumRows();
-        if(numRows > 0) {
-            handleAbsoluteAction(numRows-1, MOVE);
+        if (numRows > 0) {
+            handleAbsoluteAction(numRows - 1, MOVE);
         }
     }
 
     @ActionMap.Action
     public void toggleSelectionOnLeadRow() {
         int leadIndex = selectionModel.getLeadIndex();
-        if(leadIndex > 0) {
+        if (leadIndex > 0) {
             selectionModel.invertSelection(leadIndex, leadIndex);
         }
     }
@@ -264,8 +267,8 @@ public class TableRowSelectionManager implements TableSelectionManager {
     @ActionMap.Action
     public void selectAll() {
         int numRows = getNumRows();
-        if(numRows > 0) {
-            selectionModel.setSelection(0, numRows-1);
+        if (numRows > 0) {
+            selectionModel.setSelection(0, numRows - 1);
         }
     }
 
@@ -274,23 +277,18 @@ public class TableRowSelectionManager implements TableSelectionManager {
         selectionModel.clearSelection();
     }
 
-    protected static final int TOGGLE = 0;
-    protected static final int EXTEND = 1;
-    protected static final int SET = 2;
-    protected static final int MOVE = 3;
-
     protected void handleRelativeAction(int delta, int mode) {
         int numRows = getNumRows();
-        if(numRows > 0) {
+        if (numRows > 0) {
             int leadIndex = Math.max(0, selectionModel.getLeadIndex());
-            int index = Math.max(0, Math.min(numRows-1, leadIndex + delta));
+            int index = Math.max(0, Math.min(numRows - 1, leadIndex + delta));
 
             handleAbsoluteAction(index, mode);
         }
     }
 
     protected void handleAbsoluteAction(int index, int mode) {
-        if(tableBase != null) {
+        if (tableBase != null) {
             tableBase.adjustScrollPosition(index);
         }
 
@@ -312,34 +310,34 @@ public class TableRowSelectionManager implements TableSelectionManager {
     }
 
     protected void handleMouseDown(int row, int column, boolean isShift, boolean isCtrl) {
-        if(row < 0 || row >= getNumRows()) {
-            if(!isShift) {
+        if (row < 0 || row >= getNumRows()) {
+            if (!isShift) {
                 selectionModel.clearSelection();
             }
         } else {
             tableBase.adjustScrollPosition(row);
             int anchorIndex = selectionModel.getAnchorIndex();
             boolean anchorSelected;
-            if(anchorIndex == -1) {
+            if (anchorIndex == -1) {
                 anchorIndex = 0;
                 anchorSelected = false;
             } else {
                 anchorSelected = selectionModel.isSelected(anchorIndex);
             }
 
-            if(isCtrl) {
-                if(isShift) {
-                    if(anchorSelected) {
+            if (isCtrl) {
+                if (isShift) {
+                    if (anchorSelected) {
                         selectionModel.addSelection(anchorIndex, row);
                     } else {
                         selectionModel.removeSelection(anchorIndex, row);
                     }
-                } else if(selectionModel.isSelected(row)) {
+                } else if (selectionModel.isSelected(row)) {
                     selectionModel.removeSelection(row, row);
                 } else {
                     selectionModel.addSelection(row, row);
                 }
-            } else if(isShift) {
+            } else if (isShift) {
                 selectionModel.setSelection(anchorIndex, row);
             } else {
                 selectionModel.setSelection(row, row);
@@ -352,14 +350,14 @@ public class TableRowSelectionManager implements TableSelectionManager {
     }
 
     protected int getNumRows() {
-        if(tableBase != null) {
+        if (tableBase != null) {
             return tableBase.getNumRows();
         }
         return 0;
     }
 
     protected int getPageSize() {
-        if(tableBase != null) {
+        if (tableBase != null) {
             return Math.max(1, tableBase.getNumVisibleRows());
         }
         return 1;

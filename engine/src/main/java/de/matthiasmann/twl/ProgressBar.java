@@ -41,7 +41,7 @@ public class ProgressBar extends TextWidget {
 
     public static final StateKey STATE_VALUE_CHANGED = StateKey.get("valueChanged");
     public static final StateKey STATE_INDETERMINATE = StateKey.get("indeterminate");
-    
+
     public static final float VALUE_INDETERMINATE = -1;
 
     private Image progressImage;
@@ -53,23 +53,11 @@ public class ProgressBar extends TextWidget {
 
     /**
      * Returns the current value or VALUE_INDETERMINATE
+     *
      * @return the current value or VALUE_INDETERMINATE
      */
     public float getValue() {
         return value;
-    }
-
-    /**
-     * Sets the progress bar to an indeterminate state.
-     * @see #STATE_INDETERMINATE
-     */
-    public void setIndeterminate() {
-        if(value >= 0) {
-            value = VALUE_INDETERMINATE;
-            AnimationState animationState = getAnimationState();
-            animationState.setAnimationState(STATE_INDETERMINATE, true);
-            animationState.resetAnimationTime(STATE_VALUE_CHANGED);
-        }
     }
 
     /**
@@ -79,12 +67,12 @@ public class ProgressBar extends TextWidget {
      * @param value the progress value between 0.0f and 1.0f.
      */
     public void setValue(float value) {
-        if(!(value > 0)) {  // protect against NaN
+        if (!(value > 0)) {  // protect against NaN
             value = 0;
-        } else if(value > 1) {
+        } else if (value > 1) {
             value = 1;
         }
-        if(this.value != value) {
+        if (this.value != value) {
             this.value = value;
             AnimationState animationState = getAnimationState();
             animationState.setAnimationState(STATE_INDETERMINATE, false);
@@ -92,27 +80,42 @@ public class ProgressBar extends TextWidget {
         }
     }
 
+    /**
+     * Sets the progress bar to an indeterminate state.
+     *
+     * @see #STATE_INDETERMINATE
+     */
+    public void setIndeterminate() {
+        if (value >= 0) {
+            value = VALUE_INDETERMINATE;
+            AnimationState animationState = getAnimationState();
+            animationState.setAnimationState(STATE_INDETERMINATE, true);
+            animationState.resetAnimationTime(STATE_VALUE_CHANGED);
+        }
+    }
+
     public String getText() {
-        return (String)getCharSequence();
+        return (String) getCharSequence();
     }
 
     /**
      * Sets the text which is displayed on top of the progress bar image.
+     *
      * @param text the text
      */
     public void setText(String text) {
         setCharSequence(text);
     }
-    
+
     public Image getProgressImage() {
         return progressImage;
     }
 
     /**
      * Sets the progress image.
-     *
+     * <p>
      * <p>This is called from {@link #applyThemeProgressBar(de.matthiasmann.twl.ThemeInfo) }</p>
-     *
+     * <p>
      * <p>When the progress bar is in indeterminate state then the image is not
      * drawn, otherwise it is drawn with a scaled width based on the current
      * progress value.</p>
@@ -137,13 +140,13 @@ public class ProgressBar extends TextWidget {
     protected void paintWidget(GUI gui) {
         int width = getInnerWidth();
         int height = getInnerHeight();
-        if(progressImage != null && value >= 0) {
+        if (progressImage != null && value >= 0) {
             int imageWidth = progressImage.getWidth();
             int progressWidth = width - imageWidth;
-            int scaledWidth = (int)(progressWidth * value);
-            if(scaledWidth < 0) {
+            int scaledWidth = (int) (progressWidth * value);
+            if (scaledWidth < 0) {
                 scaledWidth = 0;
-            } else if(scaledWidth > progressWidth) {
+            } else if (scaledWidth > progressWidth) {
                 scaledWidth = progressWidth;
             }
             progressImage.draw(getAnimationState(), getInnerX(), getInnerY(), imageWidth + scaledWidth, height);
@@ -155,7 +158,7 @@ public class ProgressBar extends TextWidget {
     public int getMinWidth() {
         int minWidth = super.getMinWidth();
         Image bg = getBackground();
-        if(bg != null) {
+        if (bg != null) {
             minWidth = Math.max(minWidth, bg.getWidth() + getBorderHorizontal());
         }
         return minWidth;
@@ -165,7 +168,7 @@ public class ProgressBar extends TextWidget {
     public int getMinHeight() {
         int minHeight = super.getMinHeight();
         Image bg = getBackground();
-        if(bg != null) {
+        if (bg != null) {
             minHeight = Math.max(minHeight, bg.getHeight() + getBorderVertical());
         }
         return minHeight;
@@ -174,7 +177,7 @@ public class ProgressBar extends TextWidget {
     @Override
     public int getPreferredInnerWidth() {
         int prefWidth = super.getPreferredInnerWidth();
-        if(progressImage != null) {
+        if (progressImage != null) {
             prefWidth = Math.max(prefWidth, progressImage.getWidth());
         }
         return prefWidth;
@@ -183,7 +186,7 @@ public class ProgressBar extends TextWidget {
     @Override
     public int getPreferredInnerHeight() {
         int prefHeight = super.getPreferredInnerHeight();
-        if(progressImage != null) {
+        if (progressImage != null) {
             prefHeight = Math.max(prefHeight, progressImage.getHeight());
         }
         return prefHeight;

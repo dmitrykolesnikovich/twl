@@ -30,7 +30,6 @@
 package nodes;
 
 /**
- *
  * @author Matthias Mann
  */
 public class Connection {
@@ -39,10 +38,10 @@ public class Connection {
     private final Pad destination;
 
     public Connection(Pad source, Pad destination) {
-        if(source == null) {
+        if (source == null) {
             throw new NullPointerException("source");
         }
-        if(destination == null) {
+        if (destination == null) {
             throw new NullPointerException("dest");
         }
         this.source = source;
@@ -59,10 +58,10 @@ public class Connection {
 
     @Override
     public boolean equals(Object obj) {
-        if(obj == null || getClass() != obj.getClass()) {
+        if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        final Connection other = (Connection)obj;
+        final Connection other = (Connection) obj;
         return (this.source == other.source) && (this.destination == other.destination);
     }
 
@@ -73,5 +72,5 @@ public class Connection {
         hash = 79 * hash + System.identityHashCode(this.destination);
         return hash;
     }
-    
+
 }

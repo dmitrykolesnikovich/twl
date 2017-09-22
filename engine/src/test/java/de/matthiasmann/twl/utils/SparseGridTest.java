@@ -29,11 +29,13 @@
  */
 package de.matthiasmann.twl.utils;
 
+import org.junit.Test;
+
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
-import org.junit.Test;
+
 import static org.junit.Assert.*;
 
 /**
@@ -84,7 +86,7 @@ public class SparseGridTest {
 
         public int compareTo(Coord o) {
             int diff = row - o.row;
-            if(diff == 0) {
+            if (diff == 0) {
                 diff = column - o.column;
             }
             return diff;
@@ -92,8 +94,8 @@ public class SparseGridTest {
 
         @Override
         public boolean equals(Object obj) {
-            if(obj != null && obj.getClass() == getClass()) {
-                final Coord other = (Coord)obj;
+            if (obj != null && obj.getClass() == getClass()) {
+                final Coord other = (Coord) obj;
                 return this.row == other.row && this.column == other.column;
             }
             return false;
@@ -114,6 +116,7 @@ public class SparseGridTest {
     }
 
     static class Helper {
+        static final int[] chances = createChanceTable(600, 300, 2, 2, 1, 1, 1);
         final SparseGrid sg;
         HashMap<Coord, Entry> map;
         int currentNr;
@@ -129,6 +132,21 @@ public class SparseGridTest {
             this.map = new HashMap<Coord, Entry>();
         }
 
+        private static int[] createChanceTable(int... weights) {
+            int sum = 0;
+            for (int weight : weights) {
+                sum += weight;
+            }
+            int[] result = new int[sum];
+            int idx = 0;
+            int pos = 0;
+            for (int weight : weights) {
+                Arrays.fill(result, idx, idx + weight, pos++);
+                idx += weight;
+            }
+            return result;
+        }
+
         public void insert(int row, int column) {
             checkSize();
             check(row, column);
@@ -141,7 +159,7 @@ public class SparseGridTest {
 
         public void check(int row, int column) {
             try {
-                Entry eSG = (Entry)sg.get(row, column);
+                Entry eSG = (Entry) sg.get(row, column);
                 Entry eMap = map.get(new Coord(row, column));
                 assertSame(eMap, eSG);
             } catch (AssertionError ex) {
@@ -153,7 +171,7 @@ public class SparseGridTest {
         public void remove(int row, int column) {
             checkSize();
             check(row, column);
-            Entry eSG = (Entry)sg.remove(row, column);
+            Entry eSG = (Entry) sg.remove(row, column);
             Coord c = new Coord(row, column);
             Entry eMap = map.remove(c);
             assertSame(eMap, eSG);
@@ -162,22 +180,22 @@ public class SparseGridTest {
 
         private void rewriteMap(int rowStart, int rowOffset, int colStart, int colOffset) {
             HashMap<Coord, Entry> newMap = new HashMap<Coord, Entry>();
-            for(Map.Entry<Coord, Entry> e : map.entrySet()) {
+            for (Map.Entry<Coord, Entry> e : map.entrySet()) {
                 Coord c = e.getKey();
-                if(c.row < rowStart && c.column < colStart) {
+                if (c.row < rowStart && c.column < colStart) {
                     newMap.put(c, e.getValue());
                 } else {
                     int row = c.row;
                     int col = c.column;
-                    if(row >= rowStart) {
+                    if (row >= rowStart) {
                         row += rowOffset;
-                        if(row < rowStart) {
+                        if (row < rowStart) {
                             continue;
                         }
                     }
-                    if(col >= colStart) {
+                    if (col >= colStart) {
                         col += colOffset;
-                        if(col < colStart) {
+                        if (col < colStart) {
                             continue;
                         }
                     }
@@ -189,30 +207,30 @@ public class SparseGridTest {
 
         private void checkLinks(SparseGrid.Node node, SparseGrid.Node prev, SparseGrid.Node next, int levels) {
             assertTrue("empty node", node.size > 0);
-            if(--levels == 0) {
+            if (--levels == 0) {
                 return;
             }
             SparseGrid.Node n = null;
-            for(int i=0 ; i<node.size ; i++) {
-                n = (SparseGrid.Node)node.children[i];
+            for (int i = 0; i < node.size; i++) {
+                n = (SparseGrid.Node) node.children[i];
                 assertSame(prev, n.prev);
                 //assertFalse("below half", n.isBelowHalf() || node.size == 1);
-                if(prev != null) {
+                if (prev != null) {
                     assertSame(n, prev.next);
                 }
                 prev = n;
             }
             assertSame(next, n.next);
 
-            if(levels > 1) {
+            if (levels > 1) {
                 prev = null;
-                if(node.prev != null) {
+                if (node.prev != null) {
                     prev = getLast(node.prev);
                 }
-                for(int i=0 ; i<node.size ; i++) {
-                    n = (SparseGrid.Node)node.children[i];
-                    if(i+1 < node.size) {
-                        next = (SparseGrid.Node)node.children[i+1];
+                for (int i = 0; i < node.size; i++) {
+                    n = (SparseGrid.Node) node.children[i];
+                    if (i + 1 < node.size) {
+                        next = (SparseGrid.Node) node.children[i + 1];
                     } else {
                         next = getFirst(node.next);
                     }
@@ -221,33 +239,38 @@ public class SparseGridTest {
                 }
             }
         }
+
         private SparseGrid.Node getLast(SparseGrid.Node node) {
-            if(node != null && node.size > 0) {
-                return (SparseGrid.Node)node.children[node.size-1];
+            if (node != null && node.size > 0) {
+                return (SparseGrid.Node) node.children[node.size - 1];
             }
             return null;
         }
+
         private SparseGrid.Node getFirst(SparseGrid.Node node) {
-            if(node != null && node.size > 0) {
-                return (SparseGrid.Node)node.children[0];
+            if (node != null && node.size > 0) {
+                return (SparseGrid.Node) node.children[0];
             }
             return null;
         }
+
         private void checkLinks() {
-            if(!sg.isEmpty()) {
+            if (!sg.isEmpty()) {
                 checkLinks(sg.root, null, null, sg.numLevels);
             }
         }
+
         private int getSize(SparseGrid.Node n, int level) {
-            if(--level==0) {
+            if (--level == 0) {
                 return n.size;
             }
             int size = 0;
-            for(int i=0 ; i<n.size ; ++i) {
-                size += getSize((SparseGrid.Node)n.children[i], level);
+            for (int i = 0; i < n.size; ++i) {
+                size += getSize((SparseGrid.Node) n.children[i], level);
             }
             return size;
         }
+
         private int getSize() {
             return getSize(sg.root, sg.numLevels);
         }
@@ -256,16 +279,17 @@ public class SparseGridTest {
             int curSize = getSize();
             assertEquals(map.size(), curSize);
         }
+
         private void checkAll() {
             checkSize();
             checkLinks();
-            for(Map.Entry<Coord, Entry> e : map.entrySet()) {
+            for (Map.Entry<Coord, Entry> e : map.entrySet()) {
                 Coord c = e.getKey();
-                Entry eSG = (Entry)sg.get(c.row, c.column);
+                Entry eSG = (Entry) sg.get(c.row, c.column);
                 assertSame(e.getValue(), eSG);
             }
         }
-        
+
         public void insertRows(int row, int count) {
             //checkAll();
             sg.insertRows(row, count);
@@ -305,9 +329,9 @@ public class SparseGridTest {
         public void iterate(int startRow, int startColumn, int endRow, int endColumn) {
             //checkAll();
             final HashMap<Coord, Entry> results = new HashMap<Coord, Entry>();
-            for(Map.Entry<Coord, Entry> e : map.entrySet()) {
+            for (Map.Entry<Coord, Entry> e : map.entrySet()) {
                 Coord c = e.getKey();
-                if(c.row >= startRow && c.column >= startColumn &&
+                if (c.row >= startRow && c.column >= startColumn &&
                         c.row <= endRow && c.column <= endColumn) {
                     results.put(c, e.getValue());
                 }
@@ -318,72 +342,56 @@ public class SparseGridTest {
                     assertSame(eMap, eSG);
                 }
             });
-            for(Map.Entry<Coord, Entry> e : results.entrySet()) {
+            for (Map.Entry<Coord, Entry> e : results.entrySet()) {
                 Coord c = e.getKey();
-                Entry eSG = (Entry)sg.get(c.row, c.column);
-                if(eSG != null) {
-                    System.out.println("Missed "+c.row+" "+c.column);
+                Entry eSG = (Entry) sg.get(c.row, c.column);
+                if (eSG != null) {
+                    System.out.println("Missed " + c.row + " " + c.column);
                 }
                 assertNull(eSG);
             }
             assertTrue(results.isEmpty());
         }
 
-        static final int[] chances = createChanceTable(600,300,2,2,1,1,1);
         public void doRandomInsertsDeletes(Random r, int count, int maxRows, int maxColumns) {
-            for(int i=0 ; i<count ; i++) {
+            for (int i = 0; i < count; i++) {
                 int row = r.nextInt(maxRows);
                 int col = r.nextInt(maxColumns);
-                switch(chances[r.nextInt(chances.length)]) {
-                case 0:
-                    insert(row, col);
-                    break;
-                case 1:
-                    remove(row, col);
-                    break;
-                case 2:
-                    insertRows(row, r.nextInt(maxRows/10)+1);
-                    break;
-                case 3:
-                    removeRows(row, r.nextInt(maxRows/10)+1);
-                    break;
-                case 4:
-                    insertColumns(col, r.nextInt(maxColumns/10)+1);
-                    break;
-                case 5:
-                    removeColumns(col, r.nextInt(maxColumns/10)+1);
-                    break;
-                case 6:
-                    iterate(row, col,
-                            row + r.nextInt(maxRows/10),
-                            col + r.nextInt(maxColumns/10));
-                    break;
-                default:
-                    throw new UnsupportedOperationException();
+                switch (chances[r.nextInt(chances.length)]) {
+                    case 0:
+                        insert(row, col);
+                        break;
+                    case 1:
+                        remove(row, col);
+                        break;
+                    case 2:
+                        insertRows(row, r.nextInt(maxRows / 10) + 1);
+                        break;
+                    case 3:
+                        removeRows(row, r.nextInt(maxRows / 10) + 1);
+                        break;
+                    case 4:
+                        insertColumns(col, r.nextInt(maxColumns / 10) + 1);
+                        break;
+                    case 5:
+                        removeColumns(col, r.nextInt(maxColumns / 10) + 1);
+                        break;
+                    case 6:
+                        iterate(row, col,
+                                row + r.nextInt(maxRows / 10),
+                                col + r.nextInt(maxColumns / 10));
+                        break;
+                    default:
+                        throw new UnsupportedOperationException();
                 }
             }
         }
 
         public void dumpStats() {
-            System.out.println("maxSize="+maxSize+" maxLevels="+maxLevels+
-                    " currentNr="+currentNr+
-                    " numInserts="+numInsertRows+","+numInsertCols+
-                    " numRemoves="+numRemoveRows+","+numRemoveCols);
-        }
-
-        private static int[] createChanceTable(int ... weights) {
-            int sum = 0;
-            for(int weight : weights) {
-                sum += weight;
-            }
-            int[] result = new int[sum];
-            int idx = 0;
-            int pos = 0;
-            for(int weight : weights) {
-                Arrays.fill(result, idx, idx+weight, pos++);
-                idx += weight;
-            }
-            return result;
+            System.out.println("maxSize=" + maxSize + " maxLevels=" + maxLevels +
+                    " currentNr=" + currentNr +
+                    " numInserts=" + numInsertRows + "," + numInsertCols +
+                    " numRemoves=" + numRemoveRows + "," + numRemoveCols);
         }
     }
 }

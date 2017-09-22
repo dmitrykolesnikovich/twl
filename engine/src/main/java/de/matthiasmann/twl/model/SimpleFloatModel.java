@@ -31,7 +31,7 @@ package de.matthiasmann.twl.model;
 
 /**
  * A simple float data model.
- *
+ * <p>
  * Out of range values are limited to minValue ... maxValue.
  * If the value is set to NaN then it is converted to minValue.
  *
@@ -44,13 +44,13 @@ public class SimpleFloatModel extends AbstractFloatModel {
     private float value;
 
     public SimpleFloatModel(float minValue, float maxValue, float value) {
-        if(Float.isNaN(minValue)) {
+        if (Float.isNaN(minValue)) {
             throw new IllegalArgumentException("minValue is NaN");
         }
-        if(Float.isNaN(maxValue)) {
+        if (Float.isNaN(maxValue)) {
             throw new IllegalArgumentException("maxValue is NaN");
         }
-        if(minValue > maxValue) {
+        if (minValue > maxValue) {
             throw new IllegalArgumentException("minValue > maxValue");
         }
         this.minValue = minValue;
@@ -72,14 +72,14 @@ public class SimpleFloatModel extends AbstractFloatModel {
 
     public void setValue(float value) {
         value = limit(value);
-        if(this.value != value) {
+        if (this.value != value) {
             this.value = value;
             doCallback();
         }
     }
 
     protected float limit(float value) {
-        if(Float.isNaN(value)) {
+        if (Float.isNaN(value)) {
             return minValue;
         }
         return Math.max(minValue, Math.min(maxValue, value));

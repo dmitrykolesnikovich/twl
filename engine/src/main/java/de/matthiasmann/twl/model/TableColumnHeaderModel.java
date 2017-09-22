@@ -32,37 +32,9 @@ package de.matthiasmann.twl.model;
 import de.matthiasmann.twl.renderer.AnimationState.StateKey;
 
 /**
- *
  * @author Matthias Mann
  */
 public interface TableColumnHeaderModel {
-
-    public interface ColumnHeaderChangeListener {
-        /**
-         * New columns have been inserted. The existing columns starting at idx
-         * have been shifted. The range idx to idx+count-1 (inclusive) are new.
-         *
-         * @param idx the first new column
-         * @param count the number of inserted columns. Must be >= 1.
-         */
-        public void columnInserted(int idx, int count);
-
-        /**
-         * Columns that were at the range idx to idx+count-1 (inclusive) have been removed.
-         * Columns starting at idx+count have been shifted to idx.
-         *
-         * @param idx the first removed column
-         * @param count the number of removed columns. Must be >= 1.
-         */
-        public void columnDeleted(int idx, int count);
-
-        /**
-         * A column header has changed it's text or state
-         *
-         * @param column the column index
-         */
-        public void columnHeaderChanged(int column);
-    }
 
     public int getNumColumns();
 
@@ -76,6 +48,7 @@ public interface TableColumnHeaderModel {
 
     /**
      * The text of the specified column header.
+     *
      * @param column the column index
      * @return the column header test
      */
@@ -84,10 +57,37 @@ public interface TableColumnHeaderModel {
     /**
      * Returns the value of the specified column header and state.
      *
-     * @param column the column index
+     * @param column   the column index
      * @param stateIdx the state index into the getColumnHeaderStates() array.
      * @return the value of the state
      * @see #getColumnHeaderStates()
      */
     public boolean getColumnHeaderState(int column, int stateIdx);
+
+    public interface ColumnHeaderChangeListener {
+        /**
+         * New columns have been inserted. The existing columns starting at idx
+         * have been shifted. The range idx to idx+count-1 (inclusive) are new.
+         *
+         * @param idx   the first new column
+         * @param count the number of inserted columns. Must be >= 1.
+         */
+        public void columnInserted(int idx, int count);
+
+        /**
+         * Columns that were at the range idx to idx+count-1 (inclusive) have been removed.
+         * Columns starting at idx+count have been shifted to idx.
+         *
+         * @param idx   the first removed column
+         * @param count the number of removed columns. Must be >= 1.
+         */
+        public void columnDeleted(int idx, int count);
+
+        /**
+         * A column header has changed it's text or state
+         *
+         * @param column the column index
+         */
+        public void columnHeaderChanged(int column);
+    }
 }

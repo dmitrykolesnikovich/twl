@@ -65,6 +65,7 @@ public abstract class AutoCompletionResult {
 
     /**
      * Returns the text which was used for this auto completion
+     *
      * @return the text which was used for this auto completion
      */
     public String getText() {
@@ -73,12 +74,14 @@ public abstract class AutoCompletionResult {
 
     /**
      * Returns the number of results
+     *
      * @return the number of results
      */
     public abstract int getNumResults();
 
     /**
      * Returns a selected result entry
+     *
      * @param idx the index of the desired result entry
      * @return the result entry
      * @see #getNumResults()
@@ -87,9 +90,9 @@ public abstract class AutoCompletionResult {
 
     /**
      * Returns the desired cursor position for the given result entry.
-     * 
+     * <p>
      * The default implementation returns {@link #DEFAULT_CURSOR_POS}
-     * 
+     *
      * @param idx the index of the desired result entry
      * @return the cursor position
      * @see #getNumResults()
@@ -103,11 +106,11 @@ public abstract class AutoCompletionResult {
     /**
      * Tries to refine the results. Refining can result in a different order
      * of results then a new query but is faster.
-     *
+     * <p>
      * If refining resulted in no results then an empty AutoCompletionResult
      * is returned.
      *
-     * @param text The new text
+     * @param text      The new text
      * @param cursorPos The new cursor position
      * @return the new refined AutoCompletionResult or null if refining was not possible
      */

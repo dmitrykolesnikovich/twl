@@ -34,7 +34,6 @@ import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 
 /**
- *
  * @param <T> The enum type
  * @author Matthias Mann
  */
@@ -42,30 +41,30 @@ public class PersistentEnumModel<T extends Enum<T>> extends AbstractEnumModel<T>
 
     private final Preferences prefs;
     private final String prefKey;
-    
+
     private T value;
 
     public PersistentEnumModel(Preferences prefs, String prefKey, T defaultValue) {
         this(prefs, prefKey, defaultValue.getDeclaringClass(), defaultValue);
     }
-    
+
     public PersistentEnumModel(Preferences prefs, String prefKey, Class<T> enumClass, T defaultValue) {
         super(enumClass);
-        if(prefs == null) {
+        if (prefs == null) {
             throw new NullPointerException("prefs");
         }
-        if(prefKey == null) {
+        if (prefKey == null) {
             throw new NullPointerException("prefKey");
         }
-        if(defaultValue == null) {
+        if (defaultValue == null) {
             throw new NullPointerException("value");
         }
         this.prefs = prefs;
         this.prefKey = prefKey;
-        
+
         T storedValue = defaultValue;
         String storedStr = prefs.get(prefKey, null);
-        if(storedStr != null) {
+        if (storedStr != null) {
             try {
                 storedValue = Enum.valueOf(enumClass, storedStr);
             } catch (IllegalArgumentException ex) {
@@ -74,16 +73,16 @@ public class PersistentEnumModel<T extends Enum<T>> extends AbstractEnumModel<T>
         }
         setValue(storedValue);
     }
-    
+
     public T getValue() {
         return value;
     }
 
     public void setValue(T value) {
-        if(value == null) {
+        if (value == null) {
             throw new NullPointerException("value");
         }
-        if(this.value != value) {
+        if (this.value != value) {
             this.value = value;
             storeSetting();
             doCallback();
@@ -91,7 +90,7 @@ public class PersistentEnumModel<T extends Enum<T>> extends AbstractEnumModel<T>
     }
 
     private void storeSetting() {
-        if(prefs != null) {
+        if (prefs != null) {
             prefs.put(prefKey, value.name());
         }
     }

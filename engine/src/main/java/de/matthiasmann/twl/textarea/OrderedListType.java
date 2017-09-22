@@ -39,7 +39,7 @@ import de.matthiasmann.twl.utils.TextUtil;
 public class OrderedListType {
 
     public static final OrderedListType DECIMAL = new OrderedListType();
-    
+
     protected final String characterList;
 
     /**
@@ -61,11 +61,12 @@ public class OrderedListType {
 
     /**
      * Convert the number into a String
+     *
      * @param nr the number
      * @return the String which represents the number
      */
     public String format(int nr) {
-        if(nr >= 1 && characterList != null) {
+        if (nr >= 1 && characterList != null) {
             return TextUtil.toCharListNumber(nr, characterList);
         } else {
             return Integer.toString(nr);

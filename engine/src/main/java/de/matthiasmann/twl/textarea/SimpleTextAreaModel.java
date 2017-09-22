@@ -30,18 +30,19 @@
 package de.matthiasmann.twl.textarea;
 
 import de.matthiasmann.twl.model.HasCallback;
+
 import java.util.Collections;
 import java.util.Iterator;
 
 /**
  * A simple text area model which represents the complete text as a single
  * paragraph.
- * 
+ * <p>
  * <p>The initial style is an empty style - see {@link Style#Style() }.
  * It can be changed before setting the text.</p>
  *
  * @author Matthias Mann
- * @see #setStyle(de.matthiasmann.twl.textarea.Style) 
+ * @see #setStyle(de.matthiasmann.twl.textarea.Style)
  */
 public class SimpleTextAreaModel extends HasCallback implements TextAreaModel {
 
@@ -55,7 +56,7 @@ public class SimpleTextAreaModel extends HasCallback implements TextAreaModel {
     /**
      * Constructs a SimpleTextAreaModel with pre-formatted text.
      * Use {@code '\n'} to create line breaks.
-     * 
+     *
      * @param text the text (interpreted as pre-formatted)
      * @see #setText(java.lang.String)
      */
@@ -66,8 +67,9 @@ public class SimpleTextAreaModel extends HasCallback implements TextAreaModel {
     }
 
     /**
-     * Returns the style used for the next call to {@link #setText(java.lang.String, boolean) } 
-     * @return the style 
+     * Returns the style used for the next call to {@link #setText(java.lang.String, boolean) }
+     *
+     * @return the style
      */
     public Style getStyle() {
         return style;
@@ -76,12 +78,12 @@ public class SimpleTextAreaModel extends HasCallback implements TextAreaModel {
     /**
      * Sets the style used for the next call to {@link #setText(java.lang.String, boolean) }.
      * It does not affect the currently set text.
-     * 
+     *
      * @param style the style
      * @throws NullPointerException when style is {@code null}
      */
     public void setStyle(Style style) {
-        if(style == null) {
+        if (style == null) {
             throw new NullPointerException("style");
         }
         this.style = style;
@@ -90,10 +92,11 @@ public class SimpleTextAreaModel extends HasCallback implements TextAreaModel {
     /**
      * Sets the text for this SimpleTextAreaModel as pre-formatted text.
      * Use {@code '\n'} to create line breaks.
-     *
+     * <p>
      * This is equivalent to calling {@code setText(text, true);}
+     *
      * @param text the text (interpreted as pre-formatted)
-     * @see #setText(java.lang.String, boolean) 
+     * @see #setText(java.lang.String, boolean)
      */
     public void setText(String text) {
         setText(text, true);
@@ -102,11 +105,11 @@ public class SimpleTextAreaModel extends HasCallback implements TextAreaModel {
     /**
      * Sets the text for this SimpleTextAreaModel.
      * Use {@code '\n'} to create line breaks.
-     *
+     * <p>
      * <p>The {@code preformatted} will set the white space attribute as follows:</p>
      * <pre>false = {@code white-space: normal}<br>true  = {@code white-space: pre}</pre>
-     * 
-     * @param text the text
+     *
+     * @param text         the text
      * @param preformatted if the text should be treated as pre-formated or not.
      */
     public void setText(String text, boolean preformatted) {
@@ -114,7 +117,7 @@ public class SimpleTextAreaModel extends HasCallback implements TextAreaModel {
         element = new TextElement(textstyle, text);
         doCallback();
     }
-    
+
     public Iterator<Element> iterator() {
         return ((element != null)
                 ? Collections.<Element>singletonList(element)

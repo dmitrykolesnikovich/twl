@@ -32,42 +32,34 @@ package de.matthiasmann.twl.textarea;
 import de.matthiasmann.twl.renderer.FontMapper;
 import de.matthiasmann.twl.utils.StringList;
 import de.matthiasmann.twl.utils.TextUtil;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.io.StringReader;
+
+import java.io.*;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.IdentityHashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
  * A style sheet.
- * 
+ * <p>
  * <p>Each StyleSheet class contains the following rules:</p>
  * <pre>pre {
  *    white-space: pre
- *}</pre>
- * 
+ * }</pre>
+ *
  * @author Matthias Mann
  */
 public class StyleSheet implements StyleSheetResolver {
 
     static final Object NULL = new Object();
-    
+
     private static final Selector PRE_SELECTOR = new Selector("pre", null, null, null, null);
+
     static {
         (PRE_SELECTOR.style = new CSSStyle()).put(StyleAttribute.PREFORMATTED, Boolean.TRUE);
         PRE_SELECTOR.score = 0x100;
     }
-    
+
     private final ArrayList<Selector> rules;
     private final IdentityHashMap<Style, Object> cache;
     private ArrayList<AtRule> atrules;
@@ -75,7 +67,7 @@ public class StyleSheet implements StyleSheetResolver {
     public StyleSheet() {
         this.rules = new ArrayList<Selector>();
         this.cache = new IdentityHashMap<Style, Object>();
-        
+
         rules.add(PRE_SELECTOR);
     }
 
@@ -91,25 +83,25 @@ public class StyleSheet implements StyleSheetResolver {
     public void parse(String style) throws IOException {
         parse(new StringReader(style));
     }
-    
+
     public void parse(Reader r) throws IOException {
         Parser parser = new Parser(r);
         ArrayList<Selector> selectors = new ArrayList<Selector>();
         int what;
-        while((what=parser.yylex()) != Parser.EOF) {
-            if(what == Parser.ATRULE) {
+        while ((what = parser.yylex()) != Parser.EOF) {
+            if (what == Parser.ATRULE) {
                 parser.expect(Parser.IDENT);
                 AtRule atrule = new AtRule(parser.yytext());
                 parser.expect(Parser.STYLE_BEGIN);
-                
-                while((what=parser.yylex()) != Parser.STYLE_END) {
-                    if(what != Parser.IDENT) {
+
+                while ((what = parser.yylex()) != Parser.STYLE_END) {
+                    if (what != Parser.IDENT) {
                         parser.unexpected();
                     }
                     String key = parser.yytext();
                     parser.expect(Parser.COLON);
                     what = parser.yylex();
-                    if(what != Parser.SEMICOLON && what != Parser.STYLE_END) {
+                    if (what != Parser.SEMICOLON && what != Parser.STYLE_END) {
                         parser.unexpected();
                     }
                     String value = TextUtil.trim(parser.sb, 0);
@@ -117,20 +109,21 @@ public class StyleSheet implements StyleSheetResolver {
                         atrule.entries.put(key, value);
                     } catch (IllegalArgumentException ex) {
                     }
-                    if(what == Parser.STYLE_END) {
+                    if (what == Parser.STYLE_END) {
                         break;
                     }
                 }
-                
-                if(atrules == null) {
+
+                if (atrules == null) {
                     atrules = new ArrayList<AtRule>();
                 }
                 atrules.add(atrule);
                 continue;
             }
-            
+
             Selector selector = null;
-            selectorloop: for(;;) {
+            selectorloop:
+            for (; ; ) {
                 String element = null;
                 String className = null;
                 String pseudoClass = null;
@@ -151,12 +144,12 @@ public class StyleSheet implements StyleSheetResolver {
                         what = parser.yylex();
                         break;
                 }
-                while((what == Parser.DOT || what == Parser.HASH || what == Parser.COLON) && !parser.sawWhitespace) {
+                while ((what == Parser.DOT || what == Parser.HASH || what == Parser.COLON) && !parser.sawWhitespace) {
                     parser.expect(Parser.IDENT);
                     String text = parser.yytext();
-                    if(what == Parser.DOT) {
+                    if (what == Parser.DOT) {
                         className = text;
-                    } else if(what == Parser.COLON) {
+                    } else if (what == Parser.COLON) {
                         pseudoClass = text;
                     } else {
                         id = text;
@@ -174,7 +167,7 @@ public class StyleSheet implements StyleSheetResolver {
                         break selectorloop;
                 }
             }
-            
+
             // to ensure that the head of the selector matches the head of the
             // style and not skip ahead we use the directChild flag
             // this causes an offset of 1 for all scores which doesn't matter
@@ -185,18 +178,18 @@ public class StyleSheet implements StyleSheetResolver {
                 default:
                     parser.unexpected();    // throws exception
                     // fall though will not happen but keeps compiler quite
-                    
+
                 case Parser.STYLE_BEGIN: {
                     CSSStyle style = new CSSStyle();
 
-                    while((what=parser.yylex()) != Parser.STYLE_END) {
-                        if(what != Parser.IDENT) {
+                    while ((what = parser.yylex()) != Parser.STYLE_END) {
+                        if (what != Parser.IDENT) {
                             parser.unexpected();
                         }
                         String key = parser.yytext();
                         parser.expect(Parser.COLON);
                         what = parser.yylex();
-                        if(what != Parser.SEMICOLON && what != Parser.STYLE_END) {
+                        if (what != Parser.SEMICOLON && what != Parser.STYLE_END) {
                             parser.unexpected();
                         }
                         String value = TextUtil.trim(parser.sb, 0);
@@ -204,30 +197,30 @@ public class StyleSheet implements StyleSheetResolver {
                             style.parseCSSAttribute(key, value);
                         } catch (IllegalArgumentException ex) {
                         }
-                        if(what == Parser.STYLE_END) {
+                        if (what == Parser.STYLE_END) {
                             break;
                         }
                     }
 
-                    for(int i=0,n=selectors.size() ; i<n ; i++) {
+                    for (int i = 0, n = selectors.size(); i < n; i++) {
                         Style selectorStyle = style;
                         selector = selectors.get(i);
-                        if(selector.pseudoClass != null) {
+                        if (selector.pseudoClass != null) {
                             selectorStyle = transformStyle(style, selector.pseudoClass);
                         }
                         rules.add(selector);
                         int score = 0;
-                        for(Selector s=selector ; s!=null ; s=s.tail) {
-                            if(s.directChild) {
+                        for (Selector s = selector; s != null; s = s.tail) {
+                            if (s.directChild) {
                                 score += 0x1;
                             }
-                            if(s.element != null) {
+                            if (s.element != null) {
                                 score += 0x100;
                             }
-                            if(s.className != null) {
+                            if (s.className != null) {
                                 score += 0x10000;
                             }
-                            if(s.id != null) {
+                            if (s.id != null) {
                                 score += 0x1000000;
                             }
                         }
@@ -245,30 +238,30 @@ public class StyleSheet implements StyleSheetResolver {
             }
         }
     }
-    
+
     public int getNumAtRules() {
         return (atrules != null) ? atrules.size() : 0;
     }
-    
+
     public AtRule getAtRule(int idx) {
-        if(atrules == null) {
+        if (atrules == null) {
             throw new IndexOutOfBoundsException();
         }
         return atrules.get(idx);
     }
-    
+
     public void registerFonts(FontMapper fontMapper, URL baseUrl) {
-        if(atrules == null) {
+        if (atrules == null) {
             return;
         }
-        for(AtRule atrule : atrules) {
-            if("font-face".equals(atrule.name)) {
+        for (AtRule atrule : atrules) {
+            if ("font-face".equals(atrule.name)) {
                 String family = atrule.get("font-family");
                 String src = atrule.get("src");
-                
-                if(family != null && src != null) {
+
+                if (family != null && src != null) {
                     StringList srcs = CSSStyle.parseList(src, 0);
-                    for(; srcs != null ; srcs=srcs.getNext()) {
+                    for (; srcs != null; srcs = srcs.getNext()) {
                         String url = CSSStyle.stripURL(srcs.getValue());
                         try {
                             fontMapper.registerFont(family, new URL(baseUrl, url));
@@ -292,42 +285,42 @@ public class StyleSheet implements StyleSheetResolver {
 
     public Style resolve(Style style) {
         Object cacheData = cache.get(style);
-        if(cacheData == null) {
+        if (cacheData == null) {
             return resolveSlow(style);
         }
-        if(cacheData == NULL) {
+        if (cacheData == NULL) {
             return null;
         }
-        return (Style)cacheData;
+        return (Style) cacheData;
     }
-    
+
     private Style resolveSlow(Style style) {
         Selector[] candidates = new Selector[rules.size()];
         int numCandidates = 0;
-        
+
         // find all possible candidates
-        for(int i=0,n=rules.size() ; i<n ; i++) {
+        for (int i = 0, n = rules.size(); i < n; i++) {
             Selector selector = rules.get(i);
-            if(matches(selector, style)) {
+            if (matches(selector, style)) {
                 candidates[numCandidates++] = selector;
             }
         }
 
         // sort according to rule priority - this needs a stable sort
-        if(numCandidates > 1) {
+        if (numCandidates > 1) {
             Arrays.sort(candidates, 0, numCandidates);
         }
-        
+
         Style result = null;
         boolean copy = true;
 
         // merge all matching rules
-        for(int i=0,n=numCandidates ; i<n ; i++) {
+        for (int i = 0, n = numCandidates; i < n; i++) {
             Style ruleStyle = candidates[i].style;
-            if(result == null) {
+            if (result == null) {
                 result = ruleStyle;
             } else {
-                if(copy) {
+                if (copy) {
                     result = new Style(result);
                     copy = false;
                 }
@@ -338,7 +331,7 @@ public class StyleSheet implements StyleSheetResolver {
         putIntoCache(style, result);
         return result;
     }
-    
+
     private void putIntoCache(Style key, Style style) {
         cache.put(key, (style == null) ? NULL : style);
     }
@@ -346,24 +339,24 @@ public class StyleSheet implements StyleSheetResolver {
     private boolean matches(Selector selector, Style style) {
         do {
             StyleSheetKey styleSheetKey = style.getStyleSheetKey();
-            if(styleSheetKey != null) {
-                if(selector.matches(styleSheetKey)) {
+            if (styleSheetKey != null) {
+                if (selector.matches(styleSheetKey)) {
                     selector = selector.tail;
-                    if(selector == null) {
+                    if (selector == null) {
                         return true;
                     }
-                } else if(selector.directChild) {
+                } else if (selector.directChild) {
                     return false;
                 }
             }
             style = style.getParent();
-        }while(style != null);
+        } while (style != null);
         return false;
     }
 
     private Style transformStyle(CSSStyle style, String pseudoClass) {
         Style result = new Style(style.getParent(), style.getStyleSheetKey());
-        if("hover".equals(pseudoClass)) {
+        if ("hover".equals(pseudoClass)) {
             result.put(StyleAttribute.COLOR_HOVER, style.getRaw(StyleAttribute.COLOR));
             result.put(StyleAttribute.BACKGROUND_COLOR_HOVER, style.getRaw(StyleAttribute.BACKGROUND_COLOR));
             result.put(StyleAttribute.TEXT_DECORATION_HOVER, style.getRaw(StyleAttribute.TEXT_DECORATION));
@@ -388,7 +381,7 @@ public class StyleSheet implements StyleSheetResolver {
             return this.score - other.score;
         }
     }
-    
+
     public static class AtRule implements Iterable<Map.Entry<String, String>> {
         final String name;
         final HashMap<String, String> entries;

@@ -34,7 +34,7 @@ import java.util.Map;
 
 /**
  * Stores the styles which should be applied to a certain element.
- * 
+ *
  * @author Matthias Mann
  */
 public class Style {
@@ -53,7 +53,7 @@ public class Style {
     /**
      * Creates an Style with the given parent and class reference.
      *
-     * @param parent the parent style. Can be null.
+     * @param parent        the parent style. Can be null.
      * @param styleSheetKey key for style sheet lookup. Can be null.
      */
     public Style(Style parent, StyleSheetKey styleSheetKey) {
@@ -65,14 +65,14 @@ public class Style {
      * Creates an Style with the given parent and class reference and copies the
      * given attributes.
      *
-     * @param parent the parent style. Can be null.
+     * @param parent        the parent style. Can be null.
      * @param styleSheetKey key for style sheet lookup. Can be null.
-     * @param values a map with attributes for this Style. Can be null.
+     * @param values        a map with attributes for this Style. Can be null.
      */
     public Style(Style parent, StyleSheetKey styleSheetKey, Map<StyleAttribute<?>, Object> values) {
         this(parent, styleSheetKey);
-        
-        if(values != null) {
+
+        if (values != null) {
             putAll(values);
         }
     }
@@ -83,40 +83,17 @@ public class Style {
         this.values = (src.values != null) ? src.values.clone() : null;
     }
 
-    /**
-     * Resolves the Style in which the specified attribute is defined.
-     *
-     * If a attribute does not cascade then this method does nothing.
-     *
-     * If a StyleSheetResolver is specified then this method will treat
-     * style sheet styles referenced by this Style as if they are part
-     * of a Style in this chain.
-     * 
-     * @param attribute The attribute to lookup.
-     * @param resolver A StyleSheetResolver to resolve the style sheet key. Can be null.
-     * @return The Style which defined the specified attribute, will never return null.
-     * @see StyleAttribute#isInherited()
-     * @see #getParent()
-     */
-    public Style resolve(StyleAttribute<?> attribute, StyleSheetResolver resolver) {
-        if(!attribute.isInherited()) {
-            return this;
-        }
-
-        return doResolve(this, attribute.ordinal(), resolver);
-    }
-
     private static Style doResolve(Style style, int ord, StyleSheetResolver resolver) {
-        for(;;) {
-            if(style.parent == null) {
+        for (; ; ) {
+            if (style.parent == null) {
                 return style;
             }
-            if(style.rawGet(ord) != null) {
+            if (style.rawGet(ord) != null) {
                 return style;
             }
-            if(resolver != null && style.styleSheetKey != null) {
+            if (resolver != null && style.styleSheetKey != null) {
                 Style styleSheetStyle = resolver.resolve(style);
-                if(styleSheetStyle != null && styleSheetStyle.rawGet(ord) != null) {
+                if (styleSheetStyle != null && styleSheetStyle.rawGet(ord) != null) {
                     // return main style here because class style has no parent chain
                     return style;
                 }
@@ -127,26 +104,49 @@ public class Style {
     }
 
     /**
-     * Retrives the value of the specified attribute without resolving the style.
+     * Resolves the Style in which the specified attribute is defined.
+     * <p>
+     * If a attribute does not cascade then this method does nothing.
+     * <p>
+     * If a StyleSheetResolver is specified then this method will treat
+     * style sheet styles referenced by this Style as if they are part
+     * of a Style in this chain.
      *
+     * @param attribute The attribute to lookup.
+     * @param resolver  A StyleSheetResolver to resolve the style sheet key. Can be null.
+     * @return The Style which defined the specified attribute, will never return null.
+     * @see StyleAttribute#isInherited()
+     * @see #getParent()
+     */
+    public Style resolve(StyleAttribute<?> attribute, StyleSheetResolver resolver) {
+        if (!attribute.isInherited()) {
+            return this;
+        }
+
+        return doResolve(this, attribute.ordinal(), resolver);
+    }
+
+    /**
+     * Retrives the value of the specified attribute without resolving the style.
+     * <p>
      * If the attribute is not set in this Style and a StyleSheetResolver was
      * specified then the lookup is continued in the style sheet.
      *
-     * @param <V> The data type of the attribute
+     * @param <V>       The data type of the attribute
      * @param attribute The attribute to lookup.
-     * @param resolver A StyleSheetResolver to resolve the style sheet key. Can be null.
+     * @param resolver  A StyleSheetResolver to resolve the style sheet key. Can be null.
      * @return The attribute value if it was set, or the default value of the attribute.
      */
-    public<V> V getNoResolve(StyleAttribute<V> attribute, StyleSheetResolver resolver) {
+    public <V> V getNoResolve(StyleAttribute<V> attribute, StyleSheetResolver resolver) {
         Object value = rawGet(attribute.ordinal());
-        if(value == null) {
-            if(resolver != null && styleSheetKey != null) {
+        if (value == null) {
+            if (resolver != null && styleSheetKey != null) {
                 Style styleSheetStyle = resolver.resolve(this);
-                if(styleSheetStyle != null) {
+                if (styleSheetStyle != null) {
                     value = styleSheetStyle.rawGet(attribute.ordinal());
                 }
             }
-            if(value == null) {
+            if (value == null) {
                 return attribute.getDefaultValue();
             }
         }
@@ -156,33 +156,33 @@ public class Style {
     /**
      * Retrives the value of the specified attribute from the resolved style.
      *
-     * @param <V> The data type of the attribute
+     * @param <V>       The data type of the attribute
      * @param attribute The attribute to lookup.
-     * @param resolver A StyleSheetResolver to resolve the style sheet key. Can be null.
+     * @param resolver  A StyleSheetResolver to resolve the style sheet key. Can be null.
      * @return The attribute value if it was set, or the default value of the attribute.
      * @see #resolve(de.matthiasmann.twl.textarea.StyleAttribute, de.matthiasmann.twl.textarea.StyleSheetResolver)
      * @see #getNoResolve(de.matthiasmann.twl.textarea.StyleAttribute, de.matthiasmann.twl.textarea.StyleSheetResolver)
      */
-    public<V> V get(StyleAttribute<V> attribute, StyleSheetResolver resolver) {
+    public <V> V get(StyleAttribute<V> attribute, StyleSheetResolver resolver) {
         return resolve(attribute, resolver).getNoResolve(attribute, resolver);
     }
 
     /**
      * Retrives the value of the specified attribute without resolving the style.
-     * 
-     * @param <V> The data type of the attribute
+     *
+     * @param <V>       The data type of the attribute
      * @param attribute The attribute to lookup.
      * @return the attribute value or null (no default value)
      */
-    public<V> V getRaw(StyleAttribute<V> attribute) {
+    public <V> V getRaw(StyleAttribute<V> attribute) {
         Object value = rawGet(attribute.ordinal());
         return attribute.getDataType().cast(value);
     }
-    
+
     /**
      * Returns the parent of this Style or null. The parent is used to lookup
      * attributes which can be inherited and are not specified in this Style.
-     * 
+     *
      * @return the parent of this Style or null.
      * @see StyleAttribute#isInherited()
      */
@@ -193,7 +193,7 @@ public class Style {
     /**
      * Returns the style sheet key for this Style or null.
      * It is used to lookup attributes which are not set in this Style.
-     * 
+     *
      * @return the style sheet key this Style or null.
      */
     public StyleSheetKey getStyleSheetKey() {
@@ -202,7 +202,7 @@ public class Style {
 
     /**
      * Creates a copy of this Style and sets the specified attributes.
-     *
+     * <p>
      * It is possible to set a attribute to null to 'unset' it.
      *
      * @param values The attributes to set in the new Style.
@@ -216,61 +216,61 @@ public class Style {
 
     /**
      * Creates a copy of this Style and sets the specified attributes.
-     *
+     * <p>
      * It is possible to set a attribute to null to 'unset' it.
-     * 
-     * @param <V> The data type of the attribute
+     *
+     * @param <V>       The data type of the attribute
      * @param attribute The attribute to set.
-     * @param value The new value of that attribute. Can be null.
+     * @param value     The new value of that attribute. Can be null.
      * @return a new Style with the same parent, styleSheetKey and modified attribute.
      */
-    public<V> Style with(StyleAttribute<V> attribute, V value) {
+    public <V> Style with(StyleAttribute<V> attribute, V value) {
         Style newStyle = new Style(this);
         newStyle.put(attribute, value);
         return newStyle;
     }
-    
+
     /**
      * Returns a Style which doesn't contain any value for an attribute where
      * {@link StyleAttribute#isInherited() } returns false.
-     * 
+     *
      * @return a Style with the same parent, styleSheetKey and modified attribute.
      */
     public Style withoutNonInheritable() {
-        if(values != null) {
-            for(int i=0,n=values.length ; i<n ; i++) {
-                if(values[i] != null && !StyleAttribute.getAttribute(i).isInherited()) {
+        if (values != null) {
+            for (int i = 0, n = values.length; i < n; i++) {
+                if (values[i] != null && !StyleAttribute.getAttribute(i).isInherited()) {
                     return withoutNonInheritableCopy();
                 }
             }
         }
         return this;
     }
-    
+
     private Style withoutNonInheritableCopy() {
         Style result = new Style(parent, styleSheetKey);
-        for(int i=0,n=values.length ; i<n ; i++) {
+        for (int i = 0, n = values.length; i < n; i++) {
             Object value = values[i];
-            if(value != null) {
+            if (value != null) {
                 StyleAttribute<?> attribute = StyleAttribute.getAttribute(i);
-                if(attribute.isInherited()) {
+                if (attribute.isInherited()) {
                     result.put(attribute, value);
                 }
             }
         }
         return result;
     }
-    
+
     protected void put(StyleAttribute<?> attribute, Object value) {
-        if(attribute == null) {
+        if (attribute == null) {
             throw new IllegalArgumentException("attribute is null");
         }
-        if(value == null) {
-            if(values == null) {
+        if (value == null) {
+            if (values == null) {
                 return;
             }
         } else {
-            if(!attribute.getDataType().isInstance(value)) {
+            if (!attribute.getDataType().isInstance(value)) {
                 throw new IllegalArgumentException("value is a " + value.getClass() +
                         " but must be a " + attribute.getDataType());
             }
@@ -281,17 +281,17 @@ public class Style {
     }
 
     protected final void putAll(Map<StyleAttribute<?>, Object> values) {
-        for(Map.Entry<StyleAttribute<?>, Object> e : values.entrySet()) {
+        for (Map.Entry<StyleAttribute<?>, Object> e : values.entrySet()) {
             put(e.getKey(), e.getValue());
         }
     }
 
     protected final void putAll(Style src) {
-        if(src.values != null) {
+        if (src.values != null) {
             ensureValues();
-            for(int i=0,n=values.length ; i<n ; i++) {
+            for (int i = 0, n = values.length; i < n; i++) {
                 Object value = src.values[i];
-                if(value != null) {
+                if (value != null) {
                     this.values[i] = value;
                 }
             }
@@ -299,29 +299,30 @@ public class Style {
     }
 
     protected final void ensureValues() {
-        if(this.values == null) {
+        if (this.values == null) {
             this.values = new Object[StyleAttribute.getNumAttributes()];
         }
     }
-    
+
     protected final Object rawGet(int idx) {
         final Object[] vals = values;
-        if(vals != null) {
+        if (vals != null) {
             return vals[idx];
         }
         return null;
     }
-    
+
     /**
      * Creates a map which will contain all set attributes of this Style.
      * Changes to that map have no impact on this Style.
+     *
      * @return a map which will contain all set attributes of this Style.
      */
     public Map<StyleAttribute<?>, Object> toMap() {
         HashMap<StyleAttribute<?>, Object> result = new HashMap<StyleAttribute<?>, Object>();
-        for(int ord=0 ; ord<values.length ; ord++) {
+        for (int ord = 0; ord < values.length; ord++) {
             Object value = values[ord];
-            if(value != null) {
+            if (value != null) {
                 result.put(StyleAttribute.getAttribute(ord), value);
             }
         }

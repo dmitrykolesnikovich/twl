@@ -31,7 +31,7 @@ package de.matthiasmann.twl.textarea;
 
 /**
  * CSS text-decoration values
- * 
+ *
  * @author Matthias Mann
  */
 public enum TextDecoration {

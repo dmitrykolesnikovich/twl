@@ -29,16 +29,9 @@
  */
 package test;
 
-import de.matthiasmann.twl.Alignment;
-import de.matthiasmann.twl.DialogLayout;
-import de.matthiasmann.twl.Event;
-import de.matthiasmann.twl.GUI;
-import de.matthiasmann.twl.Label;
-import de.matthiasmann.twl.ParameterList;
-import de.matthiasmann.twl.ThemeInfo;
-import de.matthiasmann.twl.Timer;
-import de.matthiasmann.twl.Widget;
+import de.matthiasmann.twl.*;
 import de.matthiasmann.twl.renderer.Image;
+
 import java.util.Arrays;
 import java.util.Random;
 
@@ -49,28 +42,15 @@ import java.util.Random;
  */
 public class BlockGame extends DialogLayout {
 
-    Image[] blockImages;
-    int blockWidth;
-    int blockHeight;
-
-    Timer timer;
-    int nextBlocksAvail;
-    int curBlock;
-    int curRotation;
-    int nextBlock;
-    int curX;
-    int curY;
-
-    int score;
-    int rowsCompleted;
-    int level;
-    int speed;
-    int tickCounter;
-
-    int moveX;
-    int moveY;
-    int moveRot;
-
+    static final int BLOCKS[][] = {
+            {0x0F00, 0x4444},                   // ID
+            {0x0330},                           // OD
+            {0x0710, 0x3220, 0x0470, 0x2260},   // LD
+            {0x0740, 0x2230, 0x0170, 0x6220},   // JD
+            {0x0720, 0x2320, 0x0270, 0x2620},   // TD
+            {0x0630, 0x1320},                   // SD
+            {0x0360, 0x4620},                   // ZD
+    };
     private final int nextBlocks[];
     private final Grid playfield;
     private final Grid playfieldFixed;
@@ -80,6 +60,24 @@ public class BlockGame extends DialogLayout {
     private final Label scoreDisplay;
     private final Label levelDisplay;
     private final Random random;
+    Image[] blockImages;
+    int blockWidth;
+    int blockHeight;
+    Timer timer;
+    int nextBlocksAvail;
+    int curBlock;
+    int curRotation;
+    int nextBlock;
+    int curX;
+    int curY;
+    int score;
+    int rowsCompleted;
+    int level;
+    int speed;
+    int tickCounter;
+    int moveX;
+    int moveY;
+    int moveRot;
 
     public BlockGame() {
         this.nextBlocks = new int[BLOCKS.length * 2];
@@ -101,26 +99,26 @@ public class BlockGame extends DialogLayout {
         setHorizontalGroup(createSequentialGroup()
                 .addWidget(playfieldWidget)
                 .addGroup(createParallelGroup()
-                    .addWidget(nextBlockWidget, Alignment.RIGHT)
-                    .addGroup(createSequentialGroup()
-                        .addGroup(createParallelGroup()
-                            .addWidget(lScore)
-                            .addWidget(lLevel))
-                        .addGroup(createParallelGroup()
-                            .addWidget(scoreDisplay)
-                            .addWidget(levelDisplay)))));
-        
+                        .addWidget(nextBlockWidget, Alignment.RIGHT)
+                        .addGroup(createSequentialGroup()
+                                .addGroup(createParallelGroup()
+                                        .addWidget(lScore)
+                                        .addWidget(lLevel))
+                                .addGroup(createParallelGroup()
+                                        .addWidget(scoreDisplay)
+                                        .addWidget(levelDisplay)))));
+
         setVerticalGroup(createParallelGroup()
                 .addWidget(playfieldWidget)
                 .addGroup(createSequentialGroup()
-                    .addWidget(nextBlockWidget)
-                    .addGroup(createParallelGroup()
-                        .addWidget(lScore)
-                        .addWidget(scoreDisplay))
-                    .addGroup(createParallelGroup()
-                        .addWidget(lLevel)
-                        .addWidget(levelDisplay))
-                    .addGap()));
+                        .addWidget(nextBlockWidget)
+                        .addGroup(createParallelGroup()
+                                .addWidget(lScore)
+                                .addWidget(scoreDisplay))
+                        .addGroup(createParallelGroup()
+                                .addWidget(lLevel)
+                                .addWidget(levelDisplay))
+                        .addGap()));
 
         level = 1;
 
@@ -143,10 +141,10 @@ public class BlockGame extends DialogLayout {
         blockImages = new Image[plImages.getSize()];
         blockWidth = 0;
         blockHeight = 0;
-        for(int i=0 ; i<plImages.getSize() ; i++) {
+        for (int i = 0; i < plImages.getSize(); i++) {
             Image img = plImages.getImage(i);
             blockImages[i] = img;
-            if(img != null) {
+            if (img != null) {
                 blockWidth = Math.max(blockWidth, img.getWidth());
                 blockHeight = Math.max(blockHeight, img.getHeight());
             }
@@ -175,12 +173,12 @@ public class BlockGame extends DialogLayout {
     }
 
     private int genNextBlock() {
-        if(nextBlocksAvail == 0) {
+        if (nextBlocksAvail == 0) {
             nextBlocksAvail = nextBlocks.length;
-            for(int i=0 ; i<nextBlocksAvail ; i++) {
+            for (int i = 0; i < nextBlocksAvail; i++) {
                 nextBlocks[i] = i % BLOCKS.length;
             }
-            for(int i=0 ; i<nextBlocksAvail ; i++) {
+            for (int i = 0; i < nextBlocksAvail; i++) {
                 int j = random.nextInt(nextBlocksAvail);
                 int t = nextBlocks[i];
                 nextBlocks[i] = nextBlocks[j];
@@ -197,7 +195,7 @@ public class BlockGame extends DialogLayout {
         curRotation = 0;
         nextBlock = genNextBlock();
         nextBlockGrid.clear();
-        nextBlockGrid.placeBlock(0, 0, BLOCKS[nextBlock][0], nextBlock+1);
+        nextBlockGrid.placeBlock(0, 0, BLOCKS[nextBlock][0], nextBlock + 1);
         speed = Math.max(1, 11 - level);
     }
 
@@ -208,41 +206,41 @@ public class BlockGame extends DialogLayout {
     }
 
     void gameTick() {
-        if(++tickCounter > speed) {
+        if (++tickCounter > speed) {
             tickCounter = 0;
             moveY = 1;
         }
-        
+
         int[] blockBits = BLOCKS[curBlock];
 
-        if(moveRot != 0) {
+        if (moveRot != 0) {
             int nextRot = (curRotation + moveRot) % blockBits.length;
-            if(playfieldFixed.canPlaceBlock(curX, curY, blockBits[nextRot])) {
+            if (playfieldFixed.canPlaceBlock(curX, curY, blockBits[nextRot])) {
                 curRotation = nextRot;
-            } else if(playfieldFixed.canPlaceBlock(curX+1, curY, blockBits[nextRot])) {//Tries to wall kick to the right
+            } else if (playfieldFixed.canPlaceBlock(curX + 1, curY, blockBits[nextRot])) {//Tries to wall kick to the right
                 curX++;
                 curRotation = nextRot;
-            } else if(playfieldFixed.canPlaceBlock(curX-1, curY, blockBits[nextRot])) {//Tries to wall kick to the left
+            } else if (playfieldFixed.canPlaceBlock(curX - 1, curY, blockBits[nextRot])) {//Tries to wall kick to the left
                 curX--;
                 curRotation = nextRot;
             }
             moveX = 0;
         }
 
-        if(moveX != 0 && playfieldFixed.canPlaceBlock(curX+moveX, curY, blockBits[curRotation])) {
+        if (moveX != 0 && playfieldFixed.canPlaceBlock(curX + moveX, curY, blockBits[curRotation])) {
             curX += moveX;
         }
 
-        if(moveY > 0) {
-            if(playfieldFixed.canPlaceBlock(curX, curY+moveY, blockBits[curRotation])) {
+        if (moveY > 0) {
+            if (playfieldFixed.canPlaceBlock(curX, curY + moveY, blockBits[curRotation])) {
                 curY += moveY;
             } else {
-                playfieldFixed.placeBlock(curX, curY, blockBits[curRotation], curBlock+1);
+                playfieldFixed.placeBlock(curX, curY, blockBits[curRotation], curBlock + 1);
                 int rows = playfieldFixed.removeRows();
-                if(rows > 0) {
+                if (rows > 0) {
                     rowsCompleted += rows;
                     level = 1 + rowsCompleted / 10;
-                    score += rows*rows * level;
+                    score += rows * rows * level;
                     updateScore();
                 }
                 nextBlock();
@@ -250,7 +248,7 @@ public class BlockGame extends DialogLayout {
         }
 
         playfield.copyFrom(playfieldFixed);
-        playfield.placeBlock(curX, curY, BLOCKS[curBlock][curRotation], curBlock+1);
+        playfield.placeBlock(curX, curY, BLOCKS[curBlock][curRotation], curBlock + 1);
 
         moveRot = 0;
         moveX = 0;
@@ -259,41 +257,31 @@ public class BlockGame extends DialogLayout {
 
     @Override
     protected boolean handleEvent(Event evt) {
-        if(super.handleEvent(evt)) {
+        if (super.handleEvent(evt)) {
             return true;
         }
 
-        switch(evt.getType()) {
-        case KEY_PRESSED:
-            switch(evt.getKeyCode()) {
-            case Event.KEY_UP:
-                moveRot = 1;
-                return true;
-            case Event.KEY_LEFT:
-                moveX = -1;
-                return true;
-            case Event.KEY_RIGHT:
-                moveX = 1;
-                return true;
-            case Event.KEY_DOWN:
-                moveY = 1;
-                return true;
-            }
-            break;
+        switch (evt.getType()) {
+            case KEY_PRESSED:
+                switch (evt.getKeyCode()) {
+                    case Event.KEY_UP:
+                        moveRot = 1;
+                        return true;
+                    case Event.KEY_LEFT:
+                        moveX = -1;
+                        return true;
+                    case Event.KEY_RIGHT:
+                        moveX = 1;
+                        return true;
+                    case Event.KEY_DOWN:
+                        moveY = 1;
+                        return true;
+                }
+                break;
         }
 
         return false;
     }
-
-    static final int BLOCKS[][] = {
-        {0x0F00, 0x4444},                   // ID
-        {0x0330},                           // OD
-        {0x0710, 0x3220, 0x0470, 0x2260},   // LD
-        {0x0740, 0x2230, 0x0170, 0x6220},   // JD
-        {0x0720, 0x2320, 0x0270, 0x2620},   // TD
-        {0x0630, 0x1320},                   // SD
-        {0x0360, 0x4620},                   // ZD
-    };
 
     static class Grid {
         protected final int[] grid;
@@ -315,15 +303,15 @@ public class BlockGame extends DialogLayout {
         }
 
         public boolean canPlaceBlock(int x, int y, int block) {
-            for(int iy=0 ; iy<4 ; iy++) {
-                for(int ix=0 ; ix<4 ; ix++) {
-                    int mask = 1 << (ix + 12 - 4*iy);
-                    if((block & mask) != 0) {
-                        if(y+iy < 0 || y+iy >= height || x+ix < 0 || x+ix >= width) {
+            for (int iy = 0; iy < 4; iy++) {
+                for (int ix = 0; ix < 4; ix++) {
+                    int mask = 1 << (ix + 12 - 4 * iy);
+                    if ((block & mask) != 0) {
+                        if (y + iy < 0 || y + iy >= height || x + ix < 0 || x + ix >= width) {
                             return false;
                         }
                         int idx = x + ix + (y + iy) * width;
-                        if(grid[idx] != 0) {
+                        if (grid[idx] != 0) {
                             return false;
                         }
                     }
@@ -333,10 +321,10 @@ public class BlockGame extends DialogLayout {
         }
 
         public void placeBlock(int x, int y, int block, int color) {
-            for(int iy=0 ; iy<4 ; iy++) {
-                for(int ix=0 ; ix<4 ; ix++) {
-                    int mask = 1 << (ix + 12 - 4*iy);
-                    if((block & mask) != 0) {
+            for (int iy = 0; iy < 4; iy++) {
+                for (int ix = 0; ix < 4; ix++) {
+                    int mask = 1 << (ix + 12 - 4 * iy);
+                    if ((block & mask) != 0) {
                         int idx = x + ix + (y + iy) * width;
                         grid[idx] = color;
                     }
@@ -346,24 +334,24 @@ public class BlockGame extends DialogLayout {
 
         public int removeRows() {
             int rdst = height;
-            for(int rsrc=height ; rsrc-->0 ;) {
+            for (int rsrc = height; rsrc-- > 0; ) {
                 boolean isFull = true;
-                for(int c=0,idx=rsrc*width ; c<width ; c++) {
-                    if(grid[idx++] == 0) {
+                for (int c = 0, idx = rsrc * width; c < width; c++) {
+                    if (grid[idx++] == 0) {
                         isFull = false;
                         break;
                     }
                 }
 
-                if(!isFull) {
+                if (!isFull) {
                     rdst--;
-                    if(rsrc != rdst) {
-                        System.arraycopy(grid, rsrc*width, grid, rdst*width, width);
+                    if (rsrc != rdst) {
+                        System.arraycopy(grid, rsrc * width, grid, rdst * width, width);
                     }
                 }
             }
-            if(rdst > 0) {
-                Arrays.fill(grid, 0, rdst*width, 0);
+            if (rdst > 0) {
+                Arrays.fill(grid, 0, rdst * width, 0);
             }
             return rdst;
         }
@@ -380,16 +368,16 @@ public class BlockGame extends DialogLayout {
 
         @Override
         protected void paintWidget(GUI gui) {
-            if(blockImages != null) {
+            if (blockImages != null) {
                 int y = getInnerY();
-                for(int r=skipRows ; r<tg.height ; r++) {
+                for (int r = skipRows; r < tg.height; r++) {
                     int idx = r * tg.width;
                     int x = getInnerX();
-                    for(int c=0 ; c<tg.width ; c++) {
+                    for (int c = 0; c < tg.width; c++) {
                         int color = tg.grid[idx++];
-                        if(color < blockImages.length) {
+                        if (color < blockImages.length) {
                             Image img = blockImages[color];
-                            if(img != null) {
+                            if (img != null) {
                                 img.draw(getAnimationState(), x, y);
                             }
                         }

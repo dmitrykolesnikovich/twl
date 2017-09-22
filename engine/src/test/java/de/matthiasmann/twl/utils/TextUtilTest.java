@@ -30,10 +30,10 @@
 package de.matthiasmann.twl.utils;
 
 import org.junit.Test;
-import static org.junit.Assert.*;
+
+import static org.junit.Assert.assertEquals;
 
 /**
- *
  * @author Matthias Mann
  */
 public class TextUtilTest {

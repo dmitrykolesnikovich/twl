@@ -30,7 +30,6 @@
 package de.matthiasmann.twl.model;
 
 /**
- *
  * @author Matthias Mann
  */
 public interface TreeTableNode {
@@ -38,15 +37,15 @@ public interface TreeTableNode {
     public Object getData(int column);
 
     public Object getTooltipContent(int column);
-    
+
     public TreeTableNode getParent();
 
     public boolean isLeaf();
-    
+
     public int getNumChildren();
 
     public TreeTableNode getChild(int idx);
 
     public int getChildIndex(TreeTableNode child);
-    
+
 }

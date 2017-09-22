@@ -30,6 +30,7 @@
 package de.matthiasmann.twl;
 
 import de.matthiasmann.twl.model.FloatModel;
+
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.IllegalFormatException;
@@ -72,7 +73,7 @@ public class ValueAdjusterFloat extends ValueAdjuster {
     }
 
     public void setMinMaxValue(float minValue, float maxValue) {
-        if(maxValue < minValue) {
+        if (maxValue < minValue) {
             throw new IllegalArgumentException("maxValue < minValue");
         }
         this.minValue = minValue;
@@ -85,14 +86,14 @@ public class ValueAdjusterFloat extends ValueAdjuster {
     }
 
     public void setValue(float value) {
-        if(value > maxValue) {
+        if (value > maxValue) {
             value = maxValue;
-        } else if(value < minValue) {
+        } else if (value < minValue) {
             value = minValue;
         }
-        if(this.value != value) {
+        if (this.value != value) {
             this.value = value;
-            if(model != null) {
+            if (model != null) {
                 model.setValue(value);
             }
             setDisplayText();
@@ -106,7 +107,7 @@ public class ValueAdjusterFloat extends ValueAdjuster {
     /**
      * Sets the step size for the value adjuster.
      * It must be &gt; 0.
-     *
+     * <p>
      * Default is 1.0f.
      *
      * @param stepSize the new step size
@@ -114,7 +115,7 @@ public class ValueAdjusterFloat extends ValueAdjuster {
      */
     public void setStepSize(float stepSize) {
         // NaN always compares as false
-        if(!(stepSize > 0)) {
+        if (!(stepSize > 0)) {
             throw new IllegalArgumentException("stepSize");
         }
         this.stepSize = stepSize;
@@ -125,10 +126,10 @@ public class ValueAdjusterFloat extends ValueAdjuster {
     }
 
     public void setModel(FloatModel model) {
-        if(this.model != model) {
+        if (this.model != model) {
             removeModelCallback();
             this.model = model;
-            if(model != null) {
+            if (model != null) {
                 this.minValue = model.getMinValue();
                 this.maxValue = model.getMaxValue();
                 addModelCallback();
@@ -151,7 +152,7 @@ public class ValueAdjusterFloat extends ValueAdjuster {
     }
 
     public void setLocale(Locale locale) {
-        if(locale == null) {
+        if (locale == null) {
             throw new NullPointerException("locale");
         }
         this.locale = locale;
@@ -199,7 +200,7 @@ public class ValueAdjusterFloat extends ValueAdjuster {
     @Override
     protected void onDragUpdate(int dragDelta) {
         float range = Math.max(1e-4f, Math.abs(getMaxValue() - getMinValue()));
-        setValue(dragStartValue + dragDelta/Math.max(3, getWidth()/range));
+        setValue(dragStartValue + dragDelta / Math.max(3, getWidth() / range));
     }
 
     @Override
@@ -247,14 +248,14 @@ public class ValueAdjusterFloat extends ValueAdjuster {
     }
 
     protected void removeModelCallback() {
-        if(model != null && modelCallback != null) {
+        if (model != null && modelCallback != null) {
             model.removeCallback(modelCallback);
         }
     }
 
     protected void addModelCallback() {
-        if(model != null && getGUI() != null) {
-            if(modelCallback == null) {
+        if (model != null && getGUI() != null) {
+            if (modelCallback == null) {
                 modelCallback = new ModelCallback();
             }
             model.addCallback(modelCallback);

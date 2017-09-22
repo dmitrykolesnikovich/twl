@@ -3,22 +3,22 @@
 
     <groupId>twl</groupId>
     <artifactId>effects</artifactId>
-    <packaging>jar</packaging>    
-    <version>1</version>    
-	
-	<parent>
+    <packaging>jar</packaging>
+    <version>1</version>
+
+    <parent>
         <groupId>twl</groupId>
         <artifactId>twl</artifactId>
         <version>1</version>
     </parent>
 
     <dependencies>
-		<dependency>
+        <dependency>
             <groupId>twl</groupId>
             <artifactId>engine</artifactId>
             <version>1</version>
-        </dependency>     
+        </dependency>
     </dependencies>
-    
+
 </project>
 

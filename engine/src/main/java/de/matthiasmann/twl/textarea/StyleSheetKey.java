@@ -30,7 +30,6 @@
 package de.matthiasmann.twl.textarea;
 
 /**
- *
  * @author Matthias Mann
  */
 public class StyleSheetKey {
@@ -59,8 +58,8 @@ public class StyleSheetKey {
 
     @Override
     public boolean equals(Object obj) {
-        if(obj instanceof StyleSheetKey) {
-            final StyleSheetKey other = (StyleSheetKey)obj;
+        if (obj instanceof StyleSheetKey) {
+            final StyleSheetKey other = (StyleSheetKey) obj;
             return ((this.element == null) ? (other.element == null) : this.element.equals(other.element)) &&
                     ((this.className == null) ? (other.className == null) : this.className.equals(other.className)) &&
                     ((this.id == null) ? (other.id == null) : this.id.equals(other.id));
@@ -78,13 +77,13 @@ public class StyleSheetKey {
     }
 
     public boolean matches(StyleSheetKey what) {
-        if(this.element != null && !this.element.equals(what.element)) {
+        if (this.element != null && !this.element.equals(what.element)) {
             return false;
         }
-        if(this.className != null && !this.className.equals(what.className)) {
+        if (this.className != null && !this.className.equals(what.className)) {
             return false;
         }
-        if(this.id != null && !this.id.equals(what.id)) {
+        if (this.id != null && !this.id.equals(what.id)) {
             return false;
         }
         return true;
@@ -93,10 +92,10 @@ public class StyleSheetKey {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder().append(element);
-        if(className != null) {
+        if (className != null) {
             sb.append('.').append(className);
         }
-        if(id != null) {
+        if (id != null) {
             sb.append('#').append(id);
         }
         return sb.toString();

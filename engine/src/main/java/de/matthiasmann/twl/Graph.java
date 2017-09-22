@@ -29,26 +29,25 @@
  */
 package de.matthiasmann.twl;
 
-import de.matthiasmann.twl.utils.TextUtil;
 import de.matthiasmann.twl.model.GraphLineModel;
 import de.matthiasmann.twl.model.GraphModel;
 import de.matthiasmann.twl.renderer.LineRenderer;
+import de.matthiasmann.twl.utils.TextUtil;
+
 import java.util.Arrays;
 
 /**
- *
  * @author Matthias Mann
  */
 public class Graph extends Widget {
 
+    private static final float EPSILON = 1e-4f;
     private final GraphArea area;
-
     GraphModel model;
+    LineStyle[] lineStyles = new LineStyle[8];
     private ParameterMap themeLineStyles;
     private int sizeMultipleX = 1;
     private int sizeMultipleY = 1;
-
-    LineStyle[] lineStyles = new LineStyle[8];
     private float[] renderXYBuffer = new float[128];
 
     public Graph() {
@@ -61,7 +60,20 @@ public class Graph extends Widget {
         this();
         setModel(model);
     }
-    
+
+    private static float copySign(float magnitude, float sign) {
+        // this copies the sign bit from sign to magnitude
+        // it assumes the magnitude is positive
+        int rawMagnitude = Float.floatToRawIntBits(magnitude);
+        int rawSign = Float.floatToRawIntBits(sign);
+        int rawResult = rawMagnitude | (rawSign & (1 << 31));
+        return Float.intBitsToFloat(rawResult);
+    }
+
+    private static int round(int value, int grid) {
+        return value - (value % grid);
+    }
+
     public GraphModel getModel() {
         return model;
     }
@@ -76,7 +88,7 @@ public class Graph extends Widget {
     }
 
     public void setSizeMultipleX(int sizeMultipleX) {
-        if(sizeMultipleX < 1) {
+        if (sizeMultipleX < 1) {
             throw new IllegalArgumentException("sizeMultipleX must be >= 1");
         }
         this.sizeMultipleX = sizeMultipleX;
@@ -87,7 +99,7 @@ public class Graph extends Widget {
     }
 
     public void setSizeMultipleY(int sizeMultipleY) {
-        if(sizeMultipleY < 1) {
+        if (sizeMultipleY < 1) {
             throw new IllegalArgumentException("sizeMultipleX must be >= 1");
         }
         this.sizeMultipleY = sizeMultipleY;
@@ -112,23 +124,23 @@ public class Graph extends Widget {
 
     void syncLineStyles() {
         int numLines = model.getNumLines();
-        if(lineStyles.length < numLines) {
+        if (lineStyles.length < numLines) {
             LineStyle[] newLineStyles = new LineStyle[numLines];
             System.arraycopy(lineStyles, 0, newLineStyles, 0, lineStyles.length);
             this.lineStyles = newLineStyles;
         }
 
-        for(int i=0 ; i<numLines ; i++) {
+        for (int i = 0; i < numLines; i++) {
             GraphLineModel line = model.getLine(i);
             LineStyle style = lineStyles[i];
-            if(style == null) {
+            if (style == null) {
                 style = new LineStyle();
                 lineStyles[i] = style;
             }
             String visualStyle = TextUtil.notNull(line.getVisualStyleName());
-            if(!style.name.equals(visualStyle)) {
+            if (!style.name.equals(visualStyle)) {
                 ParameterMap lineStyle = null;
-                if(themeLineStyles != null) {
+                if (themeLineStyles != null) {
                     lineStyle = themeLineStyles.getParameterMap(visualStyle);
                 }
                 style.setStyleName(visualStyle, lineStyle);
@@ -136,41 +148,39 @@ public class Graph extends Widget {
         }
     }
 
-    private static final float EPSILON = 1e-4f;
-
     void renderLine(LineRenderer lineRenderer, GraphLineModel line,
-            float minValue, float maxValue, LineStyle style) {
+                    float minValue, float maxValue, LineStyle style) {
         int numPoints = line.getNumPoints();
-        if(numPoints <= 0) {
+        if (numPoints <= 0) {
             // nothing to render
             return;
         }
 
-        if(renderXYBuffer.length < numPoints*2) {
+        if (renderXYBuffer.length < numPoints * 2) {
             // no need to copy - we generate new values anyway
-            renderXYBuffer = new float[numPoints*2];
+            renderXYBuffer = new float[numPoints * 2];
         }
 
         float[] xy = this.renderXYBuffer;
 
         float delta = maxValue - minValue;
-        if(Math.abs(delta) < EPSILON) {
+        if (Math.abs(delta) < EPSILON) {
             // Math.copySign is Java 1.6+
             delta = copySign(EPSILON, delta);
         }
 
-        float yscale = (float)-getInnerHeight() / delta;
+        float yscale = (float) -getInnerHeight() / delta;
         float yoff = getInnerBottom();
-        float xscale = (float)getInnerWidth() / (float)Math.max(1, numPoints-1);
+        float xscale = (float) getInnerWidth() / (float) Math.max(1, numPoints - 1);
         float xoff = getInnerX();
 
-        for(int i=0 ; i<numPoints ; i++) {
+        for (int i = 0; i < numPoints; i++) {
             float value = line.getPoint(i);
-            xy[i*2 + 0] = i * xscale + xoff;
-            xy[i*2 + 1] = (value - minValue) * yscale + yoff;
+            xy[i * 2 + 0] = i * xscale + xoff;
+            xy[i * 2 + 1] = (value - minValue) * yscale + yoff;
         }
 
-        if(numPoints == 1) {
+        if (numPoints == 1) {
             // a single point will be rendered as horizontal line
             // as we never shrink the xy array and the initial size is >= 4 we have enough room left
             xy[2] = xoff + xscale;
@@ -181,15 +191,6 @@ public class Graph extends Widget {
         lineRenderer.drawLine(xy, numPoints, style.lineWidth, style.color, false);
     }
 
-    private static float copySign(float magnitude, float sign) {
-        // this copies the sign bit from sign to magnitude
-        // it assumes the magnitude is positive
-        int rawMagnitude = Float.floatToRawIntBits(magnitude);
-        int rawSign = Float.floatToRawIntBits(sign);
-        int rawResult = rawMagnitude | (rawSign & (1 << 31));
-        return Float.intBitsToFloat(rawResult);
-    }
-
     @Override
     public boolean setSize(int width, int height) {
         return super.setSize(
@@ -197,15 +198,11 @@ public class Graph extends Widget {
                 round(height, sizeMultipleY));
     }
 
-    private static int round(int value, int grid) {
-        return value - (value % grid);
-    }
-
     @Override
     protected void layout() {
         layoutChildFullInnerArea(area);
     }
-    
+
     static class LineStyle {
         String name = "";
         Color color = Color.WHITE;
@@ -213,7 +210,7 @@ public class Graph extends Widget {
 
         void setStyleName(String name, ParameterMap lineStyle) {
             this.name = name;
-            if(lineStyle != null) {
+            if (lineStyle != null) {
                 this.color = lineStyle.getParameter("color", Color.WHITE);
                 this.lineWidth = Math.max(EPSILON, lineStyle.getParameter("width", 1.0f));
             }
@@ -224,7 +221,7 @@ public class Graph extends Widget {
 
         @Override
         protected void paintWidget(GUI gui) {
-            if(model != null) {
+            if (model != null) {
                 syncLineStyles();
                 LineRenderer lineRenderer = gui.getRenderer().getLineRenderer();
 
@@ -232,18 +229,18 @@ public class Graph extends Widget {
                 boolean independantScale = model.getScaleLinesIndependant();
                 float minValue = Float.MAX_VALUE;
                 float maxValue = -Float.MAX_VALUE;
-                if(independantScale) {
-                    for(int i=0 ; i<numLines ; i++) {
+                if (independantScale) {
+                    for (int i = 0; i < numLines; i++) {
                         GraphLineModel line = model.getLine(i);
                         minValue = Math.min(minValue, line.getMinValue());
                         maxValue = Math.max(maxValue, line.getMaxValue());
                     }
                 }
 
-                for(int i=0 ; i<numLines ; i++) {
+                for (int i = 0; i < numLines; i++) {
                     GraphLineModel line = model.getLine(i);
                     LineStyle style = lineStyles[i];
-                    if(independantScale) {
+                    if (independantScale) {
                         renderLine(lineRenderer, line, minValue, maxValue, style);
                     } else {
                         renderLine(lineRenderer, line, line.getMinValue(), line.getMaxValue(), style);

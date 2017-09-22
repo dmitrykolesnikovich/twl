@@ -30,17 +30,18 @@
 package de.matthiasmann.twl.textarea;
 
 import org.junit.Test;
-import static org.junit.Assert.*;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 /**
- *
  * @author Matthias Mann
  */
 public class StyleAttributeTest {
 
     @Test
     public void testOrdinal() {
-        for(int i=0 ; i<StyleAttribute.getNumAttributes() ; i++) {
+        for (int i = 0; i < StyleAttribute.getNumAttributes(); i++) {
             StyleAttribute sa = StyleAttribute.getAttribute(i);
             assertEquals(i, sa.ordinal());
         }
@@ -48,7 +49,7 @@ public class StyleAttributeTest {
 
     @Test
     public void testName() {
-        for(int i=0 ; i<StyleAttribute.getNumAttributes() ; i++) {
+        for (int i = 0; i < StyleAttribute.getNumAttributes(); i++) {
             StyleAttribute sa1 = StyleAttribute.getAttribute(i);
             StyleAttribute sa2 = StyleAttribute.getAttribute(sa1.name());
             assertEquals(sa1, sa2);

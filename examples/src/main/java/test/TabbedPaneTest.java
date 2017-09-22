@@ -29,23 +29,19 @@
  */
 package test;
 
-import de.matthiasmann.twl.GUI;
-import de.matthiasmann.twl.ScrollPane;
-import de.matthiasmann.twl.TabbedPane;
-import de.matthiasmann.twl.TextArea;
-import de.matthiasmann.twl.Widget;
+import de.matthiasmann.twl.*;
 import de.matthiasmann.twl.renderer.lwjgl.LWJGLRenderer;
 import de.matthiasmann.twl.textarea.HTMLTextAreaModel;
 import de.matthiasmann.twl.theme.ThemeManager;
-import java.io.IOException;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.PixelFormat;
 
+import java.io.IOException;
+
 /**
- *
  * @author Matthias Mann
  */
 public class TabbedPaneTest {
@@ -63,14 +59,14 @@ public class TabbedPaneTest {
         GUI gui = new GUI(tabbedPane, renderer);
 
         ThemeManager newTheme = ThemeManager.createThemeManager(
-            SimpleTest.class.getResource("simple_demo.xml"), renderer);
+                SimpleTest.class.getResource("simple_demo.xml"), renderer);
         gui.applyTheme(newTheme);
-        
+
         tabbedPane.addTab("Info", createInfoPane());
         tabbedPane.addTab("Image", createScrollPane());
         tabbedPane.addTab("Empty", null);
 
-        while(!Display.isCloseRequested()) {
+        while (!Display.isCloseRequested()) {
             GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
 
             gui.update();

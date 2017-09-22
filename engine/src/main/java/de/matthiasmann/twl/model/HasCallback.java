@@ -43,9 +43,10 @@ public class HasCallback implements WithRunnableCallback {
 
     public HasCallback() {
     }
-    
+
     /**
      * Adds a callback to the list.
+     *
      * @param callback the callback
      */
     public void addCallback(Runnable callback) {
@@ -54,6 +55,7 @@ public class HasCallback implements WithRunnableCallback {
 
     /**
      * Removes a callback from the list.
+     *
      * @param callback the callback that should be removed
      */
     public void removeCallback(Runnable callback) {
@@ -62,15 +64,16 @@ public class HasCallback implements WithRunnableCallback {
 
     /**
      * Returns true when the callback list is not empty
+     *
      * @return true when the callback list is not empty
      */
     public boolean hasCallbacks() {
         return callbacks != null;
     }
-    
+
     /**
      * Calls all registered callbacks.
-     *
+     * <p>
      * Callbacks can call {@code addCallback} or {@code removeCallback}.
      * Modification to the callback list will only be visible to the next
      * {@code doCallback} call.

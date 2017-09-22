@@ -52,7 +52,7 @@ public class SimpleChangableListModel<T> extends SimpleListModel<T> {
         this.content = new ArrayList<T>(content);
     }
 
-    public SimpleChangableListModel(T ... content) {
+    public SimpleChangableListModel(T... content) {
         this.content = new ArrayList<T>(Arrays.asList(content));
     }
 
@@ -72,10 +72,10 @@ public class SimpleChangableListModel<T> extends SimpleListModel<T> {
         insertElements(getNumEntries(), elements);
     }
 
-    public void addElements(T ... elements) {
+    public void addElements(T... elements) {
         insertElements(getNumEntries(), elements);
     }
-    
+
     public void insertElement(int idx, T element) {
         content.add(idx, element);
         fireEntriesInserted(idx, idx);
@@ -83,10 +83,10 @@ public class SimpleChangableListModel<T> extends SimpleListModel<T> {
 
     public void insertElements(int idx, Collection<T> elements) {
         content.addAll(idx, elements);
-        fireEntriesInserted(idx, idx+elements.size()-1);
+        fireEntriesInserted(idx, idx + elements.size() - 1);
     }
 
-    public void insertElements(int idx, T ... elements) {
+    public void insertElements(int idx, T... elements) {
         insertElements(idx, Arrays.asList(elements));
     }
 
@@ -105,7 +105,7 @@ public class SimpleChangableListModel<T> extends SimpleListModel<T> {
     public int findElement(Object element) {
         return content.indexOf(element);
     }
-    
+
     public void clear() {
         content.clear();
         fireAllChanged();

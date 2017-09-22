@@ -30,10 +30,10 @@
 package nodes;
 
 import de.matthiasmann.twl.ResizableFrame;
+
 import java.util.ArrayList;
 
 /**
- *
  * @author Matthias Mann
  */
 public class Node extends ResizableFrame {
@@ -59,9 +59,9 @@ public class Node extends ResizableFrame {
     }
 
     public Pad padFromMouse(int x, int y) {
-        for(int i=0,n=pads.size() ; i<n ; i++) {
+        for (int i = 0, n = pads.size(); i < n; i++) {
             Pad pad = pads.get(i);
-            if(pad.isInside(x, y)) {
+            if (pad.isInside(x, y)) {
                 return pad;
             }
         }
@@ -75,13 +75,13 @@ public class Node extends ResizableFrame {
         int yIn = getInnerY();
         int yOut = getInnerY();
         int xIn = getX();
-        int xOut = getRight() - 2*Pad.RADIUS;
+        int xOut = getRight() - 2 * Pad.RADIUS;
 
-        for(int i=0,n=pads.size() ; i<n ; i++) {
+        for (int i = 0, n = pads.size(); i < n; i++) {
             Pad pad = pads.get(i);
 
             pad.adjustSize();
-            if(pad.isInput()) {
+            if (pad.isInput()) {
                 pad.setPosition(xIn, yIn);
                 yIn += Pad.RADIUS * 3;
             } else {
@@ -90,5 +90,5 @@ public class Node extends ResizableFrame {
             }
         }
     }
-    
+
 }

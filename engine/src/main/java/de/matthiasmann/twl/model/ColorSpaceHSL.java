@@ -31,7 +31,7 @@ package de.matthiasmann.twl.model;
 
 /**
  * A HSL (Hue, Saturation and Luminance) color space
- *
+ * <p>
  * Hue is represented in degree from 0 to 360
  * Saturation and Luminance in percent from 0 to 100
  *
@@ -41,59 +41,6 @@ public class ColorSpaceHSL extends AbstractColorSpace {
 
     public ColorSpaceHSL() {
         super("HSL", "Hue", "Saturation", "Lightness");
-    }
-
-    public String getComponentShortName(int component) {
-        return "HSL".substring(component, component+1);
-    }
-
-    public float getMaxValue(int component) {
-        return (component == 0) ? 360f : 100f;
-    }
-
-    public float getDefaultValue(int component) {
-        return (component == 0) ? 0f : 50f;
-    }
-
-    public float[] fromRGB(int rgb) {
-        float r = ((rgb >> 16) & 255) / 255f;
-        float g = ((rgb >> 8) & 255) / 255f;
-        float b = ((rgb) & 255) / 255f;
-
-        float max = Math.max(Math.max(r, g), b);
-        float min = Math.min(Math.min(r, g), b);
-
-        float summe = max + min;
-        float saturation = max - min;
-
-        if (saturation > 0.0f) {
-            saturation /= (summe > 1.0f) ? 2.0f - summe : summe;
-        }
-        return new float[]{
-                    360f * getHue(r, g, b, max, min),
-                    100f * saturation,
-                     50f * summe};
-    }
-
-    public int toRGB(float[] color) {
-        float hue = color[0] / 360f;
-        float saturation = color[1] / 100f;
-        float lightness = color[2] / 100f;
-
-        float r, g, b;
-
-        if (saturation > 0.0f) {
-            hue = (hue < 1.0f) ? hue * 6.0f : 0.0f;
-            float q = lightness + saturation * ((lightness > 0.5f) ? 1.0f - lightness : lightness);
-            float p = 2.0f * lightness - q;
-            r = normalize(q, p, (hue < 4.0f) ? (hue + 2.0f) : (hue - 4.0f));
-            g = normalize(q, p, hue);
-            b = normalize(q, p, (hue < 2.0f) ? (hue + 4.0f) : (hue - 2.0f));
-        } else {
-            r = g = b = lightness;
-        }
-
-        return (toByte(r) << 16) | (toByte(g) << 8) | toByte(b);
     }
 
     static float getHue(float red, float green, float blue, float max, float min) {
@@ -128,6 +75,59 @@ public class ColorSpaceHSL extends AbstractColorSpace {
     }
 
     private static int toByte(float value) {
-        return Math.max(0, Math.min(255, (int)(255f * value)));
+        return Math.max(0, Math.min(255, (int) (255f * value)));
+    }
+
+    public String getComponentShortName(int component) {
+        return "HSL".substring(component, component + 1);
+    }
+
+    public float getMaxValue(int component) {
+        return (component == 0) ? 360f : 100f;
+    }
+
+    public float getDefaultValue(int component) {
+        return (component == 0) ? 0f : 50f;
+    }
+
+    public float[] fromRGB(int rgb) {
+        float r = ((rgb >> 16) & 255) / 255f;
+        float g = ((rgb >> 8) & 255) / 255f;
+        float b = ((rgb) & 255) / 255f;
+
+        float max = Math.max(Math.max(r, g), b);
+        float min = Math.min(Math.min(r, g), b);
+
+        float summe = max + min;
+        float saturation = max - min;
+
+        if (saturation > 0.0f) {
+            saturation /= (summe > 1.0f) ? 2.0f - summe : summe;
+        }
+        return new float[]{
+                360f * getHue(r, g, b, max, min),
+                100f * saturation,
+                50f * summe};
+    }
+
+    public int toRGB(float[] color) {
+        float hue = color[0] / 360f;
+        float saturation = color[1] / 100f;
+        float lightness = color[2] / 100f;
+
+        float r, g, b;
+
+        if (saturation > 0.0f) {
+            hue = (hue < 1.0f) ? hue * 6.0f : 0.0f;
+            float q = lightness + saturation * ((lightness > 0.5f) ? 1.0f - lightness : lightness);
+            float p = 2.0f * lightness - q;
+            r = normalize(q, p, (hue < 4.0f) ? (hue + 2.0f) : (hue - 4.0f));
+            g = normalize(q, p, hue);
+            b = normalize(q, p, (hue < 2.0f) ? (hue + 4.0f) : (hue - 2.0f));
+        } else {
+            r = g = b = lightness;
+        }
+
+        return (toByte(r) << 16) | (toByte(g) << 8) | toByte(b);
     }
 }

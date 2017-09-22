@@ -37,6 +37,7 @@ import de.matthiasmann.twl.renderer.DynamicImage;
 import de.matthiasmann.twl.renderer.Image;
 import de.matthiasmann.twl.utils.CallbackSupport;
 import de.matthiasmann.twl.utils.TintAnimator;
+
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.IntBuffer;
@@ -50,13 +51,14 @@ public class ColorSelector extends DialogLayout {
 
     private static final String[] RGBA_NAMES = {"Red", "Green", "Blue", "Alpha"};
     private static final String[] RGBA_PREFIX = {"R: ", "G: ", "B: ", "A: "};
-
+    private static final int IMAGE_SIZE = 64;
     final ByteBuffer imgData;
     final IntBuffer imgDataInt;
-
     ColorSpace colorSpace;
     float[] colorValues;
     ColorValueModel[] colorValueModels;
+    int currentColor;
+    EditField hexColorEditField;
     private boolean useColorArea2D = true;
     private boolean showPreview = false;
     private boolean useLabels = true;
@@ -68,9 +70,7 @@ public class ColorSelector extends DialogLayout {
     private ColorModel model;
     private Runnable modelCallback;
     private boolean inModelSetValue;
-    int currentColor;
     private ARGBModel[] argbModels;
-    EditField hexColorEditField;
     private TintAnimator previewTintAnimator;
     private boolean recreateLayout;
 
@@ -91,16 +91,16 @@ public class ColorSelector extends DialogLayout {
     }
 
     public void setColorSpace(ColorSpace colorModel) {
-        if(colorModel == null) {
+        if (colorModel == null) {
             throw new NullPointerException("colorModel");
         }
-        if(this.colorSpace != colorModel) {
+        if (this.colorSpace != colorModel) {
             boolean hasColor = this.colorSpace != null;
 
             this.colorSpace = colorModel;
             this.colorValues = new float[colorModel.getNumComponents()];
 
-            if(hasColor) {
+            if (hasColor) {
                 setColor(currentColor);
             } else {
                 setDefaultColor();
@@ -116,10 +116,10 @@ public class ColorSelector extends DialogLayout {
     }
 
     public void setModel(ColorModel model) {
-        if(this.model != model) {
+        if (this.model != model) {
             removeModelCallback();
             this.model = model;
-            if(model != null) {
+            if (model != null) {
                 addModelCallback();
                 modelValueChanged();
             }
@@ -130,6 +130,12 @@ public class ColorSelector extends DialogLayout {
         return new Color(currentColor);
     }
 
+    protected void setColor(int argb) {
+        currentColor = argb;
+        colorValues = colorSpace.fromRGB(argb & 0xFFFFFF);
+        updateAllColorAreas();
+    }
+
     public void setColor(Color color) {
         setColor(color.toARGB());
         updateModel();
@@ -137,7 +143,7 @@ public class ColorSelector extends DialogLayout {
 
     public void setDefaultColor() {
         currentColor = Color.WHITE.toARGB();
-        for(int i=0 ; i<colorSpace.getNumComponents() ; i++) {
+        for (int i = 0; i < colorSpace.getNumComponents(); i++) {
             colorValues[i] = colorSpace.getDefaultValue(i);
         }
         updateAllColorAreas();
@@ -150,17 +156,17 @@ public class ColorSelector extends DialogLayout {
 
     /**
      * Use 2D color areas.
-     *
+     * <p>
      * Color component 0 is the X axis and component 1 the Y axis of
      * the first 2D area, etc. If the number of color components is
      * odd then the last component is displayed with a 1D.
-     *
+     * <p>
      * If disabled all components are displayed using 1D color areas.
      *
      * @param useColorArea2D true if 2D areas should be used
      */
     public void setUseColorArea2D(boolean useColorArea2D) {
-        if(this.useColorArea2D != useColorArea2D) {
+        if (this.useColorArea2D != useColorArea2D) {
             this.useColorArea2D = useColorArea2D;
             recreateLayout = true;
             invalidateLayout();
@@ -178,7 +184,7 @@ public class ColorSelector extends DialogLayout {
      * @param showPreview true if the preview widget should be displayed
      */
     public void setShowPreview(boolean showPreview) {
-        if(this.showPreview != showPreview) {
+        if (this.showPreview != showPreview) {
             this.showPreview = showPreview;
             recreateLayout = true;
             invalidateLayout();
@@ -196,7 +202,7 @@ public class ColorSelector extends DialogLayout {
      * @param showHexEditField true if the edit field should be shown
      */
     public void setShowHexEditField(boolean showHexEditField) {
-        if(this.showHexEditField != showHexEditField) {
+        if (this.showHexEditField != showHexEditField) {
             this.showHexEditField = showHexEditField;
             recreateLayout = true;
             invalidateLayout();
@@ -208,7 +214,7 @@ public class ColorSelector extends DialogLayout {
     }
 
     public void setShowAlphaAdjuster(boolean showAlphaAdjuster) {
-        if(this.showAlphaAdjuster != showAlphaAdjuster) {
+        if (this.showAlphaAdjuster != showAlphaAdjuster) {
             this.showAlphaAdjuster = showAlphaAdjuster;
             recreateLayout = true;
             invalidateLayout();
@@ -226,7 +232,7 @@ public class ColorSelector extends DialogLayout {
      * @param showNativeAdjuster true if the native adjuster should be displayed
      */
     public void setShowNativeAdjuster(boolean showNativeAdjuster) {
-        if(this.showNativeAdjuster != showNativeAdjuster) {
+        if (this.showNativeAdjuster != showNativeAdjuster) {
             this.showNativeAdjuster = showNativeAdjuster;
             recreateLayout = true;
             invalidateLayout();
@@ -238,7 +244,7 @@ public class ColorSelector extends DialogLayout {
     }
 
     public void setShowRGBAdjuster(boolean showRGBAdjuster) {
-        if(this.showRGBAdjuster != showRGBAdjuster) {
+        if (this.showRGBAdjuster != showRGBAdjuster) {
             this.showRGBAdjuster = showRGBAdjuster;
             recreateLayout = true;
             invalidateLayout();
@@ -256,7 +262,7 @@ public class ColorSelector extends DialogLayout {
      * @param useLabels true if labels should be displayed
      */
     public void setUseLabels(boolean useLabels) {
-        if(this.useLabels != useLabels) {
+        if (this.useLabels != useLabels) {
             this.useLabels = useLabels;
             recreateLayout = true;
             invalidateLayout();
@@ -270,9 +276,9 @@ public class ColorSelector extends DialogLayout {
     public void removeCallback(Runnable cb) {
         callbacks = CallbackSupport.removeCallbackFromList(callbacks, cb);
     }
-    
+
     protected void updateModel() {
-        if(model != null) {
+        if (model != null) {
             inModelSetValue = true;
             try {
                 model.setValue(getColor());
@@ -286,30 +292,24 @@ public class ColorSelector extends DialogLayout {
         currentColor = (currentColor & (0xFF << 24)) | colorSpace.toRGB(colorValues);
         CallbackSupport.fireCallbacks(callbacks);
         updateModel();
-        if(argbModels != null) {
-            for(ARGBModel m : argbModels) {
+        if (argbModels != null) {
+            for (ARGBModel m : argbModels) {
                 m.fireCallback();
             }
         }
-        if(previewTintAnimator != null) {
+        if (previewTintAnimator != null) {
             previewTintAnimator.setColor(getColor());
         }
         updateHexEditField();
     }
 
-    protected void setColor(int argb) {
-        currentColor = argb;
-        colorValues = colorSpace.fromRGB(argb & 0xFFFFFF);
-        updateAllColorAreas();
-    }
-    
     protected int getNumComponents() {
         return colorSpace.getNumComponents();
     }
 
     @Override
     public void layout() {
-        if(recreateLayout) {
+        if (recreateLayout) {
             createColorAreas();
         }
         super.layout();
@@ -317,7 +317,7 @@ public class ColorSelector extends DialogLayout {
 
     @Override
     public int getMinWidth() {
-        if(recreateLayout) {
+        if (recreateLayout) {
             createColorAreas();
         }
         return super.getMinWidth();
@@ -325,7 +325,7 @@ public class ColorSelector extends DialogLayout {
 
     @Override
     public int getMinHeight() {
-        if(recreateLayout) {
+        if (recreateLayout) {
             createColorAreas();
         }
         return super.getMinHeight();
@@ -333,7 +333,7 @@ public class ColorSelector extends DialogLayout {
 
     @Override
     public int getPreferredInnerWidth() {
-        if(recreateLayout) {
+        if (recreateLayout) {
             createColorAreas();
         }
         return super.getPreferredInnerWidth();
@@ -341,7 +341,7 @@ public class ColorSelector extends DialogLayout {
 
     @Override
     public int getPreferredInnerHeight() {
-        if(recreateLayout) {
+        if (recreateLayout) {
             createColorAreas();
         }
         return super.getPreferredInnerHeight();
@@ -367,8 +367,8 @@ public class ColorSelector extends DialogLayout {
         Group horzLabels = null;
         Group horzAdjuster = createParallelGroup();
         Group horzControlls = createSequentialGroup();
-        
-        if(useLabels) {
+
+        if (useLabels) {
             horzLabels = createParallelGroup();
             horzControlls.addGroup(horzLabels);
         }
@@ -376,19 +376,19 @@ public class ColorSelector extends DialogLayout {
 
         Group[] vertAdjuster = new Group[4 + numComponents];
         int numAdjuters = 0;
-        
-        for(int i=0 ; i<vertAdjuster.length ; i++) {
+
+        for (int i = 0; i < vertAdjuster.length; i++) {
             vertAdjuster[i] = createParallelGroup();
         }
 
         colorValueModels = new ColorValueModel[numComponents];
-        for(int component=0 ; component<numComponents ; component++) {
+        for (int component = 0; component < numComponents; component++) {
             colorValueModels[component] = new ColorValueModel(component);
 
-            if(showNativeAdjuster) {
+            if (showNativeAdjuster) {
                 ValueAdjusterFloat vaf = new ValueAdjusterFloat(colorValueModels[component]);
 
-                if(useLabels) {
+                if (useLabels) {
                     Label label = new Label(colorSpace.getComponentName(component));
                     label.setLabelFor(vaf);
                     horzLabels.addWidget(label);
@@ -404,11 +404,11 @@ public class ColorSelector extends DialogLayout {
             }
         }
 
-        for(int i=0 ; i<argbModels.length ; i++) {
-            if((i == 3 && showAlphaAdjuster) || (i < 3 && showRGBAdjuster)) {
+        for (int i = 0; i < argbModels.length; i++) {
+            if ((i == 3 && showAlphaAdjuster) || (i < 3 && showRGBAdjuster)) {
                 ValueAdjusterInt vai = new ValueAdjusterInt(argbModels[i]);
 
-                if(useLabels) {
+                if (useLabels) {
                     Label label = new Label(RGBA_NAMES[i]);
                     label.setLabelFor(vai);
                     horzLabels.addWidget(label);
@@ -426,18 +426,18 @@ public class ColorSelector extends DialogLayout {
 
         int component = 0;
 
-        if(useColorArea2D) {
-            for(; component+1 < numComponents ; component+=2) {
-                ColorArea2D area = new ColorArea2D(component, component+1);
+        if (useColorArea2D) {
+            for (; component + 1 < numComponents; component += 2) {
+                ColorArea2D area = new ColorArea2D(component, component + 1);
                 area.setTooltipContent(colorSpace.getComponentName(component) +
-                        " / " + colorSpace.getComponentName(component+1));
+                        " / " + colorSpace.getComponentName(component + 1));
 
                 horzAreas.addWidget(area);
                 vertAreas.addWidget(area);
             }
         }
 
-        for( ; component<numComponents ; component++) {
+        for (; component < numComponents; component++) {
             ColorArea1D area = new ColorArea1D(component);
             area.setTooltipContent(colorSpace.getComponentName(component));
 
@@ -445,12 +445,12 @@ public class ColorSelector extends DialogLayout {
             vertAreas.addWidget(area);
         }
 
-        if(showHexEditField && hexColorEditField == null) {
+        if (showHexEditField && hexColorEditField == null) {
             createHexColorEditField();
         }
 
-        if(showPreview) {
-            if(previewTintAnimator == null) {
+        if (showPreview) {
+            if (previewTintAnimator == null) {
                 previewTintAnimator = new TintAnimator(this, getColor());
             }
 
@@ -461,7 +461,7 @@ public class ColorSelector extends DialogLayout {
             Widget preview = new Container();
             preview.setTheme("preview");
             preview.add(previewArea);
-            
+
             Label label = new Label();
             label.setTheme("previewLabel");
             label.setLabelFor(preview);
@@ -472,7 +472,7 @@ public class ColorSelector extends DialogLayout {
             horzAreas.addGroup(horz.addWidget(label).addWidget(preview));
             vertAreas.addGroup(vert.addGap().addWidget(label).addWidget(preview));
 
-            if(showHexEditField) {
+            if (showHexEditField) {
                 horz.addWidget(hexColorEditField);
                 vert.addGap().addWidget(hexColorEditField);
             }
@@ -484,16 +484,16 @@ public class ColorSelector extends DialogLayout {
         Group vertMainGroup = createSequentialGroup()
                 .addGroup(vertAreas);
 
-        for(int i=0 ; i<numAdjuters ; i++) {
+        for (int i = 0; i < numAdjuters; i++) {
             vertMainGroup.addGroup(vertAdjuster[i]);
         }
 
-        if(showHexEditField) {
-            if(hexColorEditField == null) {
+        if (showHexEditField) {
+            if (hexColorEditField == null) {
                 createHexColorEditField();
             }
-            
-            if(!showPreview) {
+
+            if (!showPreview) {
                 horzMainGroup.addWidget(hexColorEditField);
                 vertMainGroup.addWidget(hexColorEditField);
             }
@@ -505,8 +505,8 @@ public class ColorSelector extends DialogLayout {
     }
 
     protected void updateAllColorAreas() {
-        if(colorValueModels != null) {
-            for(ColorValueModel cvm : colorValueModels) {
+        if (colorValueModels != null) {
+            for (ColorValueModel cvm : colorValueModels) {
                 cvm.fireCallback();
             }
             colorChanged();
@@ -524,16 +524,16 @@ public class ColorSelector extends DialogLayout {
         removeModelCallback();
         super.beforeRemoveFromGUI(gui);
     }
-    
+
     private void removeModelCallback() {
-        if(model != null) {
+        if (model != null) {
             model.removeCallback(modelCallback);
         }
     }
-    
+
     private void addModelCallback() {
-        if(model != null && getGUI() != null) {
-            if(modelCallback == null) {
+        if (model != null && getGUI() != null) {
+            if (modelCallback == null) {
                 modelCallback = new Runnable() {
                     public void run() {
                         modelValueChanged();
@@ -548,18 +548,18 @@ public class ColorSelector extends DialogLayout {
         hexColorEditField = new EditField() {
             @Override
             protected void insertChar(char ch) {
-                if(isValid(ch)) {
+                if (isValid(ch)) {
                     super.insertChar(ch);
                 }
             }
 
             @Override
             public void insertText(String str) {
-                for(int i=0,n=str.length() ; i<n ; i++) {
-                    if(!isValid(str.charAt(i))) {
+                for (int i = 0, n = str.length(); i < n; i++) {
+                    if (!isValid(str.charAt(i))) {
                         StringBuilder sb = new StringBuilder(str);
-                        for(int j=n ; j-- >= i ;) {
-                            if(!isValid(sb.charAt(j))) {
+                        for (int j = n; j-- >= i; ) {
+                            if (!isValid(sb.charAt(j))) {
                                 sb.deleteCharAt(j);
                             }
                         }
@@ -579,7 +579,7 @@ public class ColorSelector extends DialogLayout {
         hexColorEditField.setColumns(8);
         hexColorEditField.addCallback(new EditField.Callback() {
             public void callback(int key) {
-                if(key == Event.KEY_ESCAPE) {
+                if (key == Event.KEY_ESCAPE) {
                     updateHexEditField();
                     return;
                 }
@@ -587,10 +587,10 @@ public class ColorSelector extends DialogLayout {
                 try {
                     color = Color.parserColor("#".concat(hexColorEditField.getText()));
                     hexColorEditField.setErrorMessage(null);
-                } catch(Exception ex) {
+                } catch (Exception ex) {
                     hexColorEditField.setErrorMessage("Invalid color format");
                 }
-                if(key == Event.KEY_RETURN && color != null) {
+                if (key == Event.KEY_RETURN && color != null) {
                     setColor(color);
                 }
             }
@@ -598,19 +598,17 @@ public class ColorSelector extends DialogLayout {
     }
 
     void updateHexEditField() {
-        if(hexColorEditField != null) {
+        if (hexColorEditField != null) {
             hexColorEditField.setText(String.format("%08X", currentColor));
         }
     }
-    
+
     void modelValueChanged() {
-        if(!inModelSetValue && model != null) {
+        if (!inModelSetValue && model != null) {
             // don't call updateModel here
             setColor(model.getValue().toARGB());
         }
     }
-    
-    private static final int IMAGE_SIZE = 64;
 
     class ColorValueModel extends AbstractFloatModel {
         private final int component;
@@ -682,17 +680,19 @@ public class ColorSelector extends DialogLayout {
         }
 
         abstract void createImage(GUI gui);
+
         abstract void updateImage();
+
         abstract void handleMouse(int x, int y);
 
         @Override
         protected void paintWidget(GUI gui) {
-            if(img == null) {
+            if (img == null) {
                 createImage(gui);
                 needsUpdate = true;
             }
-            if(img != null) {
-                if(needsUpdate) {
+            if (img != null) {
+                if (needsUpdate) {
                     updateImage();
                 }
                 img.draw(getAnimationState(), getInnerX(), getInnerY(), getInnerWidth(), getInnerHeight());
@@ -702,7 +702,7 @@ public class ColorSelector extends DialogLayout {
         @Override
         public void destroy() {
             super.destroy();
-            if(img != null) {
+            if (img != null) {
                 img.destroy();
                 img = null;
             }
@@ -718,7 +718,7 @@ public class ColorSelector extends DialogLayout {
                 case MOUSE_WHEEL:
                     return false;
                 default:
-                    if(evt.isMouseEvent()) {
+                    if (evt.isMouseEvent()) {
                         return true;
                     }
                     break;
@@ -730,7 +730,7 @@ public class ColorSelector extends DialogLayout {
             needsUpdate = true;
         }
     }
-    
+
     class ColorArea1D extends ColorArea {
         final int component;
 
@@ -738,8 +738,8 @@ public class ColorSelector extends DialogLayout {
         ColorArea1D(int component) {
             this.component = component;
 
-            for(int i=0,n=getNumComponents() ; i<n ; i++) {
-                if(i != component) {
+            for (int i = 0, n = getNumComponents(); i < n; i++) {
+                if (i != component) {
                     colorValueModels[i].addCallback(this);
                 }
             }
@@ -748,10 +748,10 @@ public class ColorSelector extends DialogLayout {
         @Override
         protected void paintWidget(GUI gui) {
             super.paintWidget(gui);
-            if(cursorImage != null) {
+            if (cursorImage != null) {
                 float minValue = colorSpace.getMinValue(component);
                 float maxValue = colorSpace.getMaxValue(component);
-                int pos = (int)((colorValues[component] - maxValue) * (getInnerHeight()-1) / (minValue - maxValue) + 0.5f);
+                int pos = (int) ((colorValues[component] - maxValue) * (getInnerHeight() - 1) / (minValue - maxValue) + 0.5f);
                 cursorImage.draw(getAnimationState(), getInnerX(), getInnerY() + pos, getInnerWidth(), 1);
             }
         }
@@ -768,7 +768,7 @@ public class ColorSelector extends DialogLayout {
             float x = cs.getMaxValue(component);
             float dx = (cs.getMinValue(component) - x) / (IMAGE_SIZE - 1);
 
-            for(int i=0 ; i<IMAGE_SIZE ; i++) {
+            for (int i = 0; i < IMAGE_SIZE; i++) {
                 temp[component] = x;
                 buf.put(i, (cs.toRGB(temp) << 8) | 0xFF);
                 x += dx;
@@ -798,22 +798,23 @@ public class ColorSelector extends DialogLayout {
             this.componentX = componentX;
             this.componentY = componentY;
 
-            for(int i=0,n=getNumComponents() ; i<n ; i++) {
-                if(i != componentX && i != componentY) {
+            for (int i = 0, n = getNumComponents(); i < n; i++) {
+                if (i != componentX && i != componentY) {
                     colorValueModels[i].addCallback(this);
                 }
             }
         }
+
         @Override
         protected void paintWidget(GUI gui) {
             super.paintWidget(gui);
-            if(cursorImage != null) {
+            if (cursorImage != null) {
                 float minValueX = colorSpace.getMinValue(componentX);
                 float maxValueX = colorSpace.getMaxValue(componentX);
                 float minValueY = colorSpace.getMinValue(componentY);
                 float maxValueY = colorSpace.getMaxValue(componentY);
-                int posX = (int)((colorValues[componentX] - maxValueX) * (getInnerWidth()-1) / (minValueX - maxValueX) + 0.5f);
-                int posY = (int)((colorValues[componentY] - maxValueY) * (getInnerHeight()-1) / (minValueY - maxValueY) + 0.5f);
+                int posX = (int) ((colorValues[componentX] - maxValueX) * (getInnerWidth() - 1) / (minValueX - maxValueX) + 0.5f);
+                int posY = (int) ((colorValues[componentY] - maxValueY) * (getInnerHeight() - 1) / (minValueY - maxValueY) + 0.5f);
                 cursorImage.draw(getAnimationState(), getInnerX() + posX, getInnerY() + posY, 1, 1);
             }
         }
@@ -833,10 +834,10 @@ public class ColorSelector extends DialogLayout {
             float y = cs.getMaxValue(componentY);
             float dy = (cs.getMinValue(componentY) - y) / (IMAGE_SIZE - 1);
 
-            for(int i=0,idx=0 ; i<IMAGE_SIZE ; i++) {
+            for (int i = 0, idx = 0; i < IMAGE_SIZE; i++) {
                 temp[componentY] = y;
                 float x = x0;
-                for(int j=0 ; j<IMAGE_SIZE ; j++) {
+                for (int j = 0; j < IMAGE_SIZE; j++) {
                     temp[componentX] = x;
                     buf.put(idx++, (cs.toRGB(temp) << 8) | 0xFF);
                     x += dx;

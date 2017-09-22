@@ -29,8 +29,8 @@
  */
 package de.matthiasmann.twl;
 
-import de.matthiasmann.twl.utils.CallbackSupport;
 import de.matthiasmann.twl.model.BooleanModel;
+import de.matthiasmann.twl.utils.CallbackSupport;
 
 /**
  * A simple animated window - it changes size
@@ -46,7 +46,7 @@ public class AnimatedWindow extends Widget {
     private BooleanModel model;
     private Runnable modelCallback;
     private Runnable[] callbacks;
-    
+
     public AnimatedWindow() {
         setVisible(false); // we start closed
     }
@@ -68,38 +68,38 @@ public class AnimatedWindow extends Widget {
     }
 
     public void setNumAnimSteps(int numAnimSteps) {
-        if(numAnimSteps < 1) {
+        if (numAnimSteps < 1) {
             throw new IllegalArgumentException("numAnimSteps");
         }
         this.numAnimSteps = numAnimSteps;
     }
 
     public void setState(boolean open) {
-        if(open && !isOpen()) {
+        if (open && !isOpen()) {
             animSpeed = 1;
             setVisible(true);
             doCallback();
-        } else if(!open && !isClosed()) {
+        } else if (!open && !isClosed()) {
             animSpeed = -1;
             doCallback();
         }
-        if(model != null) {
+        if (model != null) {
             model.setValue(open);
         }
     }
-    
+
     public BooleanModel getModel() {
         return model;
     }
 
     public void setModel(BooleanModel model) {
-        if(this.model != model) {
-            if(this.model != null) {
+        if (this.model != model) {
+            if (this.model != null) {
                 this.model.removeCallback(modelCallback);
             }
             this.model = model;
-            if(model != null) {
-                if(modelCallback == null) {
+            if (model != null) {
+                if (modelCallback == null) {
                     modelCallback = new ModelCallback();
                 }
                 model.addCallback(modelCallback);
@@ -107,45 +107,45 @@ public class AnimatedWindow extends Widget {
             }
         }
     }
-    
+
     public boolean isOpen() {
         return currentStep == numAnimSteps && animSpeed >= 0;
     }
-    
+
     public boolean isOpening() {
         return animSpeed > 0;
     }
-    
+
     public boolean isClosed() {
         return currentStep == 0 && animSpeed <= 0;
     }
-    
+
     public boolean isClosing() {
         return animSpeed < 0;
     }
-    
+
     public boolean isAnimating() {
         return animSpeed != 0;
     }
 
     @Override
     public boolean handleEvent(Event evt) {
-        if(isOpen()) {
-            if(super.handleEvent(evt)) {
+        if (isOpen()) {
+            if (super.handleEvent(evt)) {
                 return true;
             }
-            if(evt.isKeyPressedEvent()) {
+            if (evt.isKeyPressedEvent()) {
                 switch (evt.getKeyCode()) {
-                case Event.KEY_ESCAPE:
-                    setState(false);
-                    return true;
-                default:
-                    break;
+                    case Event.KEY_ESCAPE:
+                        setState(false);
+                        return true;
+                    default:
+                        break;
                 }
             }
             return false;
         }
-        if(isClosed()) {
+        if (isClosed()) {
             return false;
         }
         // eat every event when we animate
@@ -158,7 +158,7 @@ public class AnimatedWindow extends Widget {
     @Override
     public int getMinWidth() {
         int minWidth = 0;
-        for(int i=0,n=getNumChildren() ; i<n ; i++) {
+        for (int i = 0, n = getNumChildren(); i < n; i++) {
             Widget child = getChild(i);
             minWidth = Math.max(minWidth, child.getMinWidth());
         }
@@ -168,7 +168,7 @@ public class AnimatedWindow extends Widget {
     @Override
     public int getMinHeight() {
         int minHeight = 0;
-        for(int i=0,n=getNumChildren() ; i<n ; i++) {
+        for (int i = 0, n = getNumChildren(); i < n; i++) {
             Widget child = getChild(i);
             minHeight = Math.max(minHeight, child.getMinHeight());
         }
@@ -189,16 +189,16 @@ public class AnimatedWindow extends Widget {
     protected void layout() {
         layoutChildrenFullInnerArea();
     }
-    
+
     @Override
     protected void paint(GUI gui) {
-        if(animSpeed != 0) {
+        if (animSpeed != 0) {
             animate();
         }
-        
-        if(isOpen()) {
+
+        if (isOpen()) {
             super.paint(gui);
-        } else if(!isClosed() && getBackground() != null) {
+        } else if (!isClosed() && getBackground() != null) {
             getBackground().draw(getAnimationState(),
                     getX(), getY(), getAnimatedWidth(), getAnimatedHeight());
         }
@@ -206,7 +206,7 @@ public class AnimatedWindow extends Widget {
 
     private void animate() {
         currentStep += animSpeed;
-        if(currentStep == 0 || currentStep == numAnimSteps) {
+        if (currentStep == 0 || currentStep == numAnimSteps) {
             setVisible(currentStep > 0);
             animSpeed = 0;
             doCallback();
@@ -220,11 +220,11 @@ public class AnimatedWindow extends Widget {
     private int getAnimatedHeight() {
         return getHeight() * currentStep / numAnimSteps;
     }
-    
+
     void syncWithModel() {
         setState(model.getValue());
     }
-    
+
     class ModelCallback implements Runnable {
         ModelCallback() {
         }

@@ -30,8 +30,9 @@
 package de.matthiasmann.twl.utils;
 
 import org.junit.Test;
-import static org.junit.Assert.*;
-import static de.matthiasmann.twl.utils.NaturalSortComparator.*;
+
+import static de.matthiasmann.twl.utils.NaturalSortComparator.naturalCompare;
+import static org.junit.Assert.assertEquals;
 
 /**
  * Tests for NaturalSortComparator
@@ -99,12 +100,12 @@ public class NaturalSortComparatorTest {
     /**
      * Compares signum(a-b) == result and signum(b-a) == -result
      *
-     * @param a First string
-     * @param b Second string
+     * @param a      First string
+     * @param b      Second string
      * @param result expected sign
      */
     private void compareOrder(String a, String b, int result) {
-        assertEquals( result, Integer.signum(naturalCompare(a, b)));
+        assertEquals(result, Integer.signum(naturalCompare(a, b)));
         assertEquals(-result, Integer.signum(naturalCompare(b, a)));
     }
 }

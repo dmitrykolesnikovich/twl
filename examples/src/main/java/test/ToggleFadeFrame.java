@@ -30,7 +30,6 @@
 package test;
 
 /**
- *
  * @author Matthias Mann
  */
 public class ToggleFadeFrame implements Runnable {
@@ -42,7 +41,7 @@ public class ToggleFadeFrame implements Runnable {
     }
 
     public void run() {
-        if(frame.isVisible()) {
+        if (frame.isVisible()) {
             frame.hide();
         } else {
             frame.show();

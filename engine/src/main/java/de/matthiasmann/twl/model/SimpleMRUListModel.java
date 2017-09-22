@@ -30,13 +30,13 @@
 package de.matthiasmann.twl.model;
 
 import de.matthiasmann.twl.utils.CallbackSupport;
+
 import java.util.ArrayList;
 
 /**
  * A non persistent MRU list implementation
  *
  * @param <T> the data type stored in this MRU model
- * 
  * @author Matthias Mann
  */
 public class SimpleMRUListModel<T> implements MRUListModel<T> {
@@ -46,7 +46,7 @@ public class SimpleMRUListModel<T> implements MRUListModel<T> {
     protected ChangeListener[] listeners;
 
     public SimpleMRUListModel(int maxEntries) {
-        if(maxEntries <= 1) {
+        if (maxEntries <= 1) {
             throw new IllegalArgumentException("maxEntries <= 1");
         }
         this.entries = new ArrayList<T>();
@@ -67,16 +67,16 @@ public class SimpleMRUListModel<T> implements MRUListModel<T> {
 
     public void addEntry(T entry) {
         int idx = entries.indexOf(entry);
-        if(idx >= 0) {
+        if (idx >= 0) {
             doDeleteEntry(idx);
-        } else if(entries.size() == maxEntries) {
-            doDeleteEntry(maxEntries-1);
+        } else if (entries.size() == maxEntries) {
+            doDeleteEntry(maxEntries - 1);
         }
-        
+
         entries.add(0, entry);
 
-        if(listeners != null) {
-            for(ChangeListener cl : listeners) {
+        if (listeners != null) {
+            for (ChangeListener cl : listeners) {
                 cl.entriesInserted(0, 0);
             }
         }
@@ -85,11 +85,11 @@ public class SimpleMRUListModel<T> implements MRUListModel<T> {
     }
 
     public void removeEntry(int index) {
-        if(index < 0 && index >= entries.size()) {
+        if (index < 0 && index >= entries.size()) {
             throw new IndexOutOfBoundsException();
         }
         doDeleteEntry(index);
-        
+
         saveEntries();
     }
 
@@ -103,9 +103,9 @@ public class SimpleMRUListModel<T> implements MRUListModel<T> {
 
     protected void doDeleteEntry(int idx) {
         entries.remove(idx);
-        
-        if(listeners != null) {
-            for(ChangeListener cl : listeners) {
+
+        if (listeners != null) {
+            for (ChangeListener cl : listeners) {
                 cl.entriesDeleted(idx, idx);
             }
         }

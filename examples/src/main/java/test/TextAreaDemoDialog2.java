@@ -34,12 +34,11 @@ import de.matthiasmann.twl.TextArea;
 import de.matthiasmann.twl.textarea.SimpleTextAreaModel;
 
 /**
- *
  * @author Matthias Mann
  */
 public class TextAreaDemoDialog2 extends FadeFrame {
 
-    public TextAreaDemoDialog2()  {
+    public TextAreaDemoDialog2() {
         SimpleTextAreaModel tam = new SimpleTextAreaModel();
         tam.setText("This is a small test message. It's not too long.\n" +
                 "\tThis is a small test message. It's not too long.\n" +
@@ -64,5 +63,5 @@ public class TextAreaDemoDialog2 extends FadeFrame {
         setTitle("TextArea tab test");
         add(scrollPane2);
     }
-    
+
 }

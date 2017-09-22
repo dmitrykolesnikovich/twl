@@ -43,10 +43,33 @@ import test.TestUtils;
 
 /**
  * A small demo showing how to use keyboard actions
- * 
+ *
  * @author Matthias Mann
  */
 public class ActionDemo extends Widget {
+
+    private final FPSCounter fpsCounter;
+    private final Label instructions;
+    private final Label result;
+    public boolean quit;
+    @SuppressWarnings("LeakingThisInConstructor")
+    public ActionDemo() {
+        fpsCounter = new FPSCounter();
+        add(fpsCounter);
+
+        instructions = new Label();
+        instructions.setTheme("instructions");
+        instructions.setText("Press the keys W, A, S, D, Ctrl-O and Ctrl-S to invoke actions");
+        add(instructions);
+
+        result = new Label();
+        result.setTheme("result");
+        add(result);
+
+        getOrCreateActionMap().addMapping(this);
+
+        setCanAcceptKeyboardFocus(true);
+    }
 
     public static void main(String[] args) {
         try {
@@ -58,14 +81,14 @@ public class ActionDemo extends Widget {
             LWJGLRenderer renderer = new LWJGLRenderer();
             ActionDemo demo = new ActionDemo();
             GUI gui = new GUI(demo, renderer);
-            
+
             demo.requestKeyboardFocus();
 
             ThemeManager theme = ThemeManager.createThemeManager(
                     ActionDemo.class.getResource("actiondemo.xml"), renderer);
             gui.applyTheme(theme);
 
-            while(!Display.isCloseRequested() && !demo.quit) {
+            while (!Display.isCloseRequested() && !demo.quit) {
                 GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
 
                 gui.update();
@@ -81,70 +104,46 @@ public class ActionDemo extends Widget {
         Display.destroy();
     }
 
-    private final FPSCounter fpsCounter;
-    private final Label instructions;
-    private final Label result;
-    public boolean quit;
-
-    @SuppressWarnings("LeakingThisInConstructor")
-    public ActionDemo() {
-        fpsCounter = new FPSCounter();
-        add(fpsCounter);
-
-        instructions = new Label();
-        instructions.setTheme("instructions");
-        instructions.setText("Press the keys W, A, S, D, Ctrl-O and Ctrl-S to invoke actions");
-        add(instructions);
-        
-        result = new Label();
-        result.setTheme("result");
-        add(result);
-        
-        getOrCreateActionMap().addMapping(this);
-        
-        setCanAcceptKeyboardFocus(true);
-    }
-
     @Action
     public void left() {
         result.setText("You go left, but only found a wall");
     }
-    
+
     @Action
     public void right() {
         result.setText("right is not a direction you want to go");
     }
-    
+
     @Action
     public void forward() {
         result.setText("forward is the direction of the future");
     }
-    
+
     @Action
     public void back() {
         result.setText("we have to go back into the future !");
     }
-    
+
     @Action
     public void load() {
         result.setText("there is no previous save game");
     }
-    
+
     @Action
     public void save() {
         result.setText("save! yes - you are save here");
     }
-    
+
     @Override
     protected void layout() {
         // instructions are near the top 
         instructions.setSize(getInnerWidth(), instructions.getPreferredHeight());
         instructions.setPosition(getInnerX(), getInnerY() + 20);
-        
+
         // result is in the screen center
         result.setSize(getInnerWidth(), result.getPreferredHeight());
-        result.setPosition(getInnerX(), getInnerY() + (getInnerHeight() - result.getHeight())/2);
-        
+        result.setPosition(getInnerX(), getInnerY() + (getInnerHeight() - result.getHeight()) / 2);
+
         // fpsCounter is bottom right
         fpsCounter.adjustSize();
         fpsCounter.setPosition(

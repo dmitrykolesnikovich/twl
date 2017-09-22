@@ -35,7 +35,7 @@ import java.util.HashMap;
 
 /**
  * A column oriented layout engine.
- *
+ * <p>
  * <p>It's based on named columns and rows.<br>
  * Each row is constructed with a set of columns.<br>
  * Rows can be added to the implicit root panel or to sub panels.<br>
@@ -64,23 +64,23 @@ public class ColumnLayout extends DialogLayout {
 
     /**
      * Returns the column layout for the specified list of columns.
-     *
+     * <p>
      * <p>A column name of {@code ""} or {@code "-"} is used to create a
      * flexible gap.</p>
-     *
+     * <p>
      * <p>Layouts are merged starting with the first column if that column
      * name is already in use. Merged column layouts share the column width.</p>
-     * 
+     *
      * @param columnNames list of column names
      * @return the column layout
      */
-    public Columns getColumns(String ... columnNames) {
-        if(columnNames.length == 0) {
+    public Columns getColumns(String... columnNames) {
+        if (columnNames.length == 0) {
             throw new IllegalArgumentException("columnNames");
         }
         Columns key = new Columns(columnNames);
         Columns cl = columns.get(key);
-        if(cl != null) {
+        if (cl != null) {
             return cl;
         }
         createColumns(key);
@@ -104,48 +104,48 @@ public class ColumnLayout extends DialogLayout {
      * @param columnNames the column names
      * @return the new row
      */
-    public Row addRow(String ... columnNames) {
+    public Row addRow(String... columnNames) {
         return rootPanel.addRow(getColumns(columnNames));
     }
 
     private void createColumns(Columns cl) {
         int prefixSize = 0;
         Columns prefixColumns = null;
-        for(Columns c : columns.values()) {
+        for (Columns c : columns.values()) {
             int match = c.match(cl);
-            if(match > prefixSize) {
+            if (match > prefixSize) {
                 prefixSize = match;
                 prefixColumns = c;
             }
         }
 
         int numColumns = 0;
-        for(int i=0,n=cl.names.length ; i<n ; i++) {
-            if(!cl.isGap(i)) {
+        for (int i = 0, n = cl.names.length; i < n; i++) {
+            if (!cl.isGap(i)) {
                 numColumns++;
             }
         }
-        
+
         cl.numColumns = numColumns;
         cl.firstColumn = columnGroups.size();
         cl.childGroups = new Group[cl.names.length];
         Group h = createSequentialGroup();
 
-        if(prefixColumns == null) {
+        if (prefixColumns == null) {
             getHorizontalGroup().addGroup(h);
         } else {
-            for(int i=0 ; i<prefixSize ; i++) {
-                if(!cl.isGap(i)) {
+            for (int i = 0; i < prefixSize; i++) {
+                if (!cl.isGap(i)) {
                     Group g = columnGroups.get(prefixColumns.firstColumn + i);
                     columnGroups.add(g);
                 }
             }
             System.arraycopy(prefixColumns.childGroups, 0, cl.childGroups, 0, prefixSize);
-            cl.childGroups[prefixSize-1].addGroup(h);
+            cl.childGroups[prefixSize - 1].addGroup(h);
         }
 
-        for(int i=prefixSize,n=cl.names.length ; i<n ; i++) {
-            if(cl.isGap(i)) {
+        for (int i = prefixSize, n = cl.names.length; i < n; i++) {
+            if (cl.isGap(i)) {
                 h.addGap();
             } else {
                 Group g = createParallelGroup();
@@ -175,16 +175,17 @@ public class ColumnLayout extends DialogLayout {
 
         @Override
         public boolean equals(Object obj) {
-            if(obj == null || getClass() != obj.getClass()) {
+            if (obj == null || getClass() != obj.getClass()) {
                 return false;
             }
-            final Columns other = (Columns)obj;
+            final Columns other = (Columns) obj;
             return this.hashcode == other.hashcode &&
                     Arrays.equals(this.names, other.names);
         }
 
         /**
          * Returns the number of non gap columns.
+         *
          * @return the number of non gap columns.
          */
         public int getNumColumns() {
@@ -198,7 +199,7 @@ public class ColumnLayout extends DialogLayout {
         public String getColumnName(int idx) {
             return names[idx];
         }
-        
+
         @Override
         public int hashCode() {
             return hashcode;
@@ -208,11 +209,11 @@ public class ColumnLayout extends DialogLayout {
             String name = names[column];
             return name.length() == 0 || "-".equals(name);
         }
-        
+
         int match(Columns other) {
             int cnt = Math.min(this.names.length, other.names.length);
-            for(int i=0 ; i<cnt ; i++) {
-                if(!names[i].equals(other.names[i])) {
+            for (int i = 0; i < cnt; i++) {
+                if (!names[i].equals(other.names[i])) {
                     return i;
                 }
             }
@@ -234,6 +235,7 @@ public class ColumnLayout extends DialogLayout {
 
         /**
          * Returns the current column. Adding a widget increments the this.
+         *
          * @return the current column.
          * @see Columns#getNumColumns()
          */
@@ -253,7 +255,7 @@ public class ColumnLayout extends DialogLayout {
          * @throws IllegalStateException if all widgets for this row have already been added
          */
         public Row add(Widget w) {
-            if(curColumn == columns.numColumns) {
+            if (curColumn == columns.numColumns) {
                 throw new IllegalStateException("Too many widgets for column layout");
             }
             panel.getColumn(columns.firstColumn + curColumn).addWidget(w);
@@ -265,7 +267,7 @@ public class ColumnLayout extends DialogLayout {
         /**
          * Adds a new widget to this row using the specified alignment.
          *
-         * @param w the new widget
+         * @param w         the new widget
          * @param alignment the alignment for the new widget
          * @return this
          * @throws IllegalStateException if all widgets for this row have already been added
@@ -278,7 +280,7 @@ public class ColumnLayout extends DialogLayout {
 
         /**
          * Adds a new label to this row. The label is not associate with any widget.
-         *
+         * <p>
          * <p>It is equivalent to {@code add(new Label(label))}.</p>
          *
          * @param labelText the label text
@@ -286,7 +288,7 @@ public class ColumnLayout extends DialogLayout {
          * @throws IllegalStateException if all widgets for this row have already been added
          */
         public Row addLabel(String labelText) {
-            if(labelText == null) {
+            if (labelText == null) {
                 throw new NullPointerException("labelText");
             }
             return add(new Label(labelText));
@@ -298,12 +300,12 @@ public class ColumnLayout extends DialogLayout {
          * The alignment of the widget is {@link Alignment#FILL}.
          *
          * @param labelText the label text
-         * @param w the new widget
+         * @param w         the new widget
          * @return this
          * @throws IllegalStateException if all widgets for this row have already been added
          */
         public Row addWithLabel(String labelText, Widget w) {
-            if(labelText == null) {
+            if (labelText == null) {
                 throw new NullPointerException("labelText");
             }
             Label labelWidget = new Label(labelText);
@@ -317,7 +319,7 @@ public class ColumnLayout extends DialogLayout {
          * {@link Alignment#TOPLEFT} alignment, and is associated to the widget.
          *
          * @param labelText the label text
-         * @param w the new widget
+         * @param w         the new widget
          * @param alignment the alignment for the new widget
          * @return this
          * @throws IllegalStateException if all widgets for this row have already been added
@@ -354,19 +356,19 @@ public class ColumnLayout extends DialogLayout {
          * @param columnNames the column names.
          * @return the column layout.
          */
-        public Columns getColumns(String ... columnNames) {
+        public Columns getColumns(String... columnNames) {
             return ColumnLayout.this.getColumns(columnNames);
         }
 
         /**
          * Adds a new row to this panel using the specified column names.
-         *
+         * <p>
          * <p>It is equivalent to {@code addRow(getColumns(columnNames))}</p>
          *
          * @param columnNames the column names.
          * @return the new row
          */
-        public Row addRow(String ... columnNames) {
+        public Row addRow(String... columnNames) {
             return addRow(ColumnLayout.this.getColumns(columnNames));
         }
 
@@ -378,7 +380,7 @@ public class ColumnLayout extends DialogLayout {
          * @throws IllegalStateException when the panel has been removed from the root.
          */
         public Row addRow(Columns columns) {
-            if(columns == null) {
+            if (columns == null) {
                 throw new NullPointerException("columns");
             }
             checkValid();
@@ -414,19 +416,20 @@ public class ColumnLayout extends DialogLayout {
 
         /**
          * Removes the specified child panel. Can also be called on an invalidated panel.
+         *
          * @param panel the child panel.
          */
         public void removePanel(Panel panel) {
-            if(panel == null) {
+            if (panel == null) {
                 throw new NullPointerException("panel");
             }
-            if(valid) {
-                if(children.remove(panel)) {
+            if (valid) {
+                if (children.remove(panel)) {
                     panel.markInvalid();
                     rows.removeGroup(panel.rows, true);
-                    for(int i=0,n=panel.usedColumnGroups.size() ; i<n ; i++) {
+                    for (int i = 0, n = panel.usedColumnGroups.size(); i < n; i++) {
                         Group column = panel.usedColumnGroups.get(i);
-                        if(column != null) {
+                        if (column != null) {
                             usedColumnGroups.get(i).removeGroup(column, false);
                         }
                     }
@@ -438,12 +441,12 @@ public class ColumnLayout extends DialogLayout {
          * Removes all child panels and rows from this panel.
          */
         public void clearPanel() {
-            if(valid) {
+            if (valid) {
                 children.clear();
                 rows.clear(true);
-                for(int i=0,n=usedColumnGroups.size() ; i<n ; i++) {
+                for (int i = 0, n = usedColumnGroups.size(); i < n; i++) {
                     Group column = usedColumnGroups.get(i);
-                    if(column != null) {
+                    if (column != null) {
                         column.clear(false);
                     }
                 }
@@ -452,22 +455,22 @@ public class ColumnLayout extends DialogLayout {
 
         void markInvalid() {
             valid = false;
-            for(int i=0,n=children.size() ; i<n ; i++) {
+            for (int i = 0, n = children.size(); i < n; i++) {
                 children.get(i).markInvalid();
             }
         }
 
         void checkValid() {
-            if(!valid) {
+            if (!valid) {
                 throw new IllegalStateException("Panel has been removed");
             }
         }
-        
+
         Group getColumn(int idx) {
             checkValid();
-            if(usedColumnGroups.size() > idx) {
+            if (usedColumnGroups.size() > idx) {
                 Group column = usedColumnGroups.get(idx);
-                if(column != null) {
+                if (column != null) {
                     return column;
                 }
             }
@@ -476,14 +479,14 @@ public class ColumnLayout extends DialogLayout {
 
         private Group makeColumn(int idx) {
             Group parentColumn;
-            if(parent != null) {
+            if (parent != null) {
                 parentColumn = parent.getColumn(idx);
             } else {
                 parentColumn = columnGroups.get(idx);
             }
             Group column = createParallelGroup();
             parentColumn.addGroup(column);
-            while(usedColumnGroups.size() <= idx) {
+            while (usedColumnGroups.size() <= idx) {
                 usedColumnGroups.add(null);
             }
             usedColumnGroups.set(idx, column);

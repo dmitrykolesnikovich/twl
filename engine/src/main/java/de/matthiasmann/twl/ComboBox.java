@@ -29,18 +29,17 @@
  */
 package de.matthiasmann.twl;
 
-import de.matthiasmann.twl.model.ListSelectionModel;
-import de.matthiasmann.twl.renderer.Font;
-import de.matthiasmann.twl.utils.CallbackSupport;
 import de.matthiasmann.twl.model.IntegerModel;
 import de.matthiasmann.twl.model.ListModel;
+import de.matthiasmann.twl.model.ListSelectionModel;
 import de.matthiasmann.twl.renderer.AnimationState.StateKey;
+import de.matthiasmann.twl.renderer.Font;
+import de.matthiasmann.twl.utils.CallbackSupport;
 
 /**
  * A drop down combobox. It creates a popup containing a Listbox.
  *
  * @param <T> the data type of the combobox entries
- * 
  * @author Matthias Mann
  */
 public class ComboBox<T> extends ComboBoxBase {
@@ -48,19 +47,17 @@ public class ComboBox<T> extends ComboBoxBase {
     public static final StateKey STATE_ERROR = StateKey.get("error");
 
     private static final int INVALID_WIDTH = -1;
-    
+
     private final ComboboxLabel label;
     private final ListBox<T> listbox;
-
-    private Runnable[] selectionChangedListeners;
-
-    private ListModel.ChangeListener modelChangeListener;
     String displayTextNoSelection = "";
     boolean noSelectionIsError;
     boolean computeWidthFromModel;
     int modelWidth = INVALID_WIDTH;
     int selectionOnPopupOpen = ListBox.NO_SELECTION;
-    
+    private Runnable[] selectionChangedListeners;
+    private ListModel.ChangeListener modelChangeListener;
+
     @SuppressWarnings("OverridableMethodCallInConstructor")
     public ComboBox(ListSelectionModel<T> model) {
         this();
@@ -79,7 +76,7 @@ public class ComboBox<T> extends ComboBoxBase {
         this();
         setModel(model);
     }
-    
+
     public ComboBox() {
         this.label = new ComboboxLabel(getAnimationState());
         this.listbox = new ComboboxListbox<T>();
@@ -89,18 +86,18 @@ public class ComboBox<T> extends ComboBoxBase {
                 updateHover();
             }
         });
-        
+
         listbox.addCallback(new CallbackWithReason<ListBox.CallbackReason>() {
             public void callback(ListBox.CallbackReason reason) {
                 switch (reason) {
-                case KEYBOARD_RETURN:
-                case MOUSE_CLICK:
-                case MOUSE_DOUBLE_CLICK:
-                    listBoxSelectionChanged(true);
-                    break;
-                default:
-                    listBoxSelectionChanged(false);
-                    break;
+                    case KEYBOARD_RETURN:
+                    case MOUSE_CLICK:
+                    case MOUSE_DOUBLE_CLICK:
+                        listBoxSelectionChanged(true);
+                        break;
+                    default:
+                        listBoxSelectionChanged(false);
+                        break;
                 }
             }
         });
@@ -125,7 +122,7 @@ public class ComboBox<T> extends ComboBoxBase {
     public void setModel(ListModel<T> model) {
         unregisterModelChangeListener();
         listbox.setModel(model);
-        if(computeWidthFromModel) {
+        if (computeWidthFromModel) {
             registerModelChangeListener();
         }
     }
@@ -134,16 +131,20 @@ public class ComboBox<T> extends ComboBoxBase {
         return listbox.getModel();
     }
 
-    public void setSelectionModel(IntegerModel selectionModel) {
-        listbox.setSelectionModel(selectionModel);
+    public void setModel(ListSelectionModel<T> model) {
+        listbox.setModel(model);
     }
 
     public IntegerModel getSelectionModel() {
         return listbox.getSelectionModel();
     }
 
-    public void setModel(ListSelectionModel<T> model) {
-        listbox.setModel(model);
+    public void setSelectionModel(IntegerModel selectionModel) {
+        listbox.setSelectionModel(selectionModel);
+    }
+
+    public int getSelected() {
+        return listbox.getSelected();
     }
 
     public void setSelected(int selected) {
@@ -151,18 +152,14 @@ public class ComboBox<T> extends ComboBoxBase {
         updateLabel();
     }
 
-    public int getSelected() {
-        return listbox.getSelected();
-    }
-
     public boolean isComputeWidthFromModel() {
         return computeWidthFromModel;
     }
 
     public void setComputeWidthFromModel(boolean computeWidthFromModel) {
-        if(this.computeWidthFromModel != computeWidthFromModel) {
+        if (this.computeWidthFromModel != computeWidthFromModel) {
             this.computeWidthFromModel = computeWidthFromModel;
-            if(computeWidthFromModel) {
+            if (computeWidthFromModel) {
                 registerModelChangeListener();
             } else {
                 unregisterModelChangeListener();
@@ -182,7 +179,7 @@ public class ComboBox<T> extends ComboBoxBase {
      * @throws NullPointerException when displayTextNoSelection is null
      */
     public void setDisplayTextNoSelection(String displayTextNoSelection) {
-        if(displayTextNoSelection == null) {
+        if (displayTextNoSelection == null) {
             throw new NullPointerException("displayTextNoSelection");
         }
         this.displayTextNoSelection = displayTextNoSelection;
@@ -196,7 +193,7 @@ public class ComboBox<T> extends ComboBoxBase {
     /**
      * Controls the value of {@link #STATE_ERROR} on the combobox display when nothing is selected.
      * Default is false.
-     * 
+     *
      * @param noSelectionIsError
      */
     public void setNoSelectionIsError(boolean noSelectionIsError) {
@@ -206,9 +203,9 @@ public class ComboBox<T> extends ComboBoxBase {
 
     private void registerModelChangeListener() {
         final ListModel<?> model = getModel();
-        if(model != null) {
+        if (model != null) {
             modelWidth = INVALID_WIDTH;
-            if(modelChangeListener == null) {
+            if (modelChangeListener == null) {
                 modelChangeListener = new ModelChangeListener();
             }
             model.addChangeListener(modelChangeListener);
@@ -216,9 +213,9 @@ public class ComboBox<T> extends ComboBoxBase {
     }
 
     private void unregisterModelChangeListener() {
-        if(modelChangeListener != null) {
+        if (modelChangeListener != null) {
             final ListModel<T> model = getModel();
-            if(model != null) {
+            if (model != null) {
                 model.removeChangeListener(modelChangeListener);
             }
         }
@@ -226,7 +223,7 @@ public class ComboBox<T> extends ComboBoxBase {
 
     @Override
     protected boolean openPopup() {
-        if(super.openPopup()) {
+        if (super.openPopup()) {
             popup.validateLayout();
             selectionOnPopupOpen = getSelected();
             listbox.scrollToSelected();
@@ -240,17 +237,17 @@ public class ComboBox<T> extends ComboBoxBase {
         setSelected(selectionOnPopupOpen);
         super.popupEscapePressed(evt);
     }
-    
+
     /**
      * Called when a right click was made on the ComboboxLabel.
      * The default implementation does nothing
      */
     protected void handleRightClick() {
     }
-    
+
     protected void listBoxSelectionChanged(boolean close) {
         updateLabel();
-        if(close) {
+        if (close) {
             popup.closePopup();
         }
         doCallback();
@@ -266,14 +263,14 @@ public class ComboBox<T> extends ComboBoxBase {
 
     protected void updateLabel() {
         int selected = getSelected();
-        if(selected == ListBox.NO_SELECTION) {
+        if (selected == ListBox.NO_SELECTION) {
             label.setText(displayTextNoSelection);
             label.getAnimationState().setAnimationState(STATE_ERROR, noSelectionIsError);
         } else {
             label.setText(getModelData(selected));
             label.getAnimationState().setAnimationState(STATE_ERROR, false);
         }
-        if(!computeWidthFromModel) {
+        if (!computeWidthFromModel) {
             invalidateLayout();
         }
     }
@@ -286,48 +283,48 @@ public class ComboBox<T> extends ComboBoxBase {
 
     @Override
     protected boolean handleEvent(Event evt) {
-        if(super.handleEvent(evt)) {
+        if (super.handleEvent(evt)) {
             return true;
         }
-        if(evt.isKeyPressedEvent()) {
+        if (evt.isKeyPressedEvent()) {
             switch (evt.getKeyCode()) {
-            case Event.KEY_UP:
-            case Event.KEY_DOWN:
-            case Event.KEY_HOME:
-            case Event.KEY_END:
-                // let the listbox handle this :)
-                listbox.handleEvent(evt);
-                return true;
-            case Event.KEY_SPACE:
-            case Event.KEY_RETURN:
-                openPopup();
-                return true;
+                case Event.KEY_UP:
+                case Event.KEY_DOWN:
+                case Event.KEY_HOME:
+                case Event.KEY_END:
+                    // let the listbox handle this :)
+                    listbox.handleEvent(evt);
+                    return true;
+                case Event.KEY_SPACE:
+                case Event.KEY_RETURN:
+                    openPopup();
+                    return true;
             }
         }
         return false;
     }
 
     void invalidateModelWidth() {
-        if(computeWidthFromModel) {
+        if (computeWidthFromModel) {
             modelWidth = INVALID_WIDTH;
             invalidateLayout();
         }
     }
 
     void updateModelWidth() {
-        if(computeWidthFromModel) {
+        if (computeWidthFromModel) {
             modelWidth = 0;
-            updateModelWidth(0, getModel().getNumEntries()-1);
+            updateModelWidth(0, getModel().getNumEntries() - 1);
         }
     }
-    
+
     void updateModelWidth(int first, int last) {
-        if(computeWidthFromModel) {
+        if (computeWidthFromModel) {
             int newModelWidth = modelWidth;
-            for(int idx=first ; idx<=last ; idx++) {
+            for (int idx = first; idx <= last; idx++) {
                 newModelWidth = Math.max(newModelWidth, computeEntryWidth(idx));
             }
-            if(newModelWidth > modelWidth) {
+            if (newModelWidth > modelWidth) {
                 modelWidth = newModelWidth;
                 invalidateLayout();
             }
@@ -337,7 +334,7 @@ public class ComboBox<T> extends ComboBoxBase {
     protected int computeEntryWidth(int idx) {
         int width = label.getBorderHorizontal();
         Font font = label.getFont();
-        if(font != null) {
+        if (font != null) {
             width += font.computeMultiLineTextWidth(getModelData(idx));
         }
         return width;
@@ -346,76 +343,6 @@ public class ComboBox<T> extends ComboBoxBase {
     void updateHover() {
         getAnimationState().setAnimationState(Label.STATE_HOVER,
                 label.hover || button.getModel().isHover());
-    }
-
-    class ComboboxLabel extends Label {
-        boolean hover;
-
-        public ComboboxLabel(AnimationState animState) {
-            super(animState);
-            setAutoSize(false);
-            setClip(true);
-            setTheme("display");
-        }
-
-        @Override
-        public int getPreferredInnerWidth() {
-            if(computeWidthFromModel && getModel() != null) {
-                if(modelWidth == INVALID_WIDTH) {
-                    updateModelWidth();
-                }
-                return modelWidth;
-            } else {
-                return super.getPreferredInnerWidth();
-            }
-        }
-
-        @Override
-        public int getPreferredInnerHeight() {
-            int prefHeight = super.getPreferredInnerHeight();
-            if(getFont() != null) {
-                prefHeight = Math.max(prefHeight, getFont().getLineHeight());
-            }
-            return prefHeight;
-        }
-
-        @Override
-        protected boolean handleEvent(Event evt) {
-            if(evt.isMouseEvent()) {
-                boolean newHover = evt.getType() != Event.Type.MOUSE_EXITED;
-                if(newHover != hover) {
-                    hover = newHover;
-                    updateHover();
-                }
-                
-                if(evt.getType() == Event.Type.MOUSE_CLICKED) {
-                    openPopup();
-                }
-                
-                if(evt.getType() == Event.Type.MOUSE_BTNDOWN &&
-                        evt.getMouseButton() == Event.MOUSE_RBUTTON) {
-                    handleRightClick();
-                }
-                
-                return evt.getType() != Event.Type.MOUSE_WHEEL;
-            }
-            return false;  
-        }
-    }
-
-    class ModelChangeListener implements ListModel.ChangeListener {
-        public void entriesInserted(int first, int last) {
-            updateModelWidth(first, last);
-        }
-        public void entriesDeleted(int first, int last) {
-            invalidateModelWidth();
-        }
-        public void entriesChanged(int first, int last) {
-            invalidateModelWidth();
-        }
-        public void allChanged() {
-            invalidateModelWidth();
-        }
     }
 
     static class ComboboxListbox<T> extends ListBox<T> {
@@ -432,16 +359,89 @@ public class ComboBox<T> extends ComboBoxBase {
     static class ComboboxListboxLabel extends ListBox.ListBoxLabel {
         @Override
         protected boolean handleListBoxEvent(Event evt) {
-            if(evt.getType() == Event.Type.MOUSE_CLICKED) {
+            if (evt.getType() == Event.Type.MOUSE_CLICKED) {
                 doListBoxCallback(ListBox.CallbackReason.MOUSE_CLICK);
                 return true;
             }
-            if(evt.getType() == Event.Type.MOUSE_BTNDOWN) {
+            if (evt.getType() == Event.Type.MOUSE_BTNDOWN) {
                 doListBoxCallback(ListBox.CallbackReason.SET_SELECTED);
                 return true;
             }
             return false;
         }
     }
-    
+
+    class ComboboxLabel extends Label {
+        boolean hover;
+
+        public ComboboxLabel(AnimationState animState) {
+            super(animState);
+            setAutoSize(false);
+            setClip(true);
+            setTheme("display");
+        }
+
+        @Override
+        public int getPreferredInnerWidth() {
+            if (computeWidthFromModel && getModel() != null) {
+                if (modelWidth == INVALID_WIDTH) {
+                    updateModelWidth();
+                }
+                return modelWidth;
+            } else {
+                return super.getPreferredInnerWidth();
+            }
+        }
+
+        @Override
+        public int getPreferredInnerHeight() {
+            int prefHeight = super.getPreferredInnerHeight();
+            if (getFont() != null) {
+                prefHeight = Math.max(prefHeight, getFont().getLineHeight());
+            }
+            return prefHeight;
+        }
+
+        @Override
+        protected boolean handleEvent(Event evt) {
+            if (evt.isMouseEvent()) {
+                boolean newHover = evt.getType() != Event.Type.MOUSE_EXITED;
+                if (newHover != hover) {
+                    hover = newHover;
+                    updateHover();
+                }
+
+                if (evt.getType() == Event.Type.MOUSE_CLICKED) {
+                    openPopup();
+                }
+
+                if (evt.getType() == Event.Type.MOUSE_BTNDOWN &&
+                        evt.getMouseButton() == Event.MOUSE_RBUTTON) {
+                    handleRightClick();
+                }
+
+                return evt.getType() != Event.Type.MOUSE_WHEEL;
+            }
+            return false;
+        }
+    }
+
+    class ModelChangeListener implements ListModel.ChangeListener {
+        public void entriesInserted(int first, int last) {
+            updateModelWidth(first, last);
+        }
+
+        public void entriesDeleted(int first, int last) {
+            invalidateModelWidth();
+        }
+
+        public void entriesChanged(int first, int last) {
+            invalidateModelWidth();
+        }
+
+        public void allChanged() {
+            invalidateModelWidth();
+        }
+    }
+
 }

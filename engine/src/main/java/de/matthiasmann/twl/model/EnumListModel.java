@@ -31,7 +31,7 @@ package de.matthiasmann.twl.model;
 
 /**
  * A read only list model containing all enum values of the specified enum.
- * 
+ *
  * @author Matthias Mann
  */
 public class EnumListModel<T extends Enum<T>> extends SimpleListModel<T> {
@@ -40,7 +40,7 @@ public class EnumListModel<T extends Enum<T>> extends SimpleListModel<T> {
     private final T[] enumValues;
 
     public EnumListModel(Class<T> enumClass) {
-        if(!enumClass.isEnum()) {
+        if (!enumClass.isEnum()) {
             throw new IllegalArgumentException("not an enum class");
         }
         this.enumClass = enumClass;
@@ -60,8 +60,8 @@ public class EnumListModel<T extends Enum<T>> extends SimpleListModel<T> {
     }
 
     public int findEntry(T value) {
-        for(int i=0,n=enumValues.length ; i<n ; i++) {
-            if(enumValues[i] == value) {
+        for (int i = 0, n = enumValues.length; i < n; i++) {
+            if (enumValues[i] == value) {
                 return i;
             }
         }

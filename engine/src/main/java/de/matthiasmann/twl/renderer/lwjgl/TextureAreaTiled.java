@@ -40,7 +40,7 @@ import org.lwjgl.opengl.GL11;
  * @author Matthias Mann
  */
 public class TextureAreaTiled extends TextureArea {
-    
+
     public TextureAreaTiled(LWJGLTexture texture, int x, int y, int width, int height, Color tintColor) {
         super(texture, x, y, width, height, tintColor);
     }
@@ -51,11 +51,11 @@ public class TextureAreaTiled extends TextureArea {
 
     @Override
     public void draw(AnimationState as, int x, int y, int w, int h) {
-        if(texture.bind(tintColor)) {
+        if (texture.bind(tintColor)) {
             int repeatCountX = w / this.width;
             int repeatCountY = h / this.height;
 
-            if(repeatCountX < REPEAT_CACHE_SIZE || repeatCountY < REPEAT_CACHE_SIZE) {
+            if (repeatCountX < REPEAT_CACHE_SIZE || repeatCountY < REPEAT_CACHE_SIZE) {
                 drawRepeat(x, y, repeatCountX, repeatCountY);
             } else {
                 drawRepeatCached(x, y, repeatCountX, repeatCountY);
@@ -65,16 +65,16 @@ public class TextureAreaTiled extends TextureArea {
             int drawnY = repeatCountY * this.height;
             int restWidth = w - drawnX;
             int restHeight = h - drawnY;
-            if(restWidth > 0 || restHeight > 0) {
+            if (restWidth > 0 || restHeight > 0) {
                 GL11.glBegin(GL11.GL_QUADS);
-                if(restWidth > 0 && repeatCountY > 0) {
+                if (restWidth > 0 && repeatCountY > 0) {
                     drawClipped(x + drawnX, y, restWidth, this.height, 1, repeatCountY);
                 }
-                if(restHeight > 0) {
-                    if(repeatCountX > 0) {
+                if (restHeight > 0) {
+                    if (repeatCountX > 0) {
                         drawClipped(x, y + drawnY, this.width, restHeight, repeatCountX, 1);
                     }
-                    if(restWidth > 0) {
+                    if (restWidth > 0) {
                         drawClipped(x + drawnX, y + drawnY, restWidth, restHeight, 1, 1);
                     }
                 }
@@ -88,35 +88,39 @@ public class TextureAreaTiled extends TextureArea {
         float cty0 = ty0;
         float ctx1 = tx1;
         float cty1 = ty1;
-        if(this.width > 1) {
-            ctx1 = ctx0 + width / (float)texture.getTexWidth();
+        if (this.width > 1) {
+            ctx1 = ctx0 + width / (float) texture.getTexWidth();
         }
-        if(this.height > 1) {
-            cty1 = cty0 + height / (float)texture.getTexHeight();
+        if (this.height > 1) {
+            cty1 = cty0 + height / (float) texture.getTexHeight();
         }
 
-        while(repeatCountY-- > 0) {
+        while (repeatCountY-- > 0) {
             int y1 = y + height;
             int x0 = x;
-            for(int cx=repeatCountX ; cx-- > 0 ;) {
+            for (int cx = repeatCountX; cx-- > 0; ) {
                 int x1 = x0 + width;
-                GL11.glTexCoord2f(ctx0, cty0); GL11.glVertex2i(x0, y );
-                GL11.glTexCoord2f(ctx0, cty1); GL11.glVertex2i(x0, y1);
-                GL11.glTexCoord2f(ctx1, cty1); GL11.glVertex2i(x1, y1);
-                GL11.glTexCoord2f(ctx1, cty0); GL11.glVertex2i(x1, y );
+                GL11.glTexCoord2f(ctx0, cty0);
+                GL11.glVertex2i(x0, y);
+                GL11.glTexCoord2f(ctx0, cty1);
+                GL11.glVertex2i(x0, y1);
+                GL11.glTexCoord2f(ctx1, cty1);
+                GL11.glVertex2i(x1, y1);
+                GL11.glTexCoord2f(ctx1, cty0);
+                GL11.glVertex2i(x1, y);
                 x0 = x1;
             }
             y = y1;
         }
     }
-    
+
     @Override
     public Image createTintedVersion(Color color) {
-        if(color == null) {
+        if (color == null) {
             throw new NullPointerException("color");
         }
         Color newTintColor = tintColor.multiply(color);
-        if(newTintColor.equals(tintColor)) {
+        if (newTintColor.equals(tintColor)) {
             return this;
         }
         return new TextureAreaTiled(this, newTintColor);

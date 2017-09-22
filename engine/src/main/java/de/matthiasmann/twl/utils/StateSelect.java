@@ -31,34 +31,34 @@ package de.matthiasmann.twl.utils;
 
 import de.matthiasmann.twl.renderer.AnimationState;
 import de.matthiasmann.twl.renderer.AnimationState.StateKey;
+
 import java.util.Collection;
 
 /**
- *
  * @author Matthias Mann
  */
 public class StateSelect {
-    
+
+    public static final StateSelect EMPTY = new StateSelect();
+    static final int CODE_RESULT = 0x8000;
+    static final int CODE_MASK = 0x7FFF;
     private static boolean useOptimizer = false;
-    
     private final StateExpression[] expressions;
     private final StateKey[] programKeys;
     private final short[] programCodes;
 
-    public static final StateSelect EMPTY = new StateSelect();
-    
     public StateSelect(Collection<StateExpression> expressions) {
         this(expressions.toArray(new StateExpression[expressions.size()]));
     }
-    
-    public StateSelect(StateExpression ... expressions) {
+
+    public StateSelect(StateExpression... expressions) {
         this.expressions = expressions;
-        
+
         StateSelectOptimizer sso = useOptimizer
                 ? StateSelectOptimizer.optimize(expressions)
                 : null;
-        
-        if(sso != null) {
+
+        if (sso != null) {
             programKeys = sso.programKeys;
             programCodes = sso.programCodes;
         } else {
@@ -73,68 +73,67 @@ public class StateSelect {
 
     /**
      * Controls the use of the StateSelectOptimizer.
-     * 
+     *
      * @param useOptimizer true if the StateSelectOptimizer should be used
      */
     public static void setUseOptimizer(boolean useOptimizer) {
         StateSelect.useOptimizer = useOptimizer;
     }
-    
+
     /**
      * Returns the number of expressions.
      * <p>This is also the return value of {@link #evaluate(de.matthiasmann.twl.renderer.AnimationState) }
      * when no expression matched.</p>
+     *
      * @return the number of expressions
      */
     public int getNumExpressions() {
         return expressions.length;
     }
-    
+
     /**
      * Retrives the specified expression
+     *
      * @param idx the expression index
      * @return the expression
-     * @see #getNumExpressions() 
+     * @see #getNumExpressions()
      */
     public StateExpression getExpression(int idx) {
         return expressions[idx];
     }
-    
+
     /**
      * Evaluates the expression list.
-     * 
+     *
      * @param as the animation stateor null
      * @return the index of the first matching expression or
-     *         {@link #getNumExpressions()} when no expression matches
+     * {@link #getNumExpressions()} when no expression matches
      */
     public int evaluate(AnimationState as) {
-        if(programKeys != null) {
+        if (programKeys != null) {
             return evaluateProgram(as);
         }
         return evaluateExpr(as);
     }
-    
+
     private int evaluateExpr(AnimationState as) {
         int i = 0;
-        for(int n=expressions.length ; i<n ; i++) {
-            if(expressions[i].evaluate(as)) {
+        for (int n = expressions.length; i < n; i++) {
+            if (expressions[i].evaluate(as)) {
                 break;
             }
         }
         return i;
     }
-    
+
     private int evaluateProgram(AnimationState as) {
         int pos = 0;
         do {
-            if(as == null || !as.getAnimationState(programKeys[pos >> 1])) {
+            if (as == null || !as.getAnimationState(programKeys[pos >> 1])) {
                 pos++;
             }
             pos = programCodes[pos];
-        } while(pos >= 0);
+        } while (pos >= 0);
         return pos & CODE_MASK;
     }
-
-    static final int CODE_RESULT = 0x8000;
-    static final int CODE_MASK   = 0x7FFF;
 }

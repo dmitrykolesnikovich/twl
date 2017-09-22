@@ -41,11 +41,21 @@ public class InfoWindow extends Container {
     private final Widget owner;
 
     public InfoWindow(Widget owner) {
-        if(owner == null) {
+        if (owner == null) {
             throw new NullPointerException("owner");
         }
-        
+
         this.owner = owner;
+    }
+
+    private static boolean isParentInfoWindow(Widget w) {
+        while (w != null) {
+            if (w instanceof InfoWindow) {
+                return true;
+            }
+            w = w.getParent();
+        }
+        return false;
     }
 
     public Widget getOwner() {
@@ -55,16 +65,16 @@ public class InfoWindow extends Container {
     public boolean isOpen() {
         return getParent() != null;
     }
-    
+
     public boolean openInfo() {
-        if(getParent() != null) {
+        if (getParent() != null) {
             return true;
         }
-        if(isParentInfoWindow(owner)) {
+        if (isParentInfoWindow(owner)) {
             return false;
         }
         GUI gui = owner.getGUI();
-        if(gui != null) {
+        if (gui != null) {
             gui.openInfo(this);
             focusFirstChild();
             return true;
@@ -74,7 +84,7 @@ public class InfoWindow extends Container {
 
     public void closeInfo() {
         GUI gui = getGUI();
-        if(gui != null) {
+        if (gui != null) {
             gui.closeInfo(this);
         }
     }
@@ -83,15 +93,5 @@ public class InfoWindow extends Container {
      * Called after the info window has been closed
      */
     protected void infoWindowClosed() {
-    }
-
-    private static boolean isParentInfoWindow(Widget w) {
-        while(w != null) {
-            if(w instanceof InfoWindow) {
-                return true;
-            }
-            w = w.getParent();
-        }
-        return false;
     }
 }

@@ -29,16 +29,8 @@
  */
 package login;
 
-import de.matthiasmann.twl.Button;
-import de.matthiasmann.twl.DialogLayout;
-import de.matthiasmann.twl.EditField;
+import de.matthiasmann.twl.*;
 import de.matthiasmann.twl.EditField.Callback;
-import de.matthiasmann.twl.Event;
-import de.matthiasmann.twl.FPSCounter;
-import de.matthiasmann.twl.GUI;
-import de.matthiasmann.twl.Label;
-import de.matthiasmann.twl.Timer;
-import de.matthiasmann.twl.Widget;
 import de.matthiasmann.twl.renderer.lwjgl.LWJGLRenderer;
 import de.matthiasmann.twl.theme.ThemeManager;
 import org.lwjgl.opengl.Display;
@@ -48,11 +40,74 @@ import test.TestUtils;
 
 /**
  * A simple login panel
- * 
+ *
  * @author Matthias Mann
  */
 public class LoginDemo extends Widget {
-    
+
+    final FPSCounter fpsCounter;
+    final DialogLayout loginPanel;
+    final EditField efName;
+    final EditField efPassword;
+    final Button btnLogin;
+    boolean quit;
+
+    public LoginDemo() {
+        fpsCounter = new FPSCounter();
+
+        loginPanel = new DialogLayout();
+        loginPanel.setTheme("login-panel");
+
+        efName = new EditField();
+        efName.addCallback(new Callback() {
+            public void callback(int key) {
+                if (key == Event.KEY_RETURN) {
+                    efPassword.requestKeyboardFocus();
+                }
+            }
+        });
+
+        efPassword = new EditField();
+        efPassword.setPasswordMasking(true);
+        efPassword.addCallback(new Callback() {
+            public void callback(int key) {
+                if (key == Event.KEY_RETURN) {
+                    emulateLogin();
+                }
+            }
+        });
+
+        Label lName = new Label("Name");
+        lName.setLabelFor(efName);
+
+        Label lPassword = new Label("Password");
+        lPassword.setLabelFor(efPassword);
+
+        btnLogin = new Button("LOGIN");
+        btnLogin.addCallback(new Runnable() {
+            public void run() {
+                emulateLogin();
+            }
+        });
+
+        DialogLayout.Group hLabels = loginPanel.createParallelGroup(lName, lPassword);
+        DialogLayout.Group hFields = loginPanel.createParallelGroup(efName, efPassword);
+        DialogLayout.Group hBtn = loginPanel.createSequentialGroup()
+                .addGap()   // right align the button by using a variable gap
+                .addWidget(btnLogin);
+
+        loginPanel.setHorizontalGroup(loginPanel.createParallelGroup()
+                .addGroup(loginPanel.createSequentialGroup(hLabels, hFields))
+                .addGroup(hBtn));
+        loginPanel.setVerticalGroup(loginPanel.createSequentialGroup()
+                .addGroup(loginPanel.createParallelGroup(lName, efName))
+                .addGroup(loginPanel.createParallelGroup(lPassword, efPassword))
+                .addWidget(btnLogin));
+
+        add(fpsCounter);
+        add(loginPanel);
+    }
+
     public static void main(String[] args) {
         try {
             Display.setDisplayMode(new DisplayMode(800, 600));
@@ -61,17 +116,17 @@ public class LoginDemo extends Widget {
             Display.setVSyncEnabled(true);
 
             LoginDemo demo = new LoginDemo();
-            
+
             LWJGLRenderer renderer = new LWJGLRenderer();
             GUI gui = new GUI(demo, renderer);
 
             demo.efName.requestKeyboardFocus();
-            
+
             ThemeManager theme = ThemeManager.createThemeManager(
                     LoginDemo.class.getResource("login.xml"), renderer);
             gui.applyTheme(theme);
 
-            while(!Display.isCloseRequested() && !demo.quit) {
+            while (!Display.isCloseRequested() && !demo.quit) {
                 GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
 
                 gui.update();
@@ -86,70 +141,6 @@ public class LoginDemo extends Widget {
         Display.destroy();
     }
 
-    final FPSCounter fpsCounter;
-    final DialogLayout loginPanel;
-    final EditField efName;
-    final EditField efPassword;
-    final Button btnLogin;
-    
-    boolean quit;
-
-    public LoginDemo() {
-        fpsCounter = new FPSCounter();
-        
-        loginPanel = new DialogLayout();
-        loginPanel.setTheme("login-panel");
-        
-        efName = new EditField();
-        efName.addCallback(new Callback() {
-            public void callback(int key) {
-                if(key == Event.KEY_RETURN) {
-                    efPassword.requestKeyboardFocus();
-                }
-            }
-        });
-        
-        efPassword = new EditField();
-        efPassword.setPasswordMasking(true);
-        efPassword.addCallback(new Callback() {
-            public void callback(int key) {
-                if(key == Event.KEY_RETURN) {
-                    emulateLogin();
-                }
-            }
-        });
-        
-        Label lName = new Label("Name");
-        lName.setLabelFor(efName);
-        
-        Label lPassword = new Label("Password");
-        lPassword.setLabelFor(efPassword);
-        
-        btnLogin = new Button("LOGIN");
-        btnLogin.addCallback(new Runnable() {
-            public void run() {
-                emulateLogin();
-            }
-        });
-        
-        DialogLayout.Group hLabels = loginPanel.createParallelGroup(lName, lPassword);
-        DialogLayout.Group hFields = loginPanel.createParallelGroup(efName, efPassword);
-        DialogLayout.Group hBtn = loginPanel.createSequentialGroup()
-                .addGap()   // right align the button by using a variable gap
-                .addWidget(btnLogin);
-        
-        loginPanel.setHorizontalGroup(loginPanel.createParallelGroup()
-                .addGroup(loginPanel.createSequentialGroup(hLabels, hFields))
-                .addGroup(hBtn));
-        loginPanel.setVerticalGroup(loginPanel.createSequentialGroup()
-                .addGroup(loginPanel.createParallelGroup(lName, efName))
-                .addGroup(loginPanel.createParallelGroup(lPassword, efPassword))
-                .addWidget(btnLogin));
-        
-        add(fpsCounter);
-        add(loginPanel);
-    }
-
     @Override
     protected void layout() {
         // fpsCounter is bottom right
@@ -157,27 +148,27 @@ public class LoginDemo extends Widget {
         fpsCounter.setPosition(
                 getInnerRight() - fpsCounter.getWidth(),
                 getInnerBottom() - fpsCounter.getHeight());
-        
+
         // login panel is centered
         loginPanel.adjustSize();
         loginPanel.setPosition(
-                getInnerX() + (getInnerWidth() - loginPanel.getWidth())/2,
-                getInnerY() + (getInnerHeight() - loginPanel.getHeight())/2);
+                getInnerX() + (getInnerWidth() - loginPanel.getWidth()) / 2,
+                getInnerY() + (getInnerHeight() - loginPanel.getHeight()) / 2);
     }
-    
+
     void emulateLogin() {
         GUI gui = getGUI();
-        if(gui != null) {
+        if (gui != null) {
             // step 1: disable all controls
             efName.setEnabled(false);
             efPassword.setEnabled(false);
             btnLogin.setEnabled(false);
-            
+
             // step 2: get name & password from UI
             String name = efName.getText();
             String pasword = efPassword.getText();
             System.out.println("Name: " + name + " with a " + pasword.length() + " character password");
-            
+
             // step 3: start a timer to simulate the process of talking to a remote server
             Timer timer = gui.createTimer();
             timer.setCallback(new Runnable() {

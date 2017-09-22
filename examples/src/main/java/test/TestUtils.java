@@ -29,20 +29,20 @@
  */
 package test;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import org.lwjgl.Sys;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
+
 /**
- *
  * @author Matthias Mann
  */
 public final class TestUtils {
-    
+
     private TestUtils() {
     }
 
@@ -58,7 +58,7 @@ public final class TestUtils {
 
     /**
      * reduce input lag by polling input devices after waiting for vsync
-     * 
+     * <p>
      * Call after Display.update()
      */
     public static void reduceInputLag() {

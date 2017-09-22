@@ -34,12 +34,17 @@ import java.util.Random;
 
 /**
  * A reordering list model - forwards changes of the base model.
- * 
+ *
  * @param <T> The type of the list entries
  * @author Matthias Mann
  */
 public class ReorderListModel<T> extends AbstractListModel<T> {
 
+    /**
+     * Tuning parameter: list size at or below which insertion sort will be
+     * used in preference to mergesort.
+     */
+    private static final int INSERTIONSORT_THRESHOLD = 7;
     private final ListModel<T> base;
     private final ListModel.ChangeListener listener;
     private int[] reorderList;
@@ -65,11 +70,20 @@ public class ReorderListModel<T> extends AbstractListModel<T> {
                 ReorderListModel.this.buildNewList();
             }
         };
-        
+
         base.addChangeListener(listener);
         buildNewList();
     }
-    
+
+    /**
+     * Swaps x[a] with x[b].
+     */
+    private static void swap(int x[], int a, int b) {
+        int t = x[a];
+        x[a] = x[b];
+        x[b] = t;
+    }
+
     public void destroy() {
         base.removeChangeListener(listener);
     }
@@ -95,9 +109,9 @@ public class ReorderListModel<T> extends AbstractListModel<T> {
 
     public int findEntry(Object o) {
         int[] list = this.reorderList;
-        for(int i=0,n=size ; i<n ; i++) {
+        for (int i = 0, n = size; i < n; i++) {
             T entry = base.getEntry(list[i]);
-            if(entry == o || (entry != null && entry.equals(o))) {
+            if (entry == o || (entry != null && entry.equals(o))) {
                 return i;
             }
         }
@@ -106,7 +120,7 @@ public class ReorderListModel<T> extends AbstractListModel<T> {
 
     public void shuffle() {
         Random r = new Random();
-        for(int i=size ; i>1 ;) {
+        for (int i = size; i > 1; ) {
             int j = r.nextInt(i--);
             int temp = reorderList[i];
             reorderList[i] = reorderList[j];
@@ -122,12 +136,6 @@ public class ReorderListModel<T> extends AbstractListModel<T> {
         mergeSort(aux, reorderList, 0, size, c);
         fireAllChanged();
     }
-    
-    /**
-     * Tuning parameter: list size at or below which insertion sort will be
-     * used in preference to mergesort.
-     */
-    private static final int INSERTIONSORT_THRESHOLD = 7;
 
     /**
      * Src is the source array that starts at index 0
@@ -137,13 +145,13 @@ public class ReorderListModel<T> extends AbstractListModel<T> {
      * off is the offset into src corresponding to low in dest
      */
     private void mergeSort(int[] src, int[] dest,
-            int low, int high, Comparator<T> c) {
+                           int low, int high, Comparator<T> c) {
         int length = high - low;
 
         // Insertion sort on smallest arrays
-        if(length < INSERTIONSORT_THRESHOLD) {
-            for(int i = low; i < high; i++) {
-                for(int j = i; j > low && compare(dest, j - 1, j, c) > 0; j--) {
+        if (length < INSERTIONSORT_THRESHOLD) {
+            for (int i = low; i < high; i++) {
+                for (int j = i; j > low && compare(dest, j - 1, j, c) > 0; j--) {
                     swap(dest, j, j - 1);
                 }
             }
@@ -157,14 +165,14 @@ public class ReorderListModel<T> extends AbstractListModel<T> {
 
         // If list is already sorted, just copy from src to dest.  This is an
         // optimization that results in faster sorts for nearly ordered lists.
-        if(compare(src, mid-1, mid, c) <= 0) {
+        if (compare(src, mid - 1, mid, c) <= 0) {
             System.arraycopy(src, low, dest, low, length);
             return;
         }
 
         // Merge sorted halves (now in src) into dest
-        for(int i = low,  p = low,  q = mid; i < high; i++) {
-            if(q >= high || p < mid && compare(src, p, q, c) <= 0) {
+        for (int i = low, p = low, q = mid; i < high; i++) {
+            if (q >= high || p < mid && compare(src, p, q, c) <= 0) {
                 dest[i] = src[p++];
             } else {
                 dest[i] = src[q++];
@@ -180,19 +188,10 @@ public class ReorderListModel<T> extends AbstractListModel<T> {
         return c.compare(objA, objB);
     }
 
-    /**
-     * Swaps x[a] with x[b].
-     */
-    private static void swap(int x[], int a, int b) {
-        int t = x[a];
-        x[a] = x[b];
-        x[b] = t;
-    }
-
     private void buildNewList() {
         size = base.getNumEntries();
         reorderList = new int[size + 1024];
-        for(int i = 0; i < size; i++) {
+        for (int i = 0; i < size; i++) {
             reorderList[i] = i;
         }
         fireAllChanged();
@@ -200,29 +199,29 @@ public class ReorderListModel<T> extends AbstractListModel<T> {
 
     private void entriesInserted(int first, int last) {
         final int delta = last - first + 1;
-        for(int i = 0; i < size; i++) {
-            if(reorderList[i] >= first) {
+        for (int i = 0; i < size; i++) {
+            if (reorderList[i] >= first) {
                 reorderList[i] += delta;
             }
         }
-        if(size + delta > reorderList.length) {
-            int[] newList = new int[Math.max(size*2, size+delta+1024)];
+        if (size + delta > reorderList.length) {
+            int[] newList = new int[Math.max(size * 2, size + delta + 1024)];
             System.arraycopy(reorderList, 0, newList, 0, size);
             reorderList = newList;
         }
         int oldSize = size;
-        for(int i = 0; i < delta; i++) {
+        for (int i = 0; i < delta; i++) {
             reorderList[size++] = first + i;
         }
-        fireEntriesInserted(oldSize, size-1);
+        fireEntriesInserted(oldSize, size - 1);
     }
 
     private void entriesDeleted(int first, int last) {
         final int delta = last - first + 1;
-        for(int i = 0; i < size; i++) {
+        for (int i = 0; i < size; i++) {
             final int entry = reorderList[i];
-            if(entry >= first) {
-                if(entry <= last) {
+            if (entry >= first) {
+                if (entry <= last) {
                     // we have to remove entries - enter copy loop
                     entriesDeletedCopy(first, last, i);
                     return;
@@ -235,10 +234,10 @@ public class ReorderListModel<T> extends AbstractListModel<T> {
     private void entriesDeletedCopy(int first, int last, int i) {
         int j, delta = last - first + 1;
         int oldSize = size;
-        for(j=i ; i<oldSize ; i++) {
+        for (j = i; i < oldSize; i++) {
             int entry = reorderList[i];
-            if(entry >= first) {
-                if(entry <= last) {
+            if (entry >= first) {
+                if (entry <= last) {
                     size--;
                     fireEntriesDeleted(j, j);
                     continue;

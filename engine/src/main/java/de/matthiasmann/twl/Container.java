@@ -31,11 +31,11 @@ package de.matthiasmann.twl;
 
 /**
  * Can contain a single Widget and uses {@link Widget#layoutChildrenFullInnerArea() }
- * 
+ *
  * @author Matthias Mann
  */
 public class Container extends Widget {
-    
+
     @Override
     public int getMinWidth() {
         return Math.max(super.getMinWidth(), getBorderHorizontal() +
@@ -62,5 +62,5 @@ public class Container extends Widget {
     protected void layout() {
         layoutChildrenFullInnerArea();
     }
-    
+
 }

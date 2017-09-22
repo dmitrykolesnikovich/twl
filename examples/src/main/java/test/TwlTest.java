@@ -1,23 +1,15 @@
 package test;
 
+import de.matthiasmann.twl.*;
+import de.matthiasmann.twl.DialogLayout.Group;
+import de.matthiasmann.twl.renderer.lwjgl.LWJGLRenderer;
+import de.matthiasmann.twl.textarea.HTMLTextAreaModel;
+import de.matthiasmann.twl.theme.ThemeManager;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
 import org.lwjgl.opengl.GL11;
 
-import de.matthiasmann.twl.Button;
-import de.matthiasmann.twl.DialogLayout;
-import de.matthiasmann.twl.DialogLayout.Group;
-import de.matthiasmann.twl.GUI;
-import de.matthiasmann.twl.ResizableFrame;
-import de.matthiasmann.twl.ScrollPane;
-import de.matthiasmann.twl.TextArea;
-import de.matthiasmann.twl.Widget;
-import de.matthiasmann.twl.textarea.HTMLTextAreaModel;
-import de.matthiasmann.twl.renderer.lwjgl.LWJGLRenderer;
-import de.matthiasmann.twl.theme.ThemeManager;
-
 /**
- * 
  * @author NateS
  */
 public class TwlTest {
@@ -62,9 +54,18 @@ public class TwlTest {
                 + "This is a lot of text. This is a lot of text. This is a lot of text. This is a lot of text. "
                 + "This is a lot of text. This is a lot of text. This is a lot of text. This is a lot of text. ");
     }
-    
+
+    public static void main(String[] args) throws Exception {
+        Display.setTitle("TWL Examples");
+        Display.setDisplayMode(new DisplayMode(800, 600));
+        Display.setVSyncEnabled(true);
+        Display.create();
+        TwlTest twlTest = new TwlTest();
+        twlTest.run();
+    }
+
     public void run() {
-        while(!Display.isCloseRequested()) {
+        while (!Display.isCloseRequested()) {
             GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
             gui.update();
             Display.update();
@@ -78,7 +79,7 @@ public class TwlTest {
         alert.addButton("Cancel");
         alert.setPosition(x, y);
         root.add(alert);
-	alert.adjustSize();
+        alert.adjustSize();
     }
 
     public class Alert extends ResizableFrame {
@@ -117,14 +118,5 @@ public class TwlTest {
             buttonGroupH.addWidget(button);
             buttonGroupV.addWidget(button);
         }
-    }
-
-    public static void main(String[] args) throws Exception {
-        Display.setTitle("TWL Examples");
-        Display.setDisplayMode(new DisplayMode(800, 600));
-        Display.setVSyncEnabled(true);
-        Display.create();
-        TwlTest twlTest = new TwlTest();
-        twlTest.run();
     }
 }

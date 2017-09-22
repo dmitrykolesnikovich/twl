@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE themes PUBLIC "-//www.matthiasmann.de//TWL-Theme//EN" "http://hg.l33tlabs.org/twl/raw-file/tip/src/de/matthiasmann/twl/theme/theme.dtd">
+<!DOCTYPE themes PUBLIC "-//www.matthiasmann.de//TWL-Theme//EN"
+        "http://hg.l33tlabs.org/twl/raw-file/tip/src/de/matthiasmann/twl/theme/theme.dtd">
 <themes>
     <images file="cursors.png" format="RGBA">
         <cursor name="arrow.top-left" hotSpotX="7" hotSpotY="7" xywh="0,0,15,15"/>

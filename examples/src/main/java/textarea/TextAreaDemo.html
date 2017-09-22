@@ -1,7 +1,9 @@
-<html><head>
+<html>
+<head>
     <title>TextAreaDemo.java</title>
     <link type="text/css" rel="stylesheet" href="demo.css"/>
-</head><body>
+</head>
+<body>
 <ul>
     <li><a href="demo.html">Floating &lt;div&gt; Demo</a></li>
     <li><a href="table.html">Table Demo</a></li>
@@ -71,13 +73,16 @@
 <span class="comment"> *</span>
 <span class="comment"> * </span><span class="ST0">@author</span> <span class="comment">Matthias Mann</span>
  <span class="comment">*/</span>
-<span class="keyword-directive">public</span> <span class="keyword-directive">class</span> TextAreaDemo <span class="keyword-directive">extends</span> DesktopArea {
+<span class="keyword-directive">public</span> <span class="keyword-directive">class</span> TextAreaDemo <span
+        class="keyword-directive">extends</span> DesktopArea {
 
-    <span class="keyword-directive">public</span> <span class="keyword-directive">static</span> <span class="keyword-directive">void</span> main(String[] args) {
+    <span class="keyword-directive">public</span> <span class="keyword-directive">static</span> <span
+        class="keyword-directive">void</span> main(String[] args) {
         <span class="keyword-directive">try</span> {
             Display.setDisplayMode(<span class="keyword-directive">new</span> DisplayMode(800, 600));
             Display.create();
-            Display.setTitle(<span class="character">&quot;</span><span class="character">TWL TextArea Demo</span><span class="character">&quot;</span>);
+            Display.setTitle(<span class="character">&quot;</span><span class="character">TWL TextArea Demo</span><span
+        class="character">&quot;</span>);
             Display.setVSyncEnabled(<span class="keyword-directive">true</span>);
 
             LWJGLRenderer renderer = <span class="keyword-directive">new</span> LWJGLRenderer();
@@ -85,7 +90,8 @@
             GUI gui = <span class="keyword-directive">new</span> GUI(demo, renderer);
 
             ThemeManager theme = ThemeManager.createThemeManager(
-                    TextAreaDemo.<span class="keyword-directive">class</span>.getResource(<span class="character">&quot;</span><span class="character">demo.xml</span><span class="character">&quot;</span>), renderer);
+                    TextAreaDemo.<span class="keyword-directive">class</span>.getResource(<span
+        class="character">&quot;</span><span class="character">demo.xml</span><span class="character">&quot;</span>), renderer);
             gui.applyTheme(theme);
 
             <span class="keyword-directive">while</span>(!Display.isCloseRequested() &amp;&amp; !demo.quit) {
@@ -127,7 +133,8 @@
     }
 
     @Override
-    <span class="keyword-directive">pr</span><span class="keyword-directive">otected</span> <span class="keyword-directive">void</span> layout() {
+    <span class="keyword-directive">pr</span><span class="keyword-directive">otected</span> <span
+        class="keyword-directive">void</span> layout() {
         <span class="keyword-directive">super</span>.layout();
 
         <span class="comment">// fpsCounter is bottom right</span>
@@ -153,16 +160,20 @@
         <span class="keyword-directive">return</span> <span class="keyword-directive">false</span>;
     }
 
-    <span class="keyword-directive">static</span> <span class="keyword-directive">class</span> TextFrame <span class="keyword-directive">extends</span> ResizableFrame {
+    <span class="keyword-directive">static</span> <span class="keyword-directive">class</span> TextFrame <span
+        class="keyword-directive">extends</span> ResizableFrame {
         <span class="keyword-directive">private</span> <span class="keyword-directive">final</span> HTMLTextAreaModel textAreaModel;
         <span class="keyword-directive">private</span> <span class="keyword-directive">final</span> TextArea textArea;
         <span class="keyword-directive">private</span> <span class="keyword-directive">final</span> ScrollPane scrollPane;
         <span class="keyword-directive">private</span> Timer timer;
-        <span class="keyword-directive">priva</span><span class="keyword-directive">te</span> <span class="keyword-directive">int</span> size;
+        <span class="keyword-directive">priva</span><span class="keyword-directive">te</span> <span
+        class="keyword-directive">int</span> size;
         <span class="keyword-directive">private</span> <span class="keyword-directive">int</span> dir;
 
-        <span class="keyword-directive">private</span> <span class="keyword-directive">static</span> <span class="keyword-directive">final</span> <span class="keyword-directive">int</span> MIN_SIZE = 128;
-        <span class="keyword-directive">private</span> <span class="keyword-directive">static</span> <span class="keyword-directive">final</span> <span class="keyword-directive">int</span> MAX_SIZE = 256;
+        <span class="keyword-directive">private</span> <span class="keyword-directive">static</span> <span
+        class="keyword-directive">final</span> <span class="keyword-directive">int</span> MIN_SIZE = 128;
+        <span class="keyword-directive">private</span> <span class="keyword-directive">static</span> <span
+        class="keyword-directive">final</span> <span class="keyword-directive">int</span> MAX_SIZE = 256;
 
         <span class="keyword-directive">public</span> TextFrame() {
             setTitle(<span class="character">&quot;</span><span class="character">Text</span><span class="character">&quot;</span>);
@@ -170,17 +181,22 @@
             <span class="keyword-directive">this</span>.textAreaModel = <span class="keyword-directive">new</span> HTMLTextAreaModel();
             <span class="keyword-directive">this</span>.textArea = <span class="keyword-directive">new</span> TextArea(textAreaModel);
 
-            readFile(<span class="character">&quot;</span><span class="character">demo.html</span><span class="character">&quot;</span>);
+            readFile(<span class="character">&quot;</span><span class="character">demo.html</span><span
+        class="character">&quot;</span>);
 
             textArea.addCallback(<span class="keyword-directive">new</span> TextArea.Callback() {
                 <span class="keyword-directive">public</span> <span class="keyword-directive">void</span> handleLinkClicked(String href) {
-                    <span class="keyword-directive">if</span>(href.startsWith(<span class="character">&quot;</span><span class="character">javascript:</span><span class="character">&quot;</span>)) {
+                    <span class="keyword-directive">if</span>(href.startsWith(<span class="character">&quot;</span><span
+        class="character">javascript:</span><span class="character">&quot;</span>)) {
                         handleAction(href.substring(11));
-                    } <span class="keyword-directive">else</span> <span class="keyword-directive">if</span>(href.startsWith(<span class="character">&quot;</span><span class="character">#</span><span class="character">&quot;</span>)) {
+                    } <span class="keyword-directive">else</span> <span class="keyword-directive">if</span>(href.startsWith(<span
+        class="character">&quot;</span><span class="character">#</span><span class="character">&quot;</span>)) {
                         TextAreaModel.Element ankor = textAreaModel.getElementById(href.substring(1));
-                        <span class="keyword-directive">i</span><span class="keyword-directive">f</span>(ankor != <span class="keyword-directive">null</span>) {
+                        <span class="keyword-directive">i</span><span class="keyword-directive">f</span>(ankor != <span
+        class="keyword-directive">null</span>) {
                             Rect rect = textArea.getElementRect(ankor);
-                            <span class="keyword-directive">if</span>(rect != <span class="keyword-directive">null</span>) {
+                            <span class="keyword-directive">if</span>(rect != <span
+        class="keyword-directive">null</span>) {
                                 scrollPane.setScrollPositionY(rect.getY());
                             }
                         }
@@ -190,9 +206,12 @@
                 }
             });
 
-            ValueAdjusterInt vai = <span class="keyword-directive">new</span> ValueAdjusterInt(<span class="keyword-directive">new</span> SimpleIntegerModel(0, 100, 50));
-            vai.setTooltipContent(<span class="character">&quot;</span><span class="character">Select a nice value</span><span class="character">&quot;</span>);
-            textArea.registerWidget(<span class="character">&quot;</span><span class="character">niceValueSlider</span><span class="character">&quot;</span>, vai);
+            ValueAdjusterInt vai = <span class="keyword-directive">new</span> ValueAdjusterInt(<span
+        class="keyword-directive">new</span> SimpleIntegerModel(0, 100, 50));
+            vai.setTooltipContent(<span class="character">&quot;</span><span
+        class="character">Select a nice value</span><span class="character">&quot;</span>);
+            textArea.registerWidget(<span class="character">&quot;</span><span
+        class="character">niceValueSlider</span><span class="character">&quot;</span>, vai);
             
             scrollPane = <span class="keyword-directive">new</span> ScrollPane(textArea);
             scrollPane.setFixed(ScrollPane.Fixed.HORIZONTAL);
@@ -222,7 +241,8 @@
 
         <span class="keyword-directive">void</span> readFile(String name) {
             <span class="keyword-directive">try</span> {
-                textAreaModel.readHTMLFromURL(TextAreaDemo.<span class="keyword-directive">cla</span><span class="keyword-directive">ss</span>.getResource(name));
+                textAreaModel.readHTMLFromURL(TextAreaDemo.<span class="keyword-directive">cla</span><span
+        class="keyword-directive">ss</span>.getResource(name));
 
                 StyleSheet styleSheet = <span class="keyword-directive">new</span> StyleSheet();
                 <span class="keyword-directive">for</span>(String styleSheetLink : textAreaModel.getStyleSheetLinks()) {
@@ -230,7 +250,8 @@
                         styleSheet.parse(TextAreaDemo.<span class="keyword-directive">class</span>.getResource(styleSheetLink));
                     } <span class="keyword-directive">catch</span>(IOException ex) {
                         Logger.getLogger(TextAreaDemo.<span class="keyword-directive">class</span>.getName()).log(Level.SEVERE,
-                                <span class="character">&quot;</span><span class="character">Can&#39;t </span><span class="character">parse style sheet: </span><span class="character">&quot;</span> + styleSheetLink, ex);
+                                <span class="character">&quot;</span><span class="character">Can&#39;t </span><span
+        class="character">parse style sheet: </span><span class="character">&quot;</span> + styleSheetLink, ex);
                     }
                 }
                 textArea.setStyleClassResolver(styleSheet);
@@ -240,13 +261,16 @@
                 size = MIN_SIZE;
                 dir = -4;
             } <span class="keyword-directive">catch</span>(IOException ex) {
-                Logger.getLogger(TextAreaDemo.<span class="keyword-directive">class</span>.getName()).log(Level.SEVERE, <span class="character">&quot;</span><span class="character">Can&#39;t read HTML: </span><span class="character">&quot;</span> + name, ex);
+                Logger.getLogger(TextAreaDemo.<span class="keyword-directive">class</span>.getName()).log(Level.SEVERE, <span
+        class="character">&quot;</span><span class="character">Can&#39;t read HTML: </span><span class="character">&quot;</span> + name, ex);
             }
         }
 
         <span class="keyword-directive">void</span> handleAction(String what) {
-            <span class="keyword-directive">if</span>(<span class="character">&quot;</span><span class="character">zoomImage()</span><span class="character">&quot;</span>.equals(what)) {
-                <span class="keyword-directive">i</span><span class="keyword-directive">f</span>(timer != <span class="keyword-directive">null</span> &amp;&amp; !timer.isRunning()) {
+            <span class="keyword-directive">if</span>(<span class="character">&quot;</span><span class="character">zoomImage()</span><span
+        class="character">&quot;</span>.equals(what)) {
+                <span class="keyword-directive">i</span><span class="keyword-directive">f</span>(timer != <span
+        class="keyword-directive">null</span> &amp;&amp; !timer.isRunning()) {
                     dir = -dir;
                     timer.start();
                 }
@@ -259,7 +283,8 @@
                 timer.stop();
             }
 
-            TextAreaModel.Element e = textAreaModel.getElementById(<span class="character">&quot;</span><span class="character">info</span><span class="character">&quot;</span>);
+            TextAreaModel.Element e = textAreaModel.getElementById(<span class="character">&quot;</span><span
+        class="character">info</span><span class="character">&quot;</span>);
             <span class="keyword-directive">if</span>(e != <span class="keyword-directive">null</span>) {
                 e.setStyle(e.getStyle().with(StyleAttribute.WIDTH, <span class="keyword-directive">new</span> Value(size, Value.Unit.PX)));
                 textAreaModel.domModified();

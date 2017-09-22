@@ -37,12 +37,11 @@ import de.matthiasmann.twl.model.ColorSpaceHSL;
 import de.matthiasmann.twl.utils.TintAnimator;
 
 /**
- *
  * @author Matthias Mann
  */
 public class ColorSelectorDemoDialog1 extends FadeFrame {
 
-    public ColorSelectorDemoDialog1()  {
+    public ColorSelectorDemoDialog1() {
         final ColorSelector cs = new ColorSelector(new ColorSpaceHSL());
 
         final ToggleButton btnUse2D = new ToggleButton();
@@ -133,7 +132,7 @@ public class ColorSelectorDemoDialog1 extends FadeFrame {
 
         cs.addCallback(colorChangedCB);
         colorChangedCB.run();   // make sure the preview has the right color
-        
+
         DialogLayout dl = new DialogLayout();
         dl.setHorizontalGroup(dl.createParallelGroup()
                 .addWidgets(cs, testDisplay, testDisplay2)
@@ -161,5 +160,5 @@ public class ColorSelectorDemoDialog1 extends FadeFrame {
         setTitle("Color Selector Demo");
         add(dl);
     }
-    
+
 }

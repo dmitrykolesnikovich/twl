@@ -29,13 +29,7 @@
  */
 package gameui;
 
-import de.matthiasmann.twl.DialogLayout;
-import de.matthiasmann.twl.Event;
-import de.matthiasmann.twl.FPSCounter;
-import de.matthiasmann.twl.GUI;
-import de.matthiasmann.twl.Label;
-import de.matthiasmann.twl.RadialPopupMenu;
-import de.matthiasmann.twl.ToggleButton;
+import de.matthiasmann.twl.*;
 import de.matthiasmann.twl.renderer.lwjgl.LWJGLRenderer;
 import de.matthiasmann.twl.theme.ThemeManager;
 import org.lwjgl.opengl.Display;
@@ -50,37 +44,16 @@ import test.TestUtils;
  */
 public class GameUIDemo2 extends DialogLayout {
 
-    public static void main(String[] args) {
-        try {
-            Display.setDisplayMode(new DisplayMode(800, 600));
-            Display.create();
-            Display.setTitle("TWL Game UI Demo");
-            Display.setVSyncEnabled(true);
-
-            LWJGLRenderer renderer = new LWJGLRenderer();
-            GameUIDemo2 gameUI = new GameUIDemo2();
-            GUI gui = new GUI(gameUI, renderer);
-
-            ThemeManager theme = ThemeManager.createThemeManager(
-                    GameUIDemo2.class.getResource("gameui.xml"), renderer);
-            gui.applyTheme(theme);
-
-            while(!Display.isCloseRequested() && !gameUI.quit) {
-                GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
-
-                gui.update();
-                Display.update();
-                TestUtils.reduceInputLag();
-            }
-
-            gui.destroy();
-            theme.destroy();
-        } catch (Exception ex) {
-            TestUtils.showErrMsg(ex);
-        }
-        Display.destroy();
-    }
-
+    private static final String[] ACTION_NAMES = {
+            "pingu-digger",
+            "pingu-miner",
+            "pingu-basher",
+            "pingu-climber",
+            "pingu-floater",
+            "pingu-bomber",
+            "pingu-blocker",
+            "pingu-bridger",
+    };
     private final ToggleButton[] actionButtons;
     private final ToggleButton btnPause;
     private final ToggleButton btnArmageddon;
@@ -89,20 +62,9 @@ public class GameUIDemo2 extends DialogLayout {
 
     public boolean quit;
 
-    private static final String[] ACTION_NAMES = {
-        "pingu-digger",
-        "pingu-miner",
-        "pingu-basher",
-        "pingu-climber",
-        "pingu-floater",
-        "pingu-bomber",
-        "pingu-blocker",
-        "pingu-bridger",
-    };
-
     public GameUIDemo2() {
         actionButtons = new ToggleButton[ACTION_NAMES.length];
-        for(int i=0 ; i<ACTION_NAMES.length ; i++) {
+        for (int i = 0; i < ACTION_NAMES.length; i++) {
             actionButtons[i] = new ToggleButton();
             actionButtons[i].setTheme(ACTION_NAMES[i]);
         }
@@ -139,7 +101,7 @@ public class GameUIDemo2 extends DialogLayout {
                 .addGap("gameCtrlTop")
                 .addGroup(createParallelGroup(btnArmageddon, btnPause))
                 .addGap();
-        
+
         // create the groups for the status display (aligned bottom right)
         Group statusH = createSequentialGroup()
                 .addGap()
@@ -165,9 +127,40 @@ public class GameUIDemo2 extends DialogLayout {
         setVerticalGroup(createParallelGroup(actionButtonsV, gameCtrlV, statusV, radialMenuMessageV));
     }
 
+    public static void main(String[] args) {
+        try {
+            Display.setDisplayMode(new DisplayMode(800, 600));
+            Display.create();
+            Display.setTitle("TWL Game UI Demo");
+            Display.setVSyncEnabled(true);
+
+            LWJGLRenderer renderer = new LWJGLRenderer();
+            GameUIDemo2 gameUI = new GameUIDemo2();
+            GUI gui = new GUI(gameUI, renderer);
+
+            ThemeManager theme = ThemeManager.createThemeManager(
+                    GameUIDemo2.class.getResource("gameui.xml"), renderer);
+            gui.applyTheme(theme);
+
+            while (!Display.isCloseRequested() && !gameUI.quit) {
+                GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
+
+                gui.update();
+                Display.update();
+                TestUtils.reduceInputLag();
+            }
+
+            gui.destroy();
+            theme.destroy();
+        } catch (Exception ex) {
+            TestUtils.showErrMsg(ex);
+        }
+        Display.destroy();
+    }
+
     @Override
     protected boolean handleEvent(Event evt) {
-        if(super.handleEvent(evt)) {
+        if (super.handleEvent(evt)) {
             return true;
         }
         switch (evt.getType()) {
@@ -179,7 +172,7 @@ public class GameUIDemo2 extends DialogLayout {
                 }
                 break;
             case MOUSE_BTNDOWN:
-                if(evt.getMouseButton() == Event.MOUSE_RBUTTON) {
+                if (evt.getMouseButton() == Event.MOUSE_RBUTTON) {
                     return createRadialMenu().openPopup(evt);
                 }
                 break;
@@ -189,7 +182,7 @@ public class GameUIDemo2 extends DialogLayout {
 
     RadialPopupMenu createRadialMenu() {
         RadialPopupMenu rpm = new RadialPopupMenu(this);
-        for(int i=0 ; i<10 ; i++) {
+        for (int i = 0; i < 10; i++) {
             final int idx = i;
             rpm.addButton("star", new Runnable() {
                 public void run() {

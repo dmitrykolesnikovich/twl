@@ -29,15 +29,11 @@
  */
 package de.matthiasmann.twl;
 
-import de.matthiasmann.twl.model.AbstractTableModel;
-import de.matthiasmann.twl.model.DefaultTableSelectionModel;
-import de.matthiasmann.twl.model.FileSystemModel;
+import de.matthiasmann.twl.model.*;
 import de.matthiasmann.twl.model.FileSystemModel.FileFilter;
-import de.matthiasmann.twl.model.SortOrder;
-import de.matthiasmann.twl.model.TableSelectionModel;
-import de.matthiasmann.twl.model.TableSingleSelectionModel;
 import de.matthiasmann.twl.utils.CallbackSupport;
 import de.matthiasmann.twl.utils.NaturalSortComparator;
+
 import java.text.DateFormat;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -52,38 +48,19 @@ import java.util.Date;
  */
 public class FileTable extends Table {
 
-    public enum SortColumn {
-        NAME(NameComparator.instance),
-        TYPE(ExtensionComparator.instance),
-        SIZE(SizeComparator.instance),
-        LAST_MODIFIED(LastModifiedComparator.instance);
-
-        final Comparator<Entry> comparator;
-        SortColumn(Comparator<Entry> comparator) {
-            this.comparator = comparator;
-        }
-    }
-
-    public interface Callback {
-        public void selectionChanged();
-        public void sortingChanged();
-    }
-
+    static Entry[] EMPTY = new Entry[0];
     private final FileTableModel fileTableModel;
     private final Runnable selectionChangedListener;
     private TableSelectionModel fileTableSelectionModel;
     private TableSearchWindow tableSearchWindow;
     private SortColumn sortColumn = SortColumn.NAME;
     private SortOrder sortOrder = SortOrder.ASCENDING;
-
     private boolean allowMultiSelection;
     private FileFilter fileFilter = null;
     private boolean showFolders = true;
     private boolean showHidden = false;
-
     private FileSystemModel fsm;
     private Object currentFolder;
-
     private Callback[] fileTableCallbacks;
 
     public FileTable() {
@@ -110,7 +87,7 @@ public class FileTable extends Table {
     }
 
     public void setShowFolders(boolean showFolders) {
-        if(this.showFolders != showFolders) {
+        if (this.showFolders != showFolders) {
             this.showFolders = showFolders;
             refreshFileTable();
         }
@@ -121,10 +98,14 @@ public class FileTable extends Table {
     }
 
     public void setShowHidden(boolean showHidden) {
-        if(this.showHidden != showHidden) {
+        if (this.showHidden != showHidden) {
             this.showHidden = showHidden;
             refreshFileTable();
         }
+    }
+
+    public FileFilter getFileFilter() {
+        return fileFilter;
     }
 
     public void setFileFilter(FileFilter filter) {
@@ -133,19 +114,15 @@ public class FileTable extends Table {
         refreshFileTable();
     }
 
-    public FileFilter getFileFilter() {
-        return fileFilter;
-    }
-
     public Entry[] getSelection() {
         return fileTableModel.getEntries(fileTableSelectionModel.getSelection());
     }
 
-    public void setSelection(Object ... files) {
+    public void setSelection(Object... files) {
         fileTableSelectionModel.clearSelection();
-        for(Object file : files) {
+        for (Object file : files) {
             int idx = fileTableModel.findFile(file);
-            if(idx >= 0) {
+            if (idx >= 0) {
                 fileTableSelectionModel.addSelection(idx, idx);
             }
         }
@@ -154,33 +131,33 @@ public class FileTable extends Table {
     public boolean setSelection(Object file) {
         fileTableSelectionModel.clearSelection();
         int idx = fileTableModel.findFile(file);
-        if(idx >= 0) {
+        if (idx >= 0) {
             fileTableSelectionModel.addSelection(idx, idx);
             scrollToRow(idx);
             return true;
         }
         return false;
     }
-    
+
     public void clearSelection() {
         fileTableSelectionModel.clearSelection();
     }
 
     public void setSortColumn(SortColumn column) {
-        if(column == null) {
+        if (column == null) {
             throw new NullPointerException("column");
         }
-        if(sortColumn != column) {
+        if (sortColumn != column) {
             sortColumn = column;
             sortingChanged();
         }
     }
 
     public void setSortOrder(SortOrder order) {
-        if(order == null) {
+        if (order == null) {
             throw new NullPointerException("order");
         }
-        if(sortOrder != order) {
+        if (sortOrder != order) {
             sortOrder = order;
             sortingChanged();
         }
@@ -192,13 +169,13 @@ public class FileTable extends Table {
 
     public void setAllowMultiSelection(boolean allowMultiSelection) {
         this.allowMultiSelection = allowMultiSelection;
-        if(fileTableSelectionModel != null) {
+        if (fileTableSelectionModel != null) {
             fileTableSelectionModel.removeSelectionChangeListener(selectionChangedListener);
         }
-        if(tableSearchWindow != null) {
+        if (tableSearchWindow != null) {
             tableSearchWindow.setModel(null, 0);
         }
-        if(allowMultiSelection) {
+        if (allowMultiSelection) {
             fileTableSelectionModel = new DefaultTableSelectionModel();
         } else {
             fileTableSelectionModel = new TableSingleSelectionModel();
@@ -231,14 +208,14 @@ public class FileTable extends Table {
 
     public void refreshFileTable() {
         Object[] objs = collectObjects();
-        if(objs != null) {
+        if (objs != null) {
             int lastFileIdx = objs.length;
             Entry[] entries = new Entry[lastFileIdx];
             int numFolders = 0;
             boolean isRoot = isRoot();
-            for(int i=0 ; i<objs.length ; i++) {
+            for (int i = 0; i < objs.length; i++) {
                 Entry e = new Entry(fsm, objs[i], isRoot);
-                if(e.isFolder) {
+                if (e.isFolder) {
                     entries[numFolders++] = e;
                 } else {
                     entries[--lastFileIdx] = e;
@@ -249,14 +226,14 @@ public class FileTable extends Table {
         } else {
             sortFilesAndUpdateModel(EMPTY, 0);
         }
-        if(tableSearchWindow != null) {
+        if (tableSearchWindow != null) {
             tableSearchWindow.cancelSearch();
         }
     }
 
     protected void selectionChanged() {
-        if(fileTableCallbacks != null) {
-            for(Callback cb : fileTableCallbacks) {
+        if (fileTableCallbacks != null) {
+            for (Callback cb : fileTableCallbacks) {
                 cb.selectionChanged();
             }
         }
@@ -265,27 +242,27 @@ public class FileTable extends Table {
     protected void sortingChanged() {
         setSortArrows();
         sortFilesAndUpdateModel();
-        if(fileTableCallbacks != null) {
-            for(Callback cb : fileTableCallbacks) {
+        if (fileTableCallbacks != null) {
+            for (Callback cb : fileTableCallbacks) {
                 cb.sortingChanged();
             }
         }
     }
 
     private Object[] collectObjects() {
-        if(fsm == null) {
+        if (fsm == null) {
             return null;
         }
-        if(isRoot()) {
+        if (isRoot()) {
             return fsm.listRoots();
         }
         FileFilter filter = fileFilter;
-        if(filter != null || !getShowFolders() || !getShowHidden()) {
+        if (filter != null || !getShowFolders() || !getShowHidden()) {
             filter = new FileFilterWrapper(filter, getShowFolders(), getShowHidden());
         }
         return fsm.listFolder(currentFolder, filter);
     }
-    
+
     private void sortFilesAndUpdateModel(Entry[] entries, int numFolders) {
         StateSnapshot snapshot = makeSnapshot();
         Arrays.sort(entries, numFolders, entries.length,
@@ -299,7 +276,7 @@ public class FileTable extends Table {
         super.columnHeaderClicked(column);
 
         SortColumn thisColumn = SortColumn.values()[column];
-        if(sortColumn == thisColumn) {
+        if (sortColumn == thisColumn) {
             setSortOrder(sortOrder.invert());
         } else {
             setSortColumn(thisColumn);
@@ -328,9 +305,9 @@ public class FileTable extends Table {
     }
 
     private void restoreSnapshot(StateSnapshot snapshot) {
-        for(Entry e : snapshot.selected) {
+        for (Entry e : snapshot.selected) {
             int idx = fileTableModel.findEntry(e);
-            if(idx >= 0) {
+            if (idx >= 0) {
                 fileTableSelectionModel.addSelection(idx, idx);
             }
         }
@@ -341,7 +318,24 @@ public class FileTable extends Table {
         scrollToRow(Math.max(0, leadIndex));
     }
 
-    static Entry[] EMPTY = new Entry[0];
+    public enum SortColumn {
+        NAME(NameComparator.instance),
+        TYPE(ExtensionComparator.instance),
+        SIZE(SizeComparator.instance),
+        LAST_MODIFIED(LastModifiedComparator.instance);
+
+        final Comparator<Entry> comparator;
+
+        SortColumn(Comparator<Entry> comparator) {
+            this.comparator = comparator;
+        }
+    }
+
+    public interface Callback {
+        public void selectionChanged();
+
+        public void sortingChanged();
+    }
 
     public static final class Entry {
         public final FileSystemModel fsm;
@@ -349,14 +343,16 @@ public class FileTable extends Table {
         public final String name;
         public final boolean isFolder;
         public final long size;
-        /** last modified date - can be null */
+        /**
+         * last modified date - can be null
+         */
         public final Date lastModified;
 
         public Entry(FileSystemModel fsm, Object obj, boolean isRoot) {
             this.fsm = fsm;
             this.obj = obj;
             this.name = fsm.getName(obj);
-            if(isRoot) {
+            if (isRoot) {
                 // don't call getLastModified on roots - causes bad performance
                 // on windows when a DVD/CD/Floppy has no media inside
                 this.isFolder = true;
@@ -365,7 +361,7 @@ public class FileTable extends Table {
                 this.isFolder = fsm.isFolder(obj);
                 this.lastModified = new Date(fsm.getLastModified(obj));
             }
-            if(isFolder) {
+            if (isFolder) {
                 this.size = 0;
             } else {
                 this.size = fsm.getSize(obj);
@@ -374,8 +370,8 @@ public class FileTable extends Table {
 
         public String getExtension() {
             int idx = name.lastIndexOf('.');
-            if(idx >= 0) {
-                return name.substring(idx+1);
+            if (idx >= 0) {
+                return name.substring(idx + 1);
             } else {
                 return "";
             }
@@ -387,10 +383,10 @@ public class FileTable extends Table {
 
         @Override
         public boolean equals(Object o) {
-            if(o == null || getClass() != o.getClass()) {
+            if (o == null || getClass() != o.getClass()) {
                 return false;
             }
-            final Entry that = (Entry)o;
+            final Entry that = (Entry) o;
             return (this.fsm == that.fsm) && fsm.equals(this.obj, that.obj);
         }
 
@@ -401,8 +397,10 @@ public class FileTable extends Table {
     }
 
     static class FileTableModel extends AbstractTableModel {
+        static String COLUMN_HEADER[] = {"File name", "Type", "Size", "Last modified"};
+        static String SIZE_UNITS[] = {" MB", " KB", " B"};
+        static long SIZE_FACTORS[] = {1024 * 1024, 1024, 1};
         private final DateFormat dateFormat = DateFormat.getDateInstance();
-        
         Entry[] entries = EMPTY;
         int numFolders;
 
@@ -412,8 +410,6 @@ public class FileTable extends Table {
             this.numFolders = numFolders;
             fireRowsInserted(0, getNumRows());
         }
-
-        static String COLUMN_HEADER[] = {"File name", "Type", "Size", "Last modified"};
 
         public String getColumnHeaderText(int column) {
             return COLUMN_HEADER[column];
@@ -425,24 +421,33 @@ public class FileTable extends Table {
 
         public Object getCell(int row, int column) {
             Entry e = entries[row];
-            if(e.isFolder) {
-                switch(column) {
-                case 0: return "["+e.name+"]";
-                case 1: return "Folder";
-                case 2: return "";
-                case 3: return formatDate(e.lastModified);
-                default: return "??";
+            if (e.isFolder) {
+                switch (column) {
+                    case 0:
+                        return "[" + e.name + "]";
+                    case 1:
+                        return "Folder";
+                    case 2:
+                        return "";
+                    case 3:
+                        return formatDate(e.lastModified);
+                    default:
+                        return "??";
                 }
             } else {
-                switch(column) {
-                case 0: return e.name;
-                case 1: {
-                    String ext = e.getExtension();
-                    return (ext.length() == 0) ? "File" : ext+"-file";
-                }
-                case 2: return formatFileSize(e.size);
-                case 3: return formatDate(e.lastModified);
-                default: return "??";
+                switch (column) {
+                    case 0:
+                        return e.name;
+                    case 1: {
+                        String ext = e.getExtension();
+                        return (ext.length() == 0) ? "File" : ext + "-file";
+                    }
+                    case 2:
+                        return formatFileSize(e.size);
+                    case 3:
+                        return formatDate(e.lastModified);
+                    default:
+                        return "??";
                 }
             }
         }
@@ -451,10 +456,10 @@ public class FileTable extends Table {
         public Object getTooltipContent(int row, int column) {
             Entry e = entries[row];
             StringBuilder sb = new StringBuilder(e.name);
-            if(!e.isFolder) {
+            if (!e.isFolder) {
                 sb.append("\nSize: ").append(formatFileSize(e.size));
             }
-            if(e.lastModified != null) {
+            if (e.lastModified != null) {
                 sb.append("\nLast modified: ").append(formatDate(e.lastModified));
             }
             return sb.toString();
@@ -465,7 +470,7 @@ public class FileTable extends Table {
         }
 
         Entry getEntry(int row) {
-            if(row >= 0 && row < entries.length) {
+            if (row >= 0 && row < entries.length) {
                 return entries[row];
             } else {
                 return null;
@@ -473,8 +478,8 @@ public class FileTable extends Table {
         }
 
         int findEntry(Entry entry) {
-            for(int i=0 ; i<entries.length ; i++) {
-                if(entries[i].equals(entry)) {
+            for (int i = 0; i < entries.length; i++) {
+                if (entries[i].equals(entry)) {
                     return i;
                 }
             }
@@ -482,9 +487,9 @@ public class FileTable extends Table {
         }
 
         int findFile(Object file) {
-            for(int i=0 ; i<entries.length ; i++) {
+            for (int i = 0; i < entries.length; i++) {
                 Entry e = entries[i];
-                if(e.fsm.equals(e.obj, file)) {
+                if (e.fsm.equals(e.obj, file)) {
                     return i;
                 }
             }
@@ -493,28 +498,25 @@ public class FileTable extends Table {
 
         Entry[] getEntries(int[] selection) {
             final int count = selection.length;
-            if(count == 0) {
+            if (count == 0) {
                 return EMPTY;
             }
             Entry[] result = new Entry[count];
-            for(int i=0 ; i<count ; i++) {
+            for (int i = 0; i < count; i++) {
                 result[i] = entries[selection[i]];
             }
             return result;
         }
 
-        static String SIZE_UNITS[] = {" MB", " KB", " B"};
-        static long SIZE_FACTORS[] = {1024*1024, 1024, 1};
-
         private String formatFileSize(long size) {
-            if(size <= 0) {
+            if (size <= 0) {
                 return "0 B";
             } else {
-                for(int i=0 ;; ++i) {
-                    if(size >= SIZE_FACTORS[i]) {
-                        long value = (size*10) / SIZE_FACTORS[i];
+                for (int i = 0; ; ++i) {
+                    if (size >= SIZE_FACTORS[i]) {
+                        long value = (size * 10) / SIZE_FACTORS[i];
                         return Long.toString(value / 10) + '.' +
-                                Character.forDigit((int)(value % 10), 10) +
+                                Character.forDigit((int) (value % 10), 10) +
                                 SIZE_UNITS[i];
                     }
                 }
@@ -522,7 +524,7 @@ public class FileTable extends Table {
         }
 
         private String formatDate(Date date) {
-            if(date == null) {
+            if (date == null) {
                 return "";
             }
             return dateFormat.format(date);
@@ -543,6 +545,7 @@ public class FileTable extends Table {
 
     static class NameComparator implements Comparator<Entry> {
         static final NameComparator instance = new NameComparator();
+
         public int compare(Entry o1, Entry o2) {
             return NaturalSortComparator.naturalCompare(o1.name, o2.name);
         }
@@ -550,6 +553,7 @@ public class FileTable extends Table {
 
     static class ExtensionComparator implements Comparator<Entry> {
         static final ExtensionComparator instance = new ExtensionComparator();
+
         public int compare(Entry o1, Entry o2) {
             return NaturalSortComparator.naturalCompare(o1.getExtension(), o2.getExtension());
         }
@@ -557,6 +561,7 @@ public class FileTable extends Table {
 
     static class SizeComparator implements Comparator<Entry> {
         static final SizeComparator instance = new SizeComparator();
+
         public int compare(Entry o1, Entry o2) {
             return Long.signum(o1.size - o2.size);
         }
@@ -564,16 +569,17 @@ public class FileTable extends Table {
 
     static class LastModifiedComparator implements Comparator<Entry> {
         static final LastModifiedComparator instance = new LastModifiedComparator();
+
         public int compare(Entry o1, Entry o2) {
             Date lm1 = o1.lastModified;
             Date lm2 = o2.lastModified;
-            if(lm1 != null && lm2 != null) {
+            if (lm1 != null && lm2 != null) {
                 return lm1.compareTo(lm2);
             }
-            if(lm1 != null) {
+            if (lm1 != null) {
                 return 1;
             }
-            if(lm2 != null) {
+            if (lm2 != null) {
                 return -1;
             }
             return 0;
@@ -584,14 +590,16 @@ public class FileTable extends Table {
         private final FileFilter base;
         private final boolean showFolder;
         private final boolean showHidden;
+
         public FileFilterWrapper(FileFilter base, boolean showFolder, boolean showHidden) {
             this.base = base;
             this.showFolder = showFolder;
             this.showHidden = showHidden;
         }
+
         public boolean accept(FileSystemModel fsm, Object file) {
-            if(showHidden || !fsm.isHidden(file)) {
-                if(fsm.isFolder(file)) {
+            if (showHidden || !fsm.isHidden(file)) {
+                if (fsm.isFolder(file)) {
                     return showFolder;
                 }
                 return (base == null) || base.accept(fsm, file);

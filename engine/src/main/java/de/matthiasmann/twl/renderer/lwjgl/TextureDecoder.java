@@ -37,23 +37,23 @@ import java.nio.ByteBuffer;
 
 /**
  * A texture decoder interface.
- * 
+ * <p>
  * Return an instance of this interface from {@see URLConnection#getContent(java.lang.Class[]) }
  * when queried for {@code TextureDecoder.class}
- * 
+ *
  * @author Matthias Mann
  * @see URLStreamHandler
  * @see URLConnection
  */
 public interface TextureDecoder extends Closeable {
-    
+
     public void open() throws IOException;
-    
+
     public int getWidth();
-    
+
     public int getHeight();
-    
+
     public LWJGLTexture.Format decideTextureFormat(LWJGLTexture.Format fmt) throws IOException;
-    
+
     public void decode(ByteBuffer buf, int stride, LWJGLTexture.Format fmt) throws IOException;
 }

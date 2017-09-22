@@ -29,12 +29,13 @@
  */
 package de.matthiasmann.twl.utils;
 
-import java.text.ParseException;
 import org.junit.Test;
-import static org.junit.Assert.*;
+
+import java.text.ParseException;
+
+import static org.junit.Assert.assertEquals;
 
 /**
- *
  * @author Matthias Mann
  */
 public class SimpleMathParserTest {
@@ -55,9 +56,9 @@ public class SimpleMathParserTest {
         SimpleMathParser.interpret("font.lineHeight + 4", ti);
         assertEquals(
                 "accessVariable font\n" +
-                "accessField lineHeight\n" +
-                "loadConst 4\n" +
-                "add\n", ti.toString());
+                        "accessField lineHeight\n" +
+                        "loadConst 4\n" +
+                        "add\n", ti.toString());
     }
 
     @Test
@@ -66,12 +67,12 @@ public class SimpleMathParserTest {
         SimpleMathParser.interpret("7 + 3 * 2 - 1", ti);
         assertEquals(
                 "loadConst 7\n" +
-                "loadConst 3\n" +
-                "loadConst 2\n" +
-                "mul\n" +
-                "add\n" +
-                "loadConst 1\n" +
-                "sub\n", ti.toString());
+                        "loadConst 3\n" +
+                        "loadConst 2\n" +
+                        "mul\n" +
+                        "add\n" +
+                        "loadConst 1\n" +
+                        "sub\n", ti.toString());
     }
 
     @Test
@@ -80,10 +81,10 @@ public class SimpleMathParserTest {
         SimpleMathParser.interpret("3 + max(9, 5)", ti);
         assertEquals(
                 "loadConst 3\n" +
-                "loadConst 9\n" +
-                "loadConst 5\n" +
-                "callFunction max 2\n" +
-                "add\n", ti.toString());
+                        "loadConst 9\n" +
+                        "loadConst 5\n" +
+                        "callFunction max 2\n" +
+                        "add\n", ti.toString());
     }
 
     @Test
@@ -92,9 +93,9 @@ public class SimpleMathParserTest {
         SimpleMathParser.interpret("-3 / 2", ti);
         assertEquals(
                 "loadConst 3\n" +
-                "negate\n" +
-                "loadConst 2\n" +
-                "div\n", ti.toString());
+                        "negate\n" +
+                        "loadConst 2\n" +
+                        "div\n", ti.toString());
     }
 
     @Test
@@ -103,12 +104,12 @@ public class SimpleMathParserTest {
         SimpleMathParser.interpret("(7 + 3) * 2 - 1", ti);
         assertEquals(
                 "loadConst 7\n" +
-                "loadConst 3\n" +
-                "add\n" +
-                "loadConst 2\n" +
-                "mul\n" +
-                "loadConst 1\n" +
-                "sub\n", ti.toString());
+                        "loadConst 3\n" +
+                        "add\n" +
+                        "loadConst 2\n" +
+                        "mul\n" +
+                        "loadConst 1\n" +
+                        "sub\n", ti.toString());
     }
 
     @Test
@@ -117,42 +118,42 @@ public class SimpleMathParserTest {
         SimpleMathParser.interpret("9 - -1", ti);
         assertEquals(
                 "loadConst 9\n" +
-                "loadConst 1\n" +
-                "negate\n" +
-                "sub\n", ti.toString());
+                        "loadConst 1\n" +
+                        "negate\n" +
+                        "sub\n", ti.toString());
     }
-    
+
     @Test
     public void test8() {
         try {
             TestInterpreter ti = new TestInterpreter();
             SimpleMathParser.interpret("0x 9", ti);
             throw new AssertionError("Should have thrown an exception");
-        } catch(ParseException ex) {
+        } catch (ParseException ex) {
             assertEquals("Unexpected character ' ' at 2", ex.getMessage());
             assertEquals(2, ex.getErrorOffset());
         }
     }
-    
+
     @Test
     public void test9() {
         try {
             TestInterpreter ti = new TestInterpreter();
             SimpleMathParser.interpret("0x123456789", ti);
             throw new AssertionError("Should have thrown an exception");
-        } catch(ParseException ex) {
+        } catch (ParseException ex) {
             assertEquals("Number to large at 11", ex.getMessage());
             assertEquals(11, ex.getErrorOffset());
         }
     }
-    
+
     @Test
     public void test10() {
         try {
             TestInterpreter ti = new TestInterpreter();
             SimpleMathParser.interpret("0x", ti);
             throw new AssertionError("Should have thrown an exception");
-        } catch(ParseException ex) {
+        } catch (ParseException ex) {
             assertEquals("Unexpected end of string", ex.getMessage());
             assertEquals(2, ex.getErrorOffset());
         }

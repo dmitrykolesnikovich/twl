@@ -34,19 +34,13 @@ import de.matthiasmann.twl.textarea.Style;
 import de.matthiasmann.twl.textarea.StyleAttribute;
 import de.matthiasmann.twl.textarea.StyleSheetKey;
 import de.matthiasmann.twl.textarea.TextAreaModel;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.io.UnsupportedEncodingException;
+
+import java.io.*;
 import java.net.URL;
 import java.util.EnumMap;
 import java.util.Iterator;
 
 /**
- *
  * @author Matthias Mann
  */
 public class JavaTextAreaModel extends HasCallback implements TextAreaModel {
@@ -80,7 +74,7 @@ public class JavaTextAreaModel extends HasCallback implements TextAreaModel {
 
         ContainerElement container;
         Style lineStyle;
-        if(withLineNumbers) {
+        if (withLineNumbers) {
             container = new OrderedListElement(new Style(normalStyle, new StyleSheetKey("ol", "linenumbers", null)), 1);
             lineStyle = new Style(container.getStyle(), new StyleSheetKey("li", null, null));
         } else {
@@ -91,12 +85,12 @@ public class JavaTextAreaModel extends HasCallback implements TextAreaModel {
         TextElement newLine = new TextElement(normalStyle, "\n");
 
         JavaScanner.Kind kind;
-        while((kind=js.scan()) != JavaScanner.Kind.EOF) {
-            if(withLineNumbers && line == null) {
+        while ((kind = js.scan()) != JavaScanner.Kind.EOF) {
+            if (withLineNumbers && line == null) {
                 line = new ContainerElement(lineStyle);
             }
-            if(kind == JavaScanner.Kind.NEWLINE) {
-                if(line != null) {
+            if (kind == JavaScanner.Kind.NEWLINE) {
+                if (line != null) {
                     line.add(newLine);
                     container.add(line);
                     line = null;
@@ -106,7 +100,7 @@ public class JavaTextAreaModel extends HasCallback implements TextAreaModel {
                 continue;
             }
             TextElement textElement = new TextElement(styles.get(kind), js.getString());
-            if(line != null) {
+            if (line != null) {
                 line.add(textElement);
             } else {
                 container.add(textElement);
@@ -142,6 +136,7 @@ public class JavaTextAreaModel extends HasCallback implements TextAreaModel {
 
     private static class IteratorImpl implements Iterator<Element> {
         Element e;
+
         public IteratorImpl(Element e) {
             this.e = e;
         }

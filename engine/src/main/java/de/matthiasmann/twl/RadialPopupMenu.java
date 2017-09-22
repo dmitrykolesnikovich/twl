@@ -30,25 +30,35 @@
 package de.matthiasmann.twl;
 
 import de.matthiasmann.twl.model.ButtonModel;
+
 import java.util.ArrayList;
 
 /**
  * A radial popup menu with round buttons
- * 
+ *
  * @author Matthias Mann
  */
 public class RadialPopupMenu extends PopupWindow {
 
     private final ArrayList<RoundButton> buttons;
-
+    int buttonRadiusSqr;
     private int radius;
     private int buttonRadius;
     private int mouseButton;
-    int buttonRadiusSqr;
 
     public RadialPopupMenu(Widget owner) {
         super(owner);
         this.buttons = new ArrayList<RoundButton>();
+    }
+
+    protected static int limit(int value, int min, int max) {
+        if (value < min) {
+            return min;
+        }
+        if (value > max) {
+            return max;
+        }
+        return value;
     }
 
     public int getButtonRadius() {
@@ -56,7 +66,7 @@ public class RadialPopupMenu extends PopupWindow {
     }
 
     public void setButtonRadius(int buttonRadius) {
-        if(buttonRadius < 0) {
+        if (buttonRadius < 0) {
             throw new IllegalArgumentException("buttonRadius");
         }
         this.buttonRadius = buttonRadius;
@@ -69,7 +79,7 @@ public class RadialPopupMenu extends PopupWindow {
     }
 
     public void setRadius(int radius) {
-        if(radius < 0) {
+        if (radius < 0) {
             throw new IllegalArgumentException("radius");
         }
         this.radius = radius;
@@ -83,14 +93,15 @@ public class RadialPopupMenu extends PopupWindow {
     /**
      * Sets the mouse button to which the buttons of this radial menu should react.
      * The default is {@link Event#MOUSE_LBUTTON}
+     *
      * @param mouseButton the mouse button
      */
     public void setMouseButton(int mouseButton) {
-        if(mouseButton < Event.MOUSE_LBUTTON || mouseButton > Event.MOUSE_RBUTTON) {
+        if (mouseButton < Event.MOUSE_LBUTTON || mouseButton > Event.MOUSE_RBUTTON) {
             throw new IllegalArgumentException("mouseButton");
         }
         this.mouseButton = mouseButton;
-        for(int i=0,n=buttons.size() ; i<n ; i++) {
+        for (int i = 0, n = buttons.size(); i < n; i++) {
             buttons.get(i).setMouseButton(mouseButton);
         }
     }
@@ -106,14 +117,14 @@ public class RadialPopupMenu extends PopupWindow {
 
     public void removeButton(Button btn) {
         int idx = buttons.indexOf(btn);
-        if(idx >= 0) {
+        if (idx >= 0) {
             buttons.remove(idx);
             removeChild(btn);
         }
     }
 
     protected void addButton(RoundButton button) {
-        if(button == null) {
+        if (button == null) {
             throw new NullPointerException("button");
         }
         buttons.add(button);
@@ -122,8 +133,8 @@ public class RadialPopupMenu extends PopupWindow {
 
     @Override
     public boolean openPopup() {
-        if(super.openPopup()) {
-            if(bindMouseDrag(new Runnable() {
+        if (super.openPopup()) {
+            if (bindMouseDrag(new Runnable() {
                 public void run() {
                     boundDragEventFinished();
                 }
@@ -143,27 +154,17 @@ public class RadialPopupMenu extends PopupWindow {
      * @return true if the popup was opened
      */
     public boolean openPopupAt(int centerX, int centerY) {
-        if(openPopup()) {
+        if (openPopup()) {
             adjustSize();
             Widget parent = getParent();
             int width = getWidth();
             int height = getHeight();
             setPosition(
-                    limit(centerX - width/2, parent.getInnerX(), parent.getInnerRight() - width),
-                    limit(centerY - height/2, parent.getInnerY(), parent.getInnerBottom() - height));
+                    limit(centerX - width / 2, parent.getInnerX(), parent.getInnerRight() - width),
+                    limit(centerY - height / 2, parent.getInnerY(), parent.getInnerBottom() - height));
             return true;
         }
         return false;
-    }
-    
-    protected static int limit(int value, int min, int max) {
-        if(value < min) {
-            return min;
-        }
-        if(value > max) {
-            return max;
-        }
-        return value;
     }
 
     /**
@@ -174,7 +175,7 @@ public class RadialPopupMenu extends PopupWindow {
      * @return true if the popup was opened
      */
     public boolean openPopup(Event evt) {
-        if(evt.getType() == Event.Type.MOUSE_BTNDOWN) {
+        if (evt.getType() == Event.Type.MOUSE_BTNDOWN) {
             setMouseButton(evt.getMouseButton());
             return openPopupAt(evt.getMouseX(), evt.getMouseY());
         }
@@ -183,12 +184,12 @@ public class RadialPopupMenu extends PopupWindow {
 
     @Override
     public int getPreferredInnerWidth() {
-        return 2*(radius + buttonRadius);
+        return 2 * (radius + buttonRadius);
     }
 
     @Override
     public int getPreferredInnerHeight() {
-        return 2*(radius + buttonRadius);
+        return 2 * (radius + buttonRadius);
     }
 
     @Override
@@ -209,23 +210,23 @@ public class RadialPopupMenu extends PopupWindow {
 
     protected void layoutRadial() {
         int numButtons = buttons.size();
-        if(numButtons > 0) {
-            int centerX = getInnerX() + getInnerWidth()/2;
-            int centerY = getInnerY() + getInnerHeight()/2;
-            float toRad = (float)(2.0*Math.PI) / numButtons;
-            for(int i=0 ; i<numButtons ; i++) {
+        if (numButtons > 0) {
+            int centerX = getInnerX() + getInnerWidth() / 2;
+            int centerY = getInnerY() + getInnerHeight() / 2;
+            float toRad = (float) (2.0 * Math.PI) / numButtons;
+            for (int i = 0; i < numButtons; i++) {
                 float rad = i * toRad;
-                int btnCenterX = centerX + (int)(radius * Math.sin(rad));
-                int btnCenterY = centerY - (int)(radius * Math.cos(rad));
+                int btnCenterX = centerX + (int) (radius * Math.sin(rad));
+                int btnCenterY = centerY - (int) (radius * Math.cos(rad));
                 RoundButton button = buttons.get(i);
                 button.setPosition(btnCenterX - buttonRadius, btnCenterY - buttonRadius);
-                button.setSize(2*buttonRadius, 2*buttonRadius);
+                button.setSize(2 * buttonRadius, 2 * buttonRadius);
             }
         }
     }
 
     protected void setAllButtonsPressed() {
-        for(int i=0,n=buttons.size() ; i<n ; i++) {
+        for (int i = 0, n = buttons.size(); i < n; i++) {
             ButtonModel model = buttons.get(i).getModel();
             model.setPressed(true);
             model.setArmed(model.isHover());
@@ -239,9 +240,9 @@ public class RadialPopupMenu extends PopupWindow {
     protected class RoundButton extends Button {
         @Override
         public boolean isInside(int x, int y) {
-            int dx = x - (getX() + getWidth()/2);
-            int dy = y - (getY() + getHeight()/2);
-            return dx*dx + dy*dy <= buttonRadiusSqr;
+            int dx = x - (getX() + getWidth() / 2);
+            int dy = y - (getY() + getHeight() / 2);
+            return dx * dx + dy * dy <= buttonRadiusSqr;
         }
     }
 }

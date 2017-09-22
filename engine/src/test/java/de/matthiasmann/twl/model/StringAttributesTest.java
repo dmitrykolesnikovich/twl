@@ -29,26 +29,50 @@
  */
 package de.matthiasmann.twl.model;
 
-import java.util.HashMap;
-import java.lang.reflect.Field;
-import java.util.HashSet;
 import de.matthiasmann.twl.renderer.AnimationState.StateKey;
 import org.junit.Test;
+
+import java.lang.reflect.Field;
+import java.util.HashMap;
+import java.util.HashSet;
+
 import static org.junit.Assert.*;
 
 /**
- *
  * @author Matthias Mann
  */
 public class StringAttributesTest {
 
+    private static final StateKey BLA = StateKey.get("bla");
+    private static final StateKey BLUB = StateKey.get("blub");
+    private static final StateKey HUGO = StateKey.get("hugo");
+    private static final StateKey BOB = StateKey.get("bob");
     public StringAttributesTest() {
     }
 
-    private static final StateKey BLA  = StateKey.get("bla");
-    private static final StateKey BLUB = StateKey.get("blub");
-    private static final StateKey HUGO = StateKey.get("hugo");
-    private static final StateKey BOB  = StateKey.get("bob");
+    private static void check(StringAttributes sa, int nextPos, StateKey... activeKeys) {
+        HashSet<StateKey> all = getAllStateKeys();
+        for (StateKey key : activeKeys) {
+            all.remove(key);
+            assertTrue(sa.getAnimationState(key));
+        }
+        for (StateKey key : all) {
+            assertFalse(sa.getAnimationState(key));
+        }
+        assertEquals(nextPos, sa.advance());
+        assertEquals(nextPos, sa.getPosition());
+    }
+
+    @SuppressWarnings("unchecked")
+    private static HashSet<StateKey> getAllStateKeys() {
+        try {
+            Field f = StateKey.class.getDeclaredField("keys");
+            f.setAccessible(true);
+            return new HashSet<StateKey>(((HashMap<String, StateKey>) f.get(null)).values());
+        } catch (Exception ex) {
+            throw new AssertionError();
+        }
+    }
 
     @Test
     public void testSimple() {
@@ -120,29 +144,5 @@ public class StringAttributesTest {
         check(sa, 6, HUGO);
         check(sa, 7, HUGO, BOB);
         check(sa, 11, BOB);
-    }
-
-    private static void check(StringAttributes sa, int nextPos, StateKey ... activeKeys) {
-        HashSet<StateKey> all = getAllStateKeys();
-        for(StateKey key : activeKeys) {
-            all.remove(key);
-            assertTrue(sa.getAnimationState(key));
-        }
-        for(StateKey key : all) {
-            assertFalse(sa.getAnimationState(key));
-        }
-        assertEquals(nextPos, sa.advance());
-        assertEquals(nextPos, sa.getPosition());
-    }
-
-    @SuppressWarnings("unchecked")
-    private static HashSet<StateKey> getAllStateKeys() {
-        try {
-            Field f = StateKey.class.getDeclaredField("keys");
-            f.setAccessible(true);
-            return new HashSet<StateKey>(((HashMap<String, StateKey>)f.get(null)).values());
-        } catch(Exception ex) {
-            throw new AssertionError();
-        }
     }
 }

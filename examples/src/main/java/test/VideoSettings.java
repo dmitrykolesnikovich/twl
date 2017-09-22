@@ -29,36 +29,33 @@
  */
 package test;
 
-import de.matthiasmann.twl.Alignment;
+import de.matthiasmann.twl.*;
 import de.matthiasmann.twl.model.BooleanModel;
 import de.matthiasmann.twl.model.ListModel;
 import de.matthiasmann.twl.model.SimpleBooleanModel;
 import de.matthiasmann.twl.model.SimpleChangableListModel;
-import de.matthiasmann.twl.Button;
 import de.matthiasmann.twl.utils.CallbackSupport;
-import de.matthiasmann.twl.CallbackWithReason;
-import de.matthiasmann.twl.ComboBox;
-import de.matthiasmann.twl.DialogLayout;
-import de.matthiasmann.twl.Label;
-import de.matthiasmann.twl.ToggleButton;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.prefs.Preferences;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.prefs.Preferences;
+
 /**
- *
  * @author Matthias Mann
  */
 public class VideoSettings extends DialogLayout {
 
-    public enum CallbackReason {
-        ACCEPT,
-        CANCEL
-    };
+    private static int[] WINDOWED_MODES = {
+            640, 480,
+            800, 600,
+            1024, 768,
+            1280, 1024,
+            1600, 1200};
 
+    ;
     private final Preferences prefs;
     private final Label lResolution;
     private final ComboBox<ModeEntry> cResolution;
@@ -72,20 +69,13 @@ public class VideoSettings extends DialogLayout {
 
     private CallbackWithReason<?>[] callbacks;
 
-    private static int[] WINDOWED_MODES = {
-        640, 480,
-        800, 600,
-        1024, 768,
-        1280, 1024,
-        1600, 1200};
-    
     public VideoSettings(Preferences prefs, DisplayMode desktopMode) {
         this.prefs = prefs;
-        
+
         ArrayList<ModeEntry> modes = new ArrayList<ModeEntry>();
         try {
-            for(DisplayMode dm : Display.getAvailableDisplayModes()) {
-                if(dm.getBitsPerPixel() == desktopMode.getBitsPerPixel()) {
+            for (DisplayMode dm : Display.getAvailableDisplayModes()) {
+                if (dm.getBitsPerPixel() == desktopMode.getBitsPerPixel()) {
                     addModeToList(modes, dm);
                 }
             }
@@ -96,21 +86,21 @@ public class VideoSettings extends DialogLayout {
         mResolutionFullscreen = new SimpleChangableListModel<ModeEntry>(modes);
         mResolutionWindowed = new SimpleChangableListModel<ModeEntry>();
 
-        for(int i=0 ; i<WINDOWED_MODES.length ; i+=2) {
-            int w = WINDOWED_MODES[i+0];
-            int h = WINDOWED_MODES[i+1];
-            if(w <= desktopMode.getWidth() && h <= desktopMode.getHeight()) {
+        for (int i = 0; i < WINDOWED_MODES.length; i += 2) {
+            int w = WINDOWED_MODES[i + 0];
+            int h = WINDOWED_MODES[i + 1];
+            if (w <= desktopMode.getWidth() && h <= desktopMode.getHeight()) {
                 mResolutionWindowed.addElement(new ModeEntry(new DisplayMode(w, h)));
             }
         }
-        
+
         mFullscreen = new SimpleBooleanModel();
         mFullscreen.addCallback(new Runnable() {
             public void run() {
                 setModeList();
             }
         });
-        
+
         lResolution = new Label("Resolution");
         cResolution = new ComboBox<ModeEntry>();
         cResolution.setComputeWidthFromModel(true);
@@ -134,7 +124,7 @@ public class VideoSettings extends DialogLayout {
         bCancel.addCallback(new ButtonCallback(CallbackReason.CANCEL));
 
         selectionChanged();
-                
+
         Group ghLabels = createParallelGroup().
                 addWidget(lFullscreen).
                 addWidget(lResolution);
@@ -170,7 +160,7 @@ public class VideoSettings extends DialogLayout {
 
     public boolean storeSettings() {
         DisplayMode mode = getSelectedMode();
-        if(mode != null) {
+        if (mode != null) {
             prefs.putBoolean("fullscreen", mFullscreen.getValue());
             prefs.putInt("resX", mode.getWidth());
             prefs.putInt("resY", mode.getHeight());
@@ -178,10 +168,10 @@ public class VideoSettings extends DialogLayout {
         }
         return false;
     }
-    
+
     public VideoMode getSelectedVideoMode() {
         DisplayMode mode = getSelectedMode();
-        if(mode != null) {
+        if (mode != null) {
             return new VideoMode(mode, mFullscreen.getValue());
         }
         return null;
@@ -189,8 +179,8 @@ public class VideoSettings extends DialogLayout {
 
     private DisplayMode getSelectedMode() {
         int selectedMode = cResolution.getSelected();
-        if(selectedMode >= 0) {
-            return ((ModeEntry)cResolution.getModel().getEntry(selectedMode)).mode;
+        if (selectedMode >= 0) {
+            return ((ModeEntry) cResolution.getModel().getEntry(selectedMode)).mode;
         }
         return null;
     }
@@ -198,9 +188,9 @@ public class VideoSettings extends DialogLayout {
     private void selectMode(int width, int height) {
         ListModel<ModeEntry> model = getListModel();
         int matchedMode = -1;
-        for(int i=0 ; i<model.getNumEntries() ; i++) {
+        for (int i = 0; i < model.getNumEntries(); i++) {
             DisplayMode mode = model.getEntry(i).mode;
-            if(mode.getWidth() == width && mode.getHeight() == height) {
+            if (mode.getWidth() == width && mode.getHeight() == height) {
                 matchedMode = i;
                 break;
             }
@@ -210,7 +200,7 @@ public class VideoSettings extends DialogLayout {
     }
 
     private ListModel<ModeEntry> getListModel() {
-        if(mFullscreen.getValue()) {
+        if (mFullscreen.getValue()) {
             return mResolutionFullscreen;
         } else {
             return mResolutionWindowed;
@@ -220,22 +210,22 @@ public class VideoSettings extends DialogLayout {
     void setModeList() {
         DisplayMode current = getSelectedMode();
         cResolution.setModel(getListModel());
-        if(current != null) {
+        if (current != null) {
             selectMode(current.getWidth(), current.getHeight());
         }
     }
-    
+
     void selectionChanged() {
         bAccept.setEnabled(cResolution.getSelected() >= 0);
     }
-    
+
     private void addModeToList(ArrayList<ModeEntry> modes, DisplayMode dm) {
         int entryToReplace = -1;
-        for(int idx = 0 ; idx < modes.size() ; idx++) {
+        for (int idx = 0; idx < modes.size(); idx++) {
             DisplayMode mode = modes.get(idx).mode;
-            if(mode.getWidth() == dm.getWidth() &&
+            if (mode.getWidth() == dm.getWidth() &&
                     mode.getHeight() == dm.getHeight()) {
-                if(mode.getFrequency() > dm.getFrequency()) {
+                if (mode.getFrequency() > dm.getFrequency()) {
                     entryToReplace = idx;
                     break;
                 } else {
@@ -244,9 +234,9 @@ public class VideoSettings extends DialogLayout {
                 }
             }
         }
-        
+
         ModeEntry me = new ModeEntry(dm);
-        if(entryToReplace >= 0) {
+        if (entryToReplace >= 0) {
             modes.set(entryToReplace, me);
         } else {
             modes.add(me);
@@ -257,18 +247,26 @@ public class VideoSettings extends DialogLayout {
         CallbackSupport.fireCallbacks(callbacks, reason);
     }
 
+    public enum CallbackReason {
+        ACCEPT,
+        CANCEL
+    }
+
     static class ModeEntry implements Comparable<ModeEntry> {
         final DisplayMode mode;
+
         ModeEntry(DisplayMode mode) {
             this.mode = mode;
         }
+
         @Override
         public String toString() {
             return mode.getWidth() + "x" + mode.getHeight();
         }
+
         public int compareTo(ModeEntry o) {
             int diff = mode.getHeight() - o.mode.getHeight();
-            if(diff == 0) {
+            if (diff == 0) {
                 diff = mode.getWidth() - o.mode.getWidth();
             }
             return diff;
@@ -277,17 +275,22 @@ public class VideoSettings extends DialogLayout {
 
     /**
      * A utility class used as callback for the "accept" and "cancel" buttons.
-     *
+     * <p>
      * It will call {@code fireCallback} with the selected button
-     * @see #fireCallback(test.VideoSettings.CallbackReason) 
+     *
+     * @see #fireCallback(test.VideoSettings.CallbackReason)
      */
     class ButtonCallback implements Runnable {
         final CallbackReason reason;
+
         ButtonCallback(CallbackReason reason) {
             this.reason = reason;
         }
+
         public void run() {
             fireCallback(reason);
         }
-    };
+    }
+
+    ;
 }

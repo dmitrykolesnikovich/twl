@@ -43,7 +43,7 @@ public class SimpleTableModel extends AbstractTableModel {
     private final ArrayList<Object[]> rows;
 
     public SimpleTableModel(String[] columnHeaders) {
-        if(columnHeaders.length < 1) {
+        if (columnHeaders.length < 1) {
             throw new IllegalArgumentException("must have atleast one column");
         }
         this.columnHeaders = columnHeaders.clone();
@@ -59,7 +59,7 @@ public class SimpleTableModel extends AbstractTableModel {
     }
 
     public void setColumnHeaderText(int column, String text) {
-        if(text == null) {
+        if (text == null) {
             throw new NullPointerException("text");
         }
         columnHeaders[column] = text;
@@ -79,7 +79,7 @@ public class SimpleTableModel extends AbstractTableModel {
         fireCellChanged(row, column);
     }
 
-    public void addRow(Object ... data) {
+    public void addRow(Object... data) {
         insertRow(rows.size(), data);
     }
 
@@ -87,15 +87,15 @@ public class SimpleTableModel extends AbstractTableModel {
         insertRows(this.rows.size(), rows);
     }
 
-    public void insertRow(int index, Object ... data) {
+    public void insertRow(int index, Object... data) {
         rows.add(index, createRowData(data));
         fireRowsInserted(index, 1);
     }
 
     public void insertRows(int index, Collection<Object[]> rows) {
-        if(!rows.isEmpty()) {
+        if (!rows.isEmpty()) {
             ArrayList<Object[]> rowData = new ArrayList<Object[]>();
-            for(Object[] row : rows) {
+            for (Object[] row : rows) {
                 rowData.add(createRowData(row));
             }
             this.rows.addAll(index, rowData);
@@ -110,18 +110,18 @@ public class SimpleTableModel extends AbstractTableModel {
 
     public void deleteRows(int index, int count) {
         int numRows = rows.size();
-        if(index < 0 || count < 0 || index >= numRows || count > (numRows - index)) {
-            throw new IndexOutOfBoundsException("index="+index+" count="+count+" numRows="+numRows);
+        if (index < 0 || count < 0 || index >= numRows || count > (numRows - index)) {
+            throw new IndexOutOfBoundsException("index=" + index + " count=" + count + " numRows=" + numRows);
         }
-        if(count > 0) {
+        if (count > 0) {
             // delete backwards to not copy the rows around which will be deleted anyway
-            for(int i=count ; i-- > 0 ; ) {
+            for (int i = count; i-- > 0; ) {
                 rows.remove(index + i);
             }
             fireRowsDeleted(index, count);
         }
     }
-    
+
     private Object[] createRowData(Object[] data) {
         Object[] rowData = new Object[getNumColumns()];
         System.arraycopy(data, 0, rowData, 0, Math.min(rowData.length, data.length));

@@ -40,18 +40,12 @@ import de.matthiasmann.twl.utils.CallbackSupport;
  */
 public class TreePathDisplay extends Widget {
 
-    public interface Callback {
-        public void pathElementClicked(TreeTableNode node, TreeTableNode child);
-        public boolean resolvePath(String path);
-    }
-    
     private final BoxLayout pathBox;
     private final EditField editField;
     private Callback[] callbacks;
     private String separator = "/";
     private TreeTableNode currentNode;
     private boolean allowEdit;
-
     public TreePathDisplay() {
         pathBox = new PathBox();
         pathBox.setScroll(true);
@@ -59,7 +53,7 @@ public class TreePathDisplay extends Widget {
 
         editField = new PathEditField();
         editField.setVisible(false);
-        
+
         add(pathBox);
         add(editField);
     }
@@ -71,7 +65,7 @@ public class TreePathDisplay extends Widget {
     public void removeCallback(Callback cb) {
         callbacks = CallbackSupport.removeCallbackFromList(callbacks, cb);
     }
-    
+
     public TreeTableNode getCurrentNode() {
         return currentNode;
     }
@@ -106,11 +100,11 @@ public class TreePathDisplay extends Widget {
     public EditField getEditField() {
         return editField;
     }
-    
+
     protected String getTextFromNode(TreeTableNode node) {
         Object data = node.getData(0);
         String text = (data != null) ? data.toString() : "";
-        if(text.endsWith(separator)) {
+        if (text.endsWith(separator)) {
             // strip of separator
             text = text.substring(0, text.length() - 1);
         }
@@ -119,13 +113,13 @@ public class TreePathDisplay extends Widget {
 
     private void rebuildPathBox() {
         pathBox.removeAllChildren();
-        if(currentNode != null) {
+        if (currentNode != null) {
             recursiveAddNode(currentNode, null);
         }
     }
 
     private void recursiveAddNode(final TreeTableNode node, final TreeTableNode child) {
-        if(node.getParent() != null) {
+        if (node.getParent() != null) {
             recursiveAddNode(node.getParent(), node);
 
             Button btn = new Button(getTextFromNode(node));
@@ -139,10 +133,10 @@ public class TreePathDisplay extends Widget {
 
             Label l = new Label(separator);
             l.setTheme("separator");
-            if(allowEdit) {
+            if (allowEdit) {
                 l.addCallback(new CallbackWithReason<Label.CallbackReason>() {
                     public void callback(CallbackReason reason) {
-                        if(reason == CallbackReason.DOUBLE_CLICK) {
+                        if (reason == CallbackReason.DOUBLE_CLICK) {
                             editPath(node);
                         }
                     }
@@ -160,7 +154,7 @@ public class TreePathDisplay extends Widget {
     void editPath(TreeTableNode cursorAfterNode) {
         StringBuilder sb = new StringBuilder();
         int cursorPos = 0;
-        if(currentNode != null) {
+        if (currentNode != null) {
             cursorPos = recursiveAddPath(sb, currentNode, cursorAfterNode);
         }
         editField.setErrorMessage(null);
@@ -172,11 +166,11 @@ public class TreePathDisplay extends Widget {
 
     private int recursiveAddPath(StringBuilder sb, TreeTableNode node, TreeTableNode cursorAfterNode) {
         int cursorPos = 0;
-        if(node.getParent() != null) {
+        if (node.getParent() != null) {
             cursorPos = recursiveAddPath(sb, node.getParent(), cursorAfterNode);
             sb.append(getTextFromNode(node)).append(separator);
         }
-        if(node == cursorAfterNode) {
+        if (node == cursorAfterNode) {
             return sb.length();
         } else {
             return cursorPos;
@@ -184,9 +178,9 @@ public class TreePathDisplay extends Widget {
     }
 
     protected boolean fireResolvePath(String text) {
-        if(callbacks != null) {
-            for(Callback cb : callbacks) {
-                if(cb.resolvePath(text)) {
+        if (callbacks != null) {
+            for (Callback cb : callbacks) {
+                if (cb.resolvePath(text)) {
                     return true;
                 }
             }
@@ -195,8 +189,8 @@ public class TreePathDisplay extends Widget {
     }
 
     protected void firePathElementClicked(TreeTableNode node, TreeTableNode child) {
-        if(callbacks != null) {
-            for(Callback cb : callbacks) {
+        if (callbacks != null) {
+            for (Callback cb : callbacks) {
                 cb.pathElementClicked(node, child);
             }
         }
@@ -226,6 +220,12 @@ public class TreePathDisplay extends Widget {
         layoutChildFullInnerArea(editField);
     }
 
+    public interface Callback {
+        public void pathElementClicked(TreeTableNode node, TreeTableNode child);
+
+        public boolean resolvePath(String path);
+    }
+
     private class PathBox extends BoxLayout {
         public PathBox() {
             super(BoxLayout.Direction.HORIZONTAL);
@@ -233,8 +233,8 @@ public class TreePathDisplay extends Widget {
 
         @Override
         protected boolean handleEvent(Event evt) {
-            if(evt.isMouseEvent()) {
-                if(evt.getType() == Event.Type.MOUSE_CLICKED && evt.getMouseClickCount() == 2) {
+            if (evt.isMouseEvent()) {
+                if (evt.getType() == Event.Type.MOUSE_CLICKED && evt.getMouseClickCount() == 2) {
                     editPath(getCurrentNode());
                     return true;
                 }
@@ -247,7 +247,7 @@ public class TreePathDisplay extends Widget {
     private class PathEditField extends EditField {
         @Override
         protected void keyboardFocusLost() {
-            if(!hasOpenPopups()) {
+            if (!hasOpenPopups()) {
                 setVisible(false);
             }
         }
@@ -257,15 +257,15 @@ public class TreePathDisplay extends Widget {
             // for auto completion
             super.doCallback(key);
 
-            switch(key) {
-            case Event.KEY_RETURN:
-                if(fireResolvePath(getText())) {
+            switch (key) {
+                case Event.KEY_RETURN:
+                    if (fireResolvePath(getText())) {
+                        endEdit();
+                    }
+                    break;
+                case Event.KEY_ESCAPE:
                     endEdit();
-                }
-                break;
-            case Event.KEY_ESCAPE:
-                endEdit();
-                break;
+                    break;
             }
         }
     }

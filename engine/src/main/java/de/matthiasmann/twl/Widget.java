@@ -30,14 +30,11 @@
 package de.matthiasmann.twl;
 
 import de.matthiasmann.twl.renderer.AnimationState.StateKey;
-import de.matthiasmann.twl.renderer.MouseCursor;
-import de.matthiasmann.twl.renderer.Image;
-import de.matthiasmann.twl.renderer.OffscreenRenderer;
-import de.matthiasmann.twl.renderer.OffscreenSurface;
-import de.matthiasmann.twl.renderer.Renderer;
+import de.matthiasmann.twl.renderer.*;
 import de.matthiasmann.twl.theme.ThemeManager;
 import de.matthiasmann.twl.utils.TextUtil;
 import de.matthiasmann.twl.utils.TintAnimator;
+
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
@@ -51,14 +48,14 @@ import java.util.logging.Logger;
 
 /**
  * Root of the TWL class hierarchy.
- *
+ * <p>
  * <p>When subclassing the following methods should be overridden to ensure
  * correct layout behavior:</p><ul>
  * <li>{@link #layout() }</li>
  * <li>{@link #getPreferredInnerWidth() }</li>
  * <li>{@link #getPreferredInnerHeight() }</li>
  * </ul>
- * 
+ * <p>
  * <p>The following methods are events and can be overridden when needed:</p><ul>
  * <li>{@link #afterAddToGUI(de.matthiasmann.twl.GUI) }</li>
  * <li>{@link #allChildrenRemoved() }</li>
@@ -76,12 +73,12 @@ import java.util.logging.Logger;
  * <li>{@link #sizeChanged() }</li>
  * <li>{@link #widgetDisabled() }</li>
  * </ul>
- * 
+ * <p>
  * <p>NOTE: The only thread safe methods of TWL are:</p><ul>
  * <li>{@link #getGUI() }</li>
  * <li>{@link GUI#invokeLater(java.lang.Runnable) }</li>
  * </ul>
- * 
+ *
  * @author Matthias Mann
  */
 public class Widget {
@@ -90,10 +87,20 @@ public class Widget {
     public static final StateKey STATE_HAS_OPEN_POPUPS = StateKey.get("hasOpenPopups");
     public static final StateKey STATE_HAS_FOCUSED_CHILD = StateKey.get("hasFocusedChild");
     public static final StateKey STATE_DISABLED = StateKey.get("disabled");
-    
-    private static final int LAYOUT_INVALID_LOCAL  = 1;
+
+    private static final int LAYOUT_INVALID_LOCAL = 1;
     private static final int LAYOUT_INVALID_GLOBAL = 3;
-    
+    /**
+     * Stores the state of the current focus transfer:
+     * null                     no focus transfer active
+     * Widget[]{ null }         transfer is active, but no previous focused widget
+     * Widget[]{ prevWidget }   transfer is active, prevWidget was focused
+     */
+    private static final ThreadLocal<Widget[]> focusTransferInfo = new ThreadLocal<Widget[]>();
+    private static final boolean WARN_ON_UNHANDLED_ACTION = getSafeBooleanProperty("warnOnUnhandledAction");
+    private final AnimationState animState;
+    private final boolean sharedAnimState;
+    volatile GUI guiInstance;
     private Widget parent;
     private int posX;
     private int posY;
@@ -115,54 +122,37 @@ public class Widget {
     private ActionMap actionMap;
     private TintAnimator tintAnimator;
     private PropertyChangeSupport propertyChangeSupport;
-    volatile GUI guiInstance;
     private OffscreenSurface offscreenSurface;
     private RenderOffscreen renderOffscreen;
-
-    private final AnimationState animState;
-    private final boolean sharedAnimState;
-
     private short borderLeft;
     private short borderTop;
     private short borderRight;
     private short borderBottom;
-
     private short minWidth;
     private short minHeight;
     private short maxWidth;
     private short maxHeight;
-
     private short offscreenExtraLeft;
     private short offscreenExtraTop;
     private short offscreenExtraRight;
     private short offscreenExtraBottom;
-    
     private ArrayList<Widget> children;
     private Widget lastChildMouseOver;
     private Widget focusChild;
     private MouseCursor mouseCursor;
     private FocusGainedCause focusGainedCause;
-    
     private boolean focusKeyEnabled = true;
     private boolean canAcceptKeyboardFocus;
     private boolean depthFocusTraversal = true;
 
     /**
-     * Stores the state of the current focus transfer:
-     * null                     no focus transfer active
-     * Widget[]{ null }         transfer is active, but no previous focused widget
-     * Widget[]{ prevWidget }   transfer is active, prevWidget was focused
-     */
-    private static final ThreadLocal<Widget[]> focusTransferInfo = new ThreadLocal<Widget[]>();
-    
-    /**
      * Creates a Widget with it's own animation state
-     * 
+     * <p>
      * <p>The initial theme name is the lower case version of the simple class
      * name of the concrete subclass - or in pseudo code:</p>
      * <pre>{@code getClass().getSimpleName().toLowerCase() }</pre>
-     * 
-     * @see #setTheme(java.lang.String) 
+     *
+     * @see #setTheme(java.lang.String)
      */
     public Widget() {
         this(null, false);
@@ -170,13 +160,13 @@ public class Widget {
 
     /**
      * Creates a Widget with a shared animation state
-     * 
+     * <p>
      * <p>The initial theme name is the lower case version of the simple class
      * name of the concrete subclass - or in pseudo code:</p>
      * <pre>{@code getClass().getSimpleName().toLowerCase() }</pre>
      *
      * @param animState the animation state to share, can be null
-     * @see #setTheme(java.lang.String) 
+     * @see #setTheme(java.lang.String)
      */
     public Widget(AnimationState animState) {
         this(animState, false);
@@ -184,15 +174,15 @@ public class Widget {
 
     /**
      * Creates a Widget with a shared or inherited animation state
-     * 
+     * <p>
      * <p>The initial theme name is the lower case version of the simple class
      * name of the concrete subclass - or in pseudo code:</p>
      * <pre>{@code getClass().getSimpleName().toLowerCase() }</pre>
      *
      * @param animState the animation state to share or inherit, can be null
-     * @param inherit true if the animation state should be inherited, false for sharing
-     * @see AnimationState#AnimationState(de.matthiasmann.twl.AnimationState) 
-     * @see #setTheme(java.lang.String) 
+     * @param inherit   true if the animation state should be inherited, false for sharing
+     * @see AnimationState#AnimationState(de.matthiasmann.twl.AnimationState)
+     * @see #setTheme(java.lang.String)
      */
     public Widget(AnimationState animState, boolean inherit) {
         // determine the default theme name from the class name of this instance
@@ -203,12 +193,62 @@ public class Widget {
             clazz = clazz.getSuperclass();
         } while (theme.length() == 0 && clazz != null);
 
-        if(animState == null || inherit) {
+        if (animState == null || inherit) {
             this.animState = new AnimationState(animState);
             this.sharedAnimState = false;
         } else {
             this.animState = animState;
             this.sharedAnimState = true;
+        }
+    }
+
+    /**
+     * A helper method to compute the size of a widget based on min, max and
+     * preferred size.
+     * <p>
+     * If max size is &gt; 0 then the preferred size is limited to max.
+     *
+     * @param min       the minimum size of the widget
+     * @param preferred the preferred size of the widget
+     *                  or the available space where the widget is fitted into
+     * @param max       the maximum size of the widget
+     * @return Math.max(min, (max > 0) ? Math.min(preferred, max) : preferred)
+     */
+    public static int computeSize(int min, int preferred, int max) {
+        if (max > 0) {
+            preferred = Math.min(preferred, max);
+        }
+        return Math.max(min, preferred);
+    }
+
+    private static void adjustChildPosition(Widget child, int deltaX, int deltaY) {
+        child.setPositionImpl(child.posX + deltaX, child.posY + deltaY);
+    }
+
+    /**
+     * Checks if the given theme name is absolute or relative to it's parent.
+     * An absolute theme name starts with a '/'.
+     *
+     * @param theme the theme name or path.
+     * @return true if the theme is absolute.
+     */
+    public static boolean isAbsoluteTheme(String theme) {
+        return theme.length() > 1 && theme.charAt(0) == '/';
+    }
+
+    static boolean isMouseAction(Event evt) {
+        Event.Type type = evt.getType();
+        return type == Event.Type.MOUSE_BTNDOWN ||
+                type == Event.Type.MOUSE_BTNUP ||
+                type == Event.Type.MOUSE_CLICKED ||
+                type == Event.Type.MOUSE_DRAGGED;
+    }
+
+    static boolean getSafeBooleanProperty(String name) {
+        try {
+            return Boolean.getBoolean(name);
+        } catch (AccessControlException ex) {
+            return false;
         }
     }
 
@@ -226,8 +266,8 @@ public class Widget {
      * Add a PropertyChangeListener for a specific property.
      *
      * @param propertyName The name of the property to listen on
-     * @param listener The PropertyChangeListener to be added
-     * @see PropertyChangeSupport#addPropertyChangeListener(java.lang.String, java.beans.PropertyChangeListener) 
+     * @param listener     The PropertyChangeListener to be added
+     * @see PropertyChangeSupport#addPropertyChangeListener(java.lang.String, java.beans.PropertyChangeListener)
      */
     public void addPropertyChangeListener(String propertyName, PropertyChangeListener listener) {
         createPropertyChangeSupport().addPropertyChangeListener(propertyName, listener);
@@ -237,10 +277,10 @@ public class Widget {
      * Remove a PropertyChangeListener.
      *
      * @param listener The PropertyChangeListener to be removed
-     * @see PropertyChangeSupport#removePropertyChangeListener(java.beans.PropertyChangeListener) 
+     * @see PropertyChangeSupport#removePropertyChangeListener(java.beans.PropertyChangeListener)
      */
     public void removePropertyChangeListener(PropertyChangeListener listener) {
-        if(propertyChangeSupport != null) {
+        if (propertyChangeSupport != null) {
             propertyChangeSupport.removePropertyChangeListener(listener);
         }
     }
@@ -249,42 +289,49 @@ public class Widget {
      * Remove a PropertyChangeListener.
      *
      * @param propertyName The name of the property that was listened on
-     * @param listener The PropertyChangeListener to be removed
-     * @see PropertyChangeSupport#removePropertyChangeListener(java.lang.String, java.beans.PropertyChangeListener) 
+     * @param listener     The PropertyChangeListener to be removed
+     * @see PropertyChangeSupport#removePropertyChangeListener(java.lang.String, java.beans.PropertyChangeListener)
      */
     public void removePropertyChangeListener(String propertyName, PropertyChangeListener listener) {
-        if(propertyChangeSupport != null) {
+        if (propertyChangeSupport != null) {
             propertyChangeSupport.removePropertyChangeListener(propertyName, listener);
         }
     }
-    
+
     /**
      * Checks whether this widget or atleast one of it's children
      * owns an open popup.
+     *
      * @return true if atleast own open popup is owned (indirectly) by this widget.
      */
     public boolean hasOpenPopups() {
         return hasOpenPopup;
     }
-    
+
     /**
      * Returns the parent of this widget or null if it is the tree root.
      * All coordinates are relative to the root of the widget tree.
+     *
      * @return the parent of this widget or null if it is the tree root
      */
     public final Widget getParent() {
         return parent;
     }
-    
+
+    void setParent(Widget parent) {
+        this.parent = parent;
+    }
+
     /**
      * Returns the root of this widget tree.
      * All coordinates are relative to the root of the widget tree.
+     *
      * @return the root of this widget tree
      */
     public final Widget getRootWidget() {
         Widget w = this;
         Widget p;
-        while((p=w.parent) != null) {
+        while ((p = w.parent) != null) {
             w = p;
         }
         return w;
@@ -292,12 +339,12 @@ public class Widget {
 
     /**
      * Returns the GUI root of this widget tree if it has one.<p>
-     *
+     * <p>
      * Once a widget is added (indirectly) to a GUI object it will be part of
      * that GUI tree.<p>
-     *
+     * <p>
      * This method is thread safe.<p>
-     *
+     * <p>
      * Repeated calls may not return the same result. Use it like this:
      * <pre>
      * GUI gui = getGUI();
@@ -313,10 +360,11 @@ public class Widget {
     public final GUI getGUI() {
         return guiInstance;
     }
-    
+
     /**
      * Returns the current visibility flag of this widget.
      * This does not check if the widget is clipped or buried behind another widget.
+     *
      * @return the current visibility flag of this widget
      */
     public final boolean isVisible() {
@@ -327,21 +375,22 @@ public class Widget {
      * Changes the visibility flag of this widget.
      * Widgets are by default visible.
      * Invisible widgets don't receive paint() or handleEvent() calls
+     *
      * @param visible the new visibility flag
      */
     public void setVisible(boolean visible) {
-        if(this.visible != visible) {
+        if (this.visible != visible) {
             this.visible = visible;
-            if(!visible) {
+            if (!visible) {
                 GUI gui = getGUI();
-                if(gui != null) {
+                if (gui != null) {
                     gui.widgetHidden(this);
                 }
-                if(parent != null) {
+                if (parent != null) {
                     parent.childHidden(this);
                 }
             }
-            if(parent != null) {
+            if (parent != null) {
                 parent.childVisibilityChanged(this);
             }
         }
@@ -349,7 +398,7 @@ public class Widget {
 
     /**
      * Returns the local enabled state of this widget.
-     * 
+     * <p>
      * If one of it's parents is disabled then this widget will also be
      * disabled even when it's local enabled state is true.
      *
@@ -364,10 +413,10 @@ public class Widget {
     /**
      * Checks if this widget and all it's parents are enabled.
      * If one of it's parents is disabled then it will return false.
-     * 
+     * <p>
      * This is the effective enabled state which is also represented as
      * animation state with inverse polarity {@code STATE_DISABLED}
-     *
+     * <p>
      * If a widget is disabled it will not receive keyboard or mouse events
      * except {@code MOUSE_ENTERED} and {@code MOUSE_EXITED}
      *
@@ -383,12 +432,12 @@ public class Widget {
      * Sets the local enabled state of that widget. The effective enabled state
      * of the widget is the effective enabled state of it's parent and it's
      * local enabled state.
-     *
+     * <p>
      * The effective enabled state is exposed as animation state but with
      * inverse polarity as {@code STATE_DISABLED}.
-     *
+     * <p>
      * On disabling the keyboard focus will be removed.
-     *
+     * <p>
      * If a widget is disabled it will not receive keyboard or mouse events
      * except {@code MOUSE_ENTERED} and {@code MOUSE_EXITED}
      *
@@ -397,7 +446,7 @@ public class Widget {
      * @see #isLocallyEnabled()
      */
     public void setEnabled(boolean enabled) {
-        if(this.locallyEnabled != enabled) {
+        if (this.locallyEnabled != enabled) {
             this.locallyEnabled = enabled;
             firePropertyChange("locallyEnabled", !enabled, enabled);
             recursivelyEnabledChanged(getGUI(),
@@ -407,7 +456,7 @@ public class Widget {
 
     /**
      * Returns the absolute X coordinate of widget in it's tree
-     *
+     * <p>
      * This property can be bound and fires PropertyChangeEvent
      *
      * @return the absolute X coordinate of widget in it's tree
@@ -418,10 +467,9 @@ public class Widget {
         return posX;
     }
 
-
     /**
      * Returns the absolute Y coordinate of widget in it's tree
-     *
+     * <p>
      * This property can be bound and fires PropertyChangeEvent
      *
      * @return the absolute Y coordinate of widget in it's tree
@@ -431,10 +479,10 @@ public class Widget {
     public final int getY() {
         return posY;
     }
-    
+
     /**
      * Returns the width of this widget
-     *
+     * <p>
      * This property can be bound and fires PropertyChangeEvent
      *
      * @return the width of this widget
@@ -447,27 +495,29 @@ public class Widget {
 
     /**
      * Returns the height of this widget
-     *
+     * <p>
      * This property can be bound and fires PropertyChangeEvent
      *
      * @return the height of this widget
      * @see #addPropertyChangeListener(java.beans.PropertyChangeListener)
-     * @see #addPropertyChangeListener(java.lang.String, java.beans.PropertyChangeListener) 
+     * @see #addPropertyChangeListener(java.lang.String, java.beans.PropertyChangeListener)
      */
     public final int getHeight() {
         return height;
     }
-    
+
     /**
      * Returns the right X coordinate of this widget
+     *
      * @return getX() + getWidth()
      */
     public final int getRight() {
         return posX + width;
     }
-    
+
     /**
      * Returns the bottom Y coordinate of this widget
+     *
      * @return getY() + getHeight()
      */
     public final int getBottom() {
@@ -476,6 +526,7 @@ public class Widget {
 
     /**
      * The inner X position takes the left border into account
+     *
      * @return getX() + getBorderLeft()
      */
     public final int getInnerX() {
@@ -484,14 +535,16 @@ public class Widget {
 
     /**
      * The inner Y position takes the top border into account
+     *
      * @return getY() + getBorderTop()
      */
     public final int getInnerY() {
         return posY + borderTop;
     }
-    
+
     /**
      * The inner width takes the left and right border into account.
+     *
      * @return the inner width - never negative
      */
     public final int getInnerWidth() {
@@ -500,31 +553,34 @@ public class Widget {
 
     /**
      * The inner height takes the top and bottom border into account.
+     *
      * @return the inner height - never negative
      */
     public final int getInnerHeight() {
         return Math.max(0, height - borderTop - borderBottom);
     }
-    
+
     /**
      * Returns the right X coordinate while taking the right border into account.
+     *
      * @return getInnerX() + getInnerWidth()
      */
     public final int getInnerRight() {
         return posX + Math.max(borderLeft, width - borderRight);
     }
-    
+
     /**
      * Returns the bottom Y coordinate while taking the bottom border into account.
+     *
      * @return getInnerY() + getInnerHeight()
      */
     public final int getInnerBottom() {
         return posY + Math.max(borderTop, height - borderBottom);
     }
-    
+
     /**
      * Checks if the given absolute (to this widget's tree) coordinates are inside this widget.
-     * 
+     *
      * @param x the X coordinate to test
      * @param y the Y coordinate to test
      * @return true if it was inside
@@ -535,17 +591,17 @@ public class Widget {
 
     /**
      * Changes the position of this widget.
-     * 
+     * <p>
      * <p>When the position has changed then<ul>
      * <li>The positions of all children are updated</li>
      * <li>{@link #positionChanged()} is called</li>
      * <li>{@link PropertyChangeEvent} are fired for "x" and "y"</li>
      * </ul></p>
-     *
+     * <p>
      * <p>This method should only be called from within the layout() method of the
      * parent. Otherwise it could lead to bad interaction with theming and result
      * in a wrong position after the theme has been applied.</p>
-     *
+     * <p>
      * <p>NOTE: Position is absolute in the widget's tree.</p>
      *
      * @param x The new x position, can be negative
@@ -556,22 +612,22 @@ public class Widget {
     public boolean setPosition(int x, int y) {
         return setPositionImpl(x, y);
     }
-    
-    /** 
+
+    /**
      * Changes the size of this widget.
      * Zero size is allowed but not negative.
      * Size is not checked against parent widgets.
-     * 
+     * <p>
      * When the size has changed then
      * - the parent widget's childChangedSize is called
      * - sizeChanged is called
      * - PropertyChangeEvent are fired for "width" and "height"
-     *
+     * <p>
      * This method should only be called from within the layout() method of the
      * parent. Otherwise it could lead to bad interaction with theming and result
      * in a wrong size after the theme has been applied.
      *
-     * @param width The new width (including border)
+     * @param width  The new width (including border)
      * @param height The new height (including border)
      * @return true if the size was changed, false if new size == old size
      * @throws java.lang.IllegalArgumentException if the size is negative
@@ -579,18 +635,18 @@ public class Widget {
      * @see #layout()
      */
     public boolean setSize(int width, int height) {
-        if(width < 0 || height < 0) {
+        if (width < 0 || height < 0) {
             throw new IllegalArgumentException("negative size");
         }
         int oldWidth = this.width;
         int oldHeight = this.height;
-        if(oldWidth != width || oldHeight != height) {
+        if (oldWidth != width || oldHeight != height) {
             this.width = width;
             this.height = height;
 
             sizeChanged();
-            
-            if(propertyChangeSupport != null) {
+
+            if (propertyChangeSupport != null) {
                 firePropertyChange("width", oldWidth, width);
                 firePropertyChange("height", oldHeight, height);
             }
@@ -598,15 +654,15 @@ public class Widget {
         }
         return false;
     }
-    
-    /** 
+
+    /**
      * Changes the inner size of this widget.
      * Calls setSize after adding the border width/height.
-     * 
-     * @param width The new width (exclusive border)
+     *
+     * @param width  The new width (exclusive border)
      * @param height The new height (exclusive border)
      * @return true if the size was changed, false if new size == old size
-     * @see #setSize(int,int)
+     * @see #setSize(int, int)
      */
     public boolean setInnerSize(int width, int height) {
         return setSize(width + borderLeft + borderRight, height + borderTop + borderBottom);
@@ -638,35 +694,36 @@ public class Widget {
 
     /**
      * Sets a border for this widget.
-     * @param top the top border
-     * @param left the left border
+     *
+     * @param top    the top border
+     * @param left   the left border
      * @param bottom the bottom  border
-     * @param right the right border
+     * @param right  the right border
      * @return true if the border values have changed
      * @throws IllegalArgumentException if any of the parameters is negative.
      */
     public boolean setBorderSize(int top, int left, int bottom, int right) {
-        if(top < 0 || left < 0 || bottom < 0 || right < 0) {
+        if (top < 0 || left < 0 || bottom < 0 || right < 0) {
             throw new IllegalArgumentException("negative border size");
         }
-        if(this.borderTop != top ||  this.borderBottom != bottom ||
+        if (this.borderTop != top || this.borderBottom != bottom ||
                 this.borderLeft != left || this.borderRight != right) {
             int innerWidth = getInnerWidth();
             int innerHeight = getInnerHeight();
             int deltaLeft = left - this.borderLeft;
             int deltaTop = top - this.borderTop;
-            this.borderLeft = (short)left;
-            this.borderTop = (short)top;
-            this.borderRight = (short)right;
-            this.borderBottom = (short)bottom;
-            
+            this.borderLeft = (short) left;
+            this.borderTop = (short) top;
+            this.borderRight = (short) right;
+            this.borderBottom = (short) bottom;
+
             // first adjust child position
-            if(children != null && (deltaLeft != 0 || deltaTop != 0)) {
-                for(int i=0,n=children.size() ; i<n ; i++) {
+            if (children != null && (deltaLeft != 0 || deltaTop != 0)) {
+                for (int i = 0, n = children.size(); i < n; i++) {
                     adjustChildPosition(children.get(i), deltaLeft, deltaTop);
                 }
             }
-            
+
             // now change size
             setInnerSize(innerWidth, innerHeight);
             borderChanged();
@@ -674,20 +731,22 @@ public class Widget {
         }
         return false;
     }
-    
+
     /**
      * Sets a border for this widget.
+     *
      * @param horizontal the border width for left and right
-     * @param vertical the border height for top and bottom
+     * @param vertical   the border height for top and bottom
      * @return true if the border values have changed
      * @throws IllegalArgumentException if horizontal or vertical is negative.
      */
     public boolean setBorderSize(int horizontal, int vertical) {
         return setBorderSize(vertical, horizontal, vertical, horizontal);
     }
-    
+
     /**
      * Sets a uniform border for this widget.
+     *
      * @param border the border width/height on all edges
      * @return true if the border values have changed
      * @throws IllegalArgumentException if border is negative.
@@ -695,18 +754,19 @@ public class Widget {
     public boolean setBorderSize(int border) {
         return setBorderSize(border, border, border, border);
     }
-    
+
     /**
      * Sets the border width for this widget.
+     *
      * @param border the border object or null for no border
      * @return true if the border values have changed
      */
     public boolean setBorderSize(Border border) {
-        if(border == null) {
+        if (border == null) {
             return setBorderSize(0, 0, 0, 0);
         } else {
             return setBorderSize(border.getBorderTop(), border.getBorderLeft(),
-                                    border.getBorderBottom(), border.getBorderRight());
+                    border.getBorderBottom(), border.getBorderRight());
         }
     }
 
@@ -725,46 +785,48 @@ public class Widget {
     public short getOffscreenExtraRight() {
         return offscreenExtraRight;
     }
-    
+
     /**
      * Sets the offscreen rendering extra area for this widget.
-     * @param top the extra area on top
-     * @param left the extra area on left
+     *
+     * @param top    the extra area on top
+     * @param left   the extra area on left
      * @param bottom the extra area on bottom
-     * @param right the extra area on right
+     * @param right  the extra area on right
      * @throws IllegalArgumentException if any of the parameters is negative.
-     * @see #setRenderOffscreen(de.matthiasmann.twl.Widget.RenderOffscreen) 
+     * @see #setRenderOffscreen(de.matthiasmann.twl.Widget.RenderOffscreen)
      */
     public void setOffscreenExtra(int top, int left, int bottom, int right) {
-        if(top < 0 || left < 0 || bottom < 0 || right < 0) {
+        if (top < 0 || left < 0 || bottom < 0 || right < 0) {
             throw new IllegalArgumentException("negative offscreen extra size");
         }
-        this.offscreenExtraTop = (short)top;
-        this.offscreenExtraLeft = (short)left;
-        this.offscreenExtraBottom = (short)bottom;
-        this.offscreenExtraRight = (short)right;
+        this.offscreenExtraTop = (short) top;
+        this.offscreenExtraLeft = (short) left;
+        this.offscreenExtraBottom = (short) bottom;
+        this.offscreenExtraRight = (short) right;
     }
-    
+
     /**
      * Sets the offscreen rendering extra area for this widget.
+     *
      * @param offscreenExtra the border object or null for no extra area
      * @throws IllegalArgumentException if any of the values is negative.
-     * @see #setRenderOffscreen(de.matthiasmann.twl.Widget.RenderOffscreen) 
+     * @see #setRenderOffscreen(de.matthiasmann.twl.Widget.RenderOffscreen)
      */
     public void setOffscreenExtra(Border offscreenExtra) {
-        if(offscreenExtra == null) {
+        if (offscreenExtra == null) {
             setOffscreenExtra(0, 0, 0, 0);
         } else {
             setOffscreenExtra(offscreenExtra.getBorderTop(), offscreenExtra.getBorderLeft(),
                     offscreenExtra.getBorderBottom(), offscreenExtra.getBorderRight());
         }
     }
-    
+
     /**
      * Returns the minimum width of the widget.
      * Layout manager will allocate atleast the minimum width to a widget even
      * when the container is not big enough.
-     *
+     * <p>
      * The default implementation will not return values smaller then the
      * current border width.
      *
@@ -778,7 +840,7 @@ public class Widget {
      * Returns the minimum height of the widget.
      * Layout manager will allocate atleast the minimum height to a widget even
      * when the container is not big enough.
-     *
+     * <p>
      * The default implementation will not return values smaller then the
      * current border width.
      *
@@ -790,31 +852,31 @@ public class Widget {
 
     /**
      * Sets the minimum size of the widget. This size includes the border.
-     *
+     * <p>
      * <p>The minimum size is set via the theme in {@link #applyThemeMinSize(de.matthiasmann.twl.ThemeInfo)}</p>
      *
-     * @param width the minimum width
+     * @param width  the minimum width
      * @param height the minimum height
+     * @throws IllegalArgumentException when width or height is negative
      * @see #getMinWidth()
      * @see #getMinHeight()
-     * @throws IllegalArgumentException when width or height is negative
      */
     public void setMinSize(int width, int height) {
-        if(width < 0 || height < 0) {
+        if (width < 0 || height < 0) {
             throw new IllegalArgumentException("negative size");
         }
-        minWidth = (short)Math.min(width, Short.MAX_VALUE);
-        minHeight = (short)Math.min(height, Short.MAX_VALUE);
+        minWidth = (short) Math.min(width, Short.MAX_VALUE);
+        minHeight = (short) Math.min(height, Short.MAX_VALUE);
     }
 
     /**
      * Computes the preferred inner width (the size of the widget without the border)
-     *
+     * <p>
      * The default implementation uses the current position of the children.
-     *
+     * <p>
      * It is highly recommended to override this method as the default implementation
      * lead to unstable layouts.
-     *
+     * <p>
      * The default behavior might change in the future to provide a better default
      * behavior.
      *
@@ -822,8 +884,8 @@ public class Widget {
      */
     public int getPreferredInnerWidth() {
         int right = getInnerX();
-        if(children != null) {
-            for(int i=0,n=children.size() ; i<n ; i++) {
+        if (children != null) {
+            for (int i = 0, n = children.size(); i < n; i++) {
                 Widget child = children.get(i);
                 right = Math.max(right, child.getRight());
             }
@@ -833,7 +895,7 @@ public class Widget {
 
     /**
      * Returns the preferred width based on it's children and preferred inner width.
-     *
+     * <p>
      * Subclasses can overwrite this method to compute the preferred size differently.
      *
      * @return the preferred width.
@@ -842,7 +904,7 @@ public class Widget {
     public int getPreferredWidth() {
         int prefWidth = borderLeft + borderRight + getPreferredInnerWidth();
         Image bg = getBackground();
-        if(bg != null) {
+        if (bg != null) {
             prefWidth = Math.max(prefWidth, bg.getWidth());
         }
         return Math.max(minWidth, prefWidth);
@@ -850,12 +912,12 @@ public class Widget {
 
     /**
      * Computes the preferred inner height (the size of the widget without the border)
-     *
+     * <p>
      * The default implementation uses the current position of the children.
-     *
+     * <p>
      * It is highly recommended to override this method as the default implementation
      * lead to unstable layouts.
-     *
+     * <p>
      * The default behavior might change in the future to provide a better default
      * behavior.
      *
@@ -863,8 +925,8 @@ public class Widget {
      */
     public int getPreferredInnerHeight() {
         int bottom = getInnerY();
-        if(children != null) {
-            for(int i=0,n=children.size() ; i<n ; i++) {
+        if (children != null) {
+            for (int i = 0, n = children.size(); i < n; i++) {
                 Widget child = children.get(i);
                 bottom = Math.max(bottom, child.getBottom());
             }
@@ -874,17 +936,17 @@ public class Widget {
 
     /**
      * Returns the preferred height.
-     *
+     * <p>
      * This method determines the preferred height based on it's children.
      * Subclasses can overwrite this method to compute the preferred size differently.
      *
      * @return the preferred height.
-     * @see #getPreferredInnerHeight() 
+     * @see #getPreferredInnerHeight()
      */
     public int getPreferredHeight() {
         int prefHeight = borderTop + borderBottom + getPreferredInnerHeight();
         Image bg = getBackground();
-        if(bg != null) {
+        if (bg != null) {
             prefHeight = Math.max(prefHeight, bg.getHeight());
         }
         return Math.max(minHeight, prefHeight);
@@ -892,7 +954,7 @@ public class Widget {
 
     /**
      * Returns the maximum width of the widget.
-     *
+     * <p>
      * A maximum of 0 means that the widgets wants it's preferred size and no
      * extra space from layout.
      * A value &gt; 0 is used for widgets which can expand to cover available
@@ -906,7 +968,7 @@ public class Widget {
 
     /**
      * Returns the maximum height of the widget.
-     *
+     * <p>
      * A maximum of 0 means that the widgets wants it's preferred size and no
      * extra space from layout.
      * A value &gt; 0 is used for widgets which can expand to cover available
@@ -921,45 +983,26 @@ public class Widget {
     /**
      * Sets the maximum size of the widget.
      * A value of 0 means no expansion, use {@link Short#MAX_VALUE} for unbounded expansion.
-     *
+     * <p>
      * <p>The maximum size is set via the theme in {@link #applyThemeMaxSize(de.matthiasmann.twl.ThemeInfo)}</p>
-     * 
-     * @param width the maximum width
+     *
+     * @param width  the maximum width
      * @param height the maximum height
+     * @throws IllegalArgumentException when width or height is negative
      * @see #getMaxWidth()
      * @see #getMaxHeight()
-     * @throws IllegalArgumentException when width or height is negative
      */
     public void setMaxSize(int width, int height) {
-        if(width < 0 || height < 0) {
+        if (width < 0 || height < 0) {
             throw new IllegalArgumentException("negative size");
         }
-        maxWidth = (short)Math.min(width, Short.MAX_VALUE);
-        maxHeight = (short)Math.min(height, Short.MAX_VALUE);
-    }
-
-    /**
-     * A helper method to compute the size of a widget based on min, max and
-     * preferred size.
-     *
-     * If max size is &gt; 0 then the preferred size is limited to max.
-     *
-     * @param min the minimum size of the widget
-     * @param preferred the preferred size of the widget
-     *                  or the available space where the widget is fitted into
-     * @param max the maximum size of the widget
-     * @return Math.max(min, (max > 0) ? Math.min(preferred, max) : preferred)
-     */
-    public static int computeSize(int min, int preferred, int max) {
-        if(max > 0) {
-            preferred = Math.min(preferred, max);
-        }
-        return Math.max(min, preferred);
+        maxWidth = (short) Math.min(width, Short.MAX_VALUE);
+        maxHeight = (short) Math.min(height, Short.MAX_VALUE);
     }
 
     /**
      * Auto adjust the size of this widget based on it's preferred size.
-     * 
+     * <p>
      * Subclasses can provide more functionality
      */
     public void adjustSize() {
@@ -975,66 +1018,68 @@ public class Widget {
 
     /**
      * Called when something has changed which affected the layout of this widget.
-     *
+     * <p>
      * The default implementation calls invalidateLayoutLocally() followed by childInvalidateLayout()
-     *
+     * <p>
      * Called by the default implementation of borderChanged.
      *
      * @see #invalidateLayoutLocally()
      * @see #borderChanged()
      */
     public void invalidateLayout() {
-        if(layoutInvalid < LAYOUT_INVALID_GLOBAL) {
+        if (layoutInvalid < LAYOUT_INVALID_GLOBAL) {
             invalidateLayoutLocally();
-            if(parent != null) {
+            if (parent != null) {
                 layoutInvalid = LAYOUT_INVALID_GLOBAL;
                 parent.childInvalidateLayout(this);
             }
         }
     }
-    
+
     /**
      * Calls layout() if the layout is marked invalid.
+     *
      * @see #invalidateLayout()
      * @see #layout()
      */
     public void validateLayout() {
-        if(layoutInvalid != 0) {
+        if (layoutInvalid != 0) {
             /* Reset the flag first so that widgets like TextArea can invalidate
              * their layout from inside layout()
              */
             layoutInvalid = 0;
             layout();
         }
-        if(children != null) {
-            for(int i=0,n=children.size() ; i<n ; i++) {
+        if (children != null) {
+            for (int i = 0, n = children.size(); i < n; i++) {
                 children.get(i).validateLayout();
             }
         }
     }
-    
+
     /**
      * Returns the current theme name of this widget.
      * The default theme name is the lower case simple class name of this widget.
+     *
      * @return the current theme name of this widget
      */
     public String getTheme() {
         return theme;
     }
-    
+
     /**
      * Changes the theme name of this widget - DOES NOT call reapplyTheme()
-     *
+     * <p>
      * <p>If the theme name is empty then this widget won't receive theme data
      * and is not included in the theme path, but it's children are still
      * themed.</p>
-     *
+     * <p>
      * <p>A theme name must not contain spaces or '*'.
      * A '/' is only allowed as first character to indicate an absolute theme path.
      * A '.' is only allowed for absolute theme paths.</p>
-     * 
+     *
      * @param theme The new theme path element
-     * @throws java.lang.NullPointerException if theme is null
+     * @throws java.lang.NullPointerException     if theme is null
      * @throws java.lang.IllegalArgumentException if the theme name is invalid
      * @see GUI#applyTheme(ThemeManager)
      * @see #reapplyTheme()
@@ -1042,37 +1087,37 @@ public class Widget {
      * @see #isAbsoluteTheme(java.lang.String)
      */
     public void setTheme(String theme) {
-        if(theme == null) {
+        if (theme == null) {
             throw new IllegalArgumentException("theme is null");
         }
-        if(theme.length() > 0) {
+        if (theme.length() > 0) {
             int slashIdx = theme.lastIndexOf('/');
-            if(slashIdx > 0) {
+            if (slashIdx > 0) {
                 throw new IllegalArgumentException("'/' is only allowed as first character in theme name");
             }
-            if(slashIdx < 0) {
-                if(theme.indexOf('.') >= 0) {
+            if (slashIdx < 0) {
+                if (theme.indexOf('.') >= 0) {
                     throw new IllegalArgumentException("'.' is only allowed for absolute theme paths");
                 }
-            } else if(theme.length() == 1) {
+            } else if (theme.length() == 1) {
                 throw new IllegalArgumentException("'/' requires a theme path");
             }
-            for(int i=0,n=theme.length() ; i<n ; i++) {
+            for (int i = 0, n = theme.length(); i < n; i++) {
                 char ch = theme.charAt(i);
-                if(Character.isISOControl(ch) || ch == '*') {
+                if (Character.isISOControl(ch) || ch == '*') {
                     throw new IllegalArgumentException("invalid character '" + TextUtil.toPrintableString(ch) + "' in theme name");
                 }
             }
         }
         this.theme = theme;
     }
-    
+
     /**
      * Returns this widget's theme path by concatenating the theme names
      * from all parents separated by '.'.
-     *
+     * <p>
      * If a parent theme is empty then it will be omitted from the theme path.
-     *
+     * <p>
      * The theme path will start with the first absolute theme starting from
      * this widget up to the GUI.
      *
@@ -1084,6 +1129,7 @@ public class Widget {
 
     /**
      * Returns true if paint() is clipped to this widget.
+     *
      * @return true if paint() is clipped to this widget
      */
     public boolean isClip() {
@@ -1092,10 +1138,10 @@ public class Widget {
 
     /**
      * Sets whether paint() must be clipped to this Widget or not.
-     *
+     * <p>
      * Clipping is performed for the whole widget and all it's children.
      * The clip area is the outer area of the widget (it does include the border).
-     *
+     * <p>
      * If the widget theme has effects which extend outside of the widget (like
      * shadow or glow) then clipping will also clip the this effect. A work
      * around is to not apply clipping to the widget itself but to a child
@@ -1109,6 +1155,7 @@ public class Widget {
 
     /**
      * Returns if this widget will handle the FOCUS_KEY.
+     *
      * @return if this widget will handle the FOCUS_KEY.
      */
     public boolean isFocusKeyEnabled() {
@@ -1121,6 +1168,7 @@ public class Widget {
      * <p>When enabled the focus key (TAB) will cycle through all (indirect)
      * children which can receive keyboard focus. The order is defined
      * by {@link #getKeyboardFocusOrder() }.</p>
+     *
      * @param focusKeyEnabled if true this widget will handle the focus key.
      */
     public void setFocusKeyEnabled(boolean focusKeyEnabled) {
@@ -1129,6 +1177,7 @@ public class Widget {
 
     /**
      * Returns the current background image or null.
+     *
      * @return the current background image or null
      * @see #paintBackground(de.matthiasmann.twl.GUI)
      */
@@ -1138,6 +1187,7 @@ public class Widget {
 
     /**
      * Sets the background image that should be drawn before drawing this widget
+     *
      * @param background the new background image - can be null
      * @see #paintBackground(de.matthiasmann.twl.GUI)
      */
@@ -1147,6 +1197,7 @@ public class Widget {
 
     /**
      * Returns the current overlay image or null.
+     *
      * @return the current overlay image or null.
      * @see #paintOverlay(de.matthiasmann.twl.GUI)
      */
@@ -1156,19 +1207,20 @@ public class Widget {
 
     /**
      * Sets the overlay image that should be drawn after drawing the children
+     *
      * @param overlay the new overlay image - can be null
      * @see #paintOverlay(de.matthiasmann.twl.GUI)
      */
     public void setOverlay(Image overlay) {
         this.overlay = overlay;
     }
-    
+
     /**
      * Returns the mouse cursor which should be used for the given
      * mouse coordinates and modifiers.
-     * 
+     * <p>
      * The default implementation calls {@link #getMouseCursor() }
-     * 
+     *
      * @param evt only {@link Event#getMouseX() }, {@link Event#getMouseY() } and {@link Event#getModifiers() } are valid.
      * @return the mouse cursor or null when no mouse cursor is defined for this widget
      */
@@ -1186,10 +1238,11 @@ public class Widget {
 
     /**
      * Returns the number of children in this widget.
+     *
      * @return the number of children in this widget
      */
     public final int getNumChildren() {
-        if(children != null) {
+        if (children != null) {
             return children.size();
         }
         return 0;
@@ -1197,12 +1250,13 @@ public class Widget {
 
     /**
      * Returns the child at the given index
+     *
      * @param index
      * @return the child widget
      * @throws java.lang.IndexOutOfBoundsException if the index is invalid
      */
     public final Widget getChild(int index) throws IndexOutOfBoundsException {
-        if(children != null) {
+        if (children != null) {
             return children.get(index);
         }
         throw new IndexOutOfBoundsException();
@@ -1213,7 +1267,7 @@ public class Widget {
      * This call is equal to <code>insertChild(child, getNumChildren())</code>
      *
      * @param child the child that should be added
-     * @throws java.lang.NullPointerException if child is null
+     * @throws java.lang.NullPointerException     if child is null
      * @throws java.lang.IllegalArgumentException if the child is already in a tree
      * @see #insertChild(de.matthiasmann.twl.Widget, int)
      * @see #getNumChildren()
@@ -1221,68 +1275,69 @@ public class Widget {
     public void add(Widget child) {
         insertChild(child, getNumChildren());
     }
-    
+
     /**
      * Inserts a new child into this widget.
      * The position of the child is treated as relative to this widget and adjusted.
      * If a theme was applied to this widget then this theme is also applied to the new child.
-     * 
+     *
      * @param child the child that should be inserted
      * @param index the index where it should be inserted
      * @throws java.lang.IndexOutOfBoundsException if the index is invalid
-     * @throws java.lang.NullPointerException if child is null
-     * @throws java.lang.IllegalArgumentException if the child is already in a tree
+     * @throws java.lang.NullPointerException      if child is null
+     * @throws java.lang.IllegalArgumentException  if the child is already in a tree
      */
     public void insertChild(Widget child, int index) throws IndexOutOfBoundsException {
-        if(child == null) {
+        if (child == null) {
             throw new IllegalArgumentException("child is null");
         }
-        if(child == this) {
+        if (child == this) {
             throw new IllegalArgumentException("can't add to self");
         }
-        if(child.parent != null) {
+        if (child.parent != null) {
             throw new IllegalArgumentException("child widget already in tree");
         }
-        if(children == null) {
+        if (children == null) {
             children = new ArrayList<Widget>();
         }
-        if(index < 0 || index > children.size()) {
+        if (index < 0 || index > children.size()) {
             throw new IndexOutOfBoundsException();
         }
         child.setParent(this);  // can throw exception - see PopupWindow
         children.add(index, child);
         GUI gui = getGUI();
-        if(gui != null) {
+        if (gui != null) {
             child.recursivelySetGUI(gui);
         }
         adjustChildPosition(child, posX + borderLeft, posY + borderTop);
         child.recursivelyEnabledChanged(null, enabled);
-        if(gui != null) {
+        if (gui != null) {
             child.recursivelyAddToGUI(gui);
         }
-        if(themeManager != null) {
+        if (themeManager != null) {
             child.applyTheme(themeManager);
         }
         try {
             childAdded(child);
-        } catch(Exception ex) {
+        } catch (Exception ex) {
             getLogger().log(Level.SEVERE, "Exception in childAdded()", ex);
         }
         // A newly added child can't have open popups
         // because it needs a GUI for this - and it had no parent up to now
     }
-    
+
     /**
      * Returns the index of the specified child in this widget.
      * Uses object identity for comparing.
+     *
      * @param child the child which index should be returned
      * @return the index of the child or -1 if it was not found
      */
     public final int getChildIndex(Widget child) {
-        if(children != null) {
+        if (children != null) {
             // can't use children.indexOf(child) as this uses equals()
-            for(int i=0,n=children.size() ; i<n ; i++) {
-                if(children.get(i) == child) {
+            for (int i = 0, n = children.size(); i < n; i++) {
+                if (children.get(i) == child) {
                     return i;
                 }
             }
@@ -1293,12 +1348,13 @@ public class Widget {
     /**
      * Removes the specified child from this widget.
      * Uses object identity for comparing.
+     *
      * @param child the child that should be removed.
      * @return true if the child was found and removed.
      */
     public boolean removeChild(Widget child) {
         int idx = getChildIndex(child);
-        if(idx >= 0) {
+        if (idx >= 0) {
             removeChild(idx);
             return true;
         }
@@ -1310,20 +1366,20 @@ public class Widget {
      * The position of the removed child is changed to the relative
      * position to this widget.
      * Calls invalidateLayout after removing the child.
-     * 
+     *
      * @param index the index of the child
      * @return the removed widget
      * @throws java.lang.IndexOutOfBoundsException if the index is invalid
      * @see #invalidateLayout()
      */
     public Widget removeChild(int index) throws IndexOutOfBoundsException {
-        if(children != null) {
+        if (children != null) {
             Widget child = children.remove(index);
             unparentChild(child);
-            if(lastChildMouseOver == child) {
+            if (lastChildMouseOver == child) {
                 lastChildMouseOver = null;
             }
-            if(focusChild == child) {
+            if (focusChild == child) {
                 focusChild = null;
             }
             childRemoved(child);
@@ -1337,37 +1393,37 @@ public class Widget {
      * The position of the all removed children is changed to the relative
      * position to this widget.
      * Calls allChildrenRemoved after removing all children.
-     * 
+     *
      * @see #allChildrenRemoved()
      */
     public void removeAllChildren() {
-        if(children != null) {
+        if (children != null) {
             focusChild = null;
             lastChildMouseOver = null;
-            for(int i=0,n=children.size() ; i<n ; i++) {
+            for (int i = 0, n = children.size(); i < n; i++) {
                 Widget child = children.get(i);
                 unparentChild(child);
             }
             children.clear(); // we expect that new children will be added - so keep list
-            if(hasOpenPopup) {
+            if (hasOpenPopup) {
                 GUI gui = getGUI();
-                assert(gui != null);
+                assert (gui != null);
                 recalcOpenPopups(gui);
             }
             allChildrenRemoved();
         }
     }
-    
+
     /**
      * Clean up GL resources. When overwritten then super method must be called.
      */
     public void destroy() {
-        if(children != null) {
-            for(int i=0,n=children.size() ; i<n ; i++) {
+        if (children != null) {
+            for (int i = 0, n = children.size(); i < n; i++) {
                 children.get(i).destroy();
             }
         }
-        if(offscreenSurface != null) {
+        if (offscreenSurface != null) {
             offscreenSurface.destroy();
             offscreenSurface = null;
         }
@@ -1391,17 +1447,17 @@ public class Widget {
 
     /**
      * Requests that the keyboard focus is transfered to this widget.
-     *
+     * <p>
      * <p>Use with care - users don't expect focus changes while working with the UI</p>
-     *
+     * <p>
      * <p>Focus transfer only works when the widget is added to the GUI tree.
      * See {@link #getGUI()}.</p>
-     * 
+     *
      * @return true if keyboard focus was transfered to this widget.
      */
     public boolean requestKeyboardFocus() {
-        if(parent != null && visible) {
-            if(parent.focusChild == this) {
+        if (parent != null && visible) {
+            if (parent.focusChild == this) {
                 return true;
             }
 
@@ -1420,17 +1476,18 @@ public class Widget {
      * The focus will be transferred to the parent widget.
      */
     public void giveupKeyboardFocus() {
-        if(parent != null && parent.focusChild == this) {
+        if (parent != null && parent.focusChild == this) {
             parent.requestKeyboardFocus(null);
         }
     }
-    
+
     /**
      * Checks if this widget has the keyboard focus
+     *
      * @return true if this widget has the keyboard focus
      */
     public boolean hasKeyboardFocus() {
-        if(parent != null) {
+        if (parent != null) {
             return parent.focusChild == this;
         }
         return false;
@@ -1454,6 +1511,7 @@ public class Widget {
 
     /**
      * Returns the animation state object.
+     *
      * @return the animation state object.
      */
     public AnimationState getAnimationState() {
@@ -1463,13 +1521,13 @@ public class Widget {
     /**
      * Returns true if the animation state of this widget is shared with
      * another widget.
-     * 
+     * <p>
      * A widget with a shared animation state should normally not modify
      * the animation state itself. How a shared animation state is used
      * depends on the widgets.
-     * 
+     *
      * @return true if it is shared
-     * @see #Widget(de.matthiasmann.twl.AnimationState) 
+     * @see #Widget(de.matthiasmann.twl.AnimationState)
      */
     public boolean hasSharedAnimationState() {
         return sharedAnimState;
@@ -1477,6 +1535,7 @@ public class Widget {
 
     /**
      * Returns the current tine animation object or null if none was set
+     *
      * @return the current tine animation object or null if none was set
      */
     public TintAnimator getTintAnimator() {
@@ -1485,6 +1544,7 @@ public class Widget {
 
     /**
      * Sets the tint animation object. Can be null to disable tinting.
+     *
      * @param tintAnimator the new tint animation object
      */
     public void setTintAnimator(TintAnimator tintAnimator) {
@@ -1493,6 +1553,7 @@ public class Widget {
 
     /**
      * Returns the currently active offscreen rendering delegate or null if none was set
+     *
      * @return the currently active offscreen rendering delegate or null if none was set
      */
     public RenderOffscreen getRenderOffscreen() {
@@ -1501,15 +1562,16 @@ public class Widget {
 
     /**
      * Sets set offscreen rendering delegate. Can be null to disable offscreen rendering.
+     *
      * @param renderOffscreen the offscreen rendering delegate.
      */
     public void setRenderOffscreen(RenderOffscreen renderOffscreen) {
         this.renderOffscreen = renderOffscreen;
     }
 
-    
     /**
      * Returns the currently set tooltip content.
+     *
      * @return the currently set tooltip content. Can be null.
      */
     public Object getTooltipContent() {
@@ -1528,9 +1590,14 @@ public class Widget {
         this.tooltipContent = tooltipContent;
         updateTooltip();
     }
-    
+
+    //
+    // start of API for derived widgets
+    //
+
     /**
      * Returns the current input map.
+     *
      * @return the current input map or null.
      */
     public InputMap getInputMap() {
@@ -1539,7 +1606,7 @@ public class Widget {
 
     /**
      * Sets the input map for key strokes.
-     * 
+     *
      * @param inputMap the input map or null.
      * @see #handleKeyStrokeAction(java.lang.String, de.matthiasmann.twl.Event)
      */
@@ -1550,6 +1617,7 @@ public class Widget {
     /**
      * Returns the current action map. If no action map has been set then
      * {@code null} is returned.
+     *
      * @return the current action map or null.
      */
     public ActionMap getActionMap() {
@@ -1557,19 +1625,8 @@ public class Widget {
     }
 
     /**
-     * Returns the current action map. If no action map has been set then
-     * a new one is created and set (setActionMap is not called).
-     * @return the current action map (or the new action map).
-     */
-    public ActionMap getOrCreateActionMap() {
-        if(actionMap == null) {
-            actionMap = new ActionMap();
-        }
-        return actionMap;
-    }
-    
-    /**
      * Installs an action map for this widget.
+     *
      * @param actionMap the new action map or null.
      */
     public void setActionMap(ActionMap actionMap) {
@@ -1577,32 +1634,41 @@ public class Widget {
     }
 
     /**
+     * Returns the current action map. If no action map has been set then
+     * a new one is created and set (setActionMap is not called).
+     *
+     * @return the current action map (or the new action map).
+     */
+    public ActionMap getOrCreateActionMap() {
+        if (actionMap == null) {
+            actionMap = new ActionMap();
+        }
+        return actionMap;
+    }
+
+    /**
      * Returns the visible widget at the specified location.
      * Use this method to locate drag&drop tragets.
-     *
+     * <p>
      * Subclasses can overwrite this method hide implementation details.
-     * 
+     *
      * @param x the x coordinate
      * @param y the y coordinate
      * @return the widget at that location.
      */
     public Widget getWidgetAt(int x, int y) {
         Widget child = getChildAt(x, y);
-        if(child != null) {
+        if (child != null) {
             return child.getWidgetAt(x, y);
         }
         return this;
     }
 
-    //
-    // start of API for derived widgets
-    //
-    
     /**
      * Apply the given theme.
-     * 
+     * <p>
      * This method also calls invalidateLayout()
-     * 
+     *
      * @param themeInfo The theme info for this widget
      */
     protected void applyTheme(ThemeInfo themeInfo) {
@@ -1656,7 +1722,7 @@ public class Widget {
 
     protected void applyThemeTooltip(ThemeInfo themeInfo) {
         themeTooltipContent = themeInfo.getParameterValue("tooltip", false);
-        if(tooltipContent == null) {
+        if (tooltipContent == null) {
             updateTooltip();
         }
     }
@@ -1667,13 +1733,13 @@ public class Widget {
 
     /**
      * Automatic tooltip support.
-     *
+     * <p>
      * This function is called when the mouse is idle over the widget for a certain time.
-     *
+     * <p>
      * The default implementation returns the result from {@code getTooltipContent}
      * if it is non null, otherwise the result from {@code getThemeTooltipContent}
      * is returned.
-     *
+     * <p>
      * This method is not called if the tooltip is already open and the mouse is
      * moved but does not leave this widget. If the tooltip depends on the mouse
      * position then {@code updateTooltip} must be called from {@code handleEvent}.
@@ -1685,7 +1751,7 @@ public class Widget {
      */
     protected Object getTooltipContentAt(int mouseX, int mouseY) {
         Object content = getTooltipContent();
-        if(content == null) {
+        if (content == null) {
             content = getThemeTooltipContent();
         }
         return content;
@@ -1700,7 +1766,7 @@ public class Widget {
      */
     protected void updateTooltip() {
         GUI gui = getGUI();
-        if(gui != null) {
+        if (gui != null) {
             gui.requestTooltipUpdate(this, false);
         }
     }
@@ -1713,7 +1779,7 @@ public class Widget {
      */
     protected void resetTooltip() {
         GUI gui = getGUI();
-        if(gui != null) {
+        if (gui != null) {
             gui.requestTooltipUpdate(this, true);
         }
     }
@@ -1721,20 +1787,20 @@ public class Widget {
     /**
      * Installs an action mapping for the given action in the current action map.
      * If no action map is set then a new one will be created.
-     *
+     * <p>
      * The mapping will invoke a public method on {@code this} widget.
-     *
+     * <p>
      * This is equal to calling {@code addActionMapping} on {@code ActionMap} with
      * {@code this} as target and {@code ActionMap.FLAG_ON_PRESSED} as flags.
      *
-     * @param action the action name
+     * @param action     the action name
      * @param methodName the method name to invoke on this widget
-     * @param params optional parameters which can be passed to the method
+     * @param params     optional parameters which can be passed to the method
      * @see #getActionMap()
      * @see ActionMap#addMapping(java.lang.String, java.lang.Object, java.lang.reflect.Method, java.lang.Object[], int)
      * @see #getInputMap()
      */
-    protected void addActionMapping(String action, String methodName, Object ... params) {
+    protected void addActionMapping(String action, String methodName, Object... params) {
         getOrCreateActionMap().addMapping(action, this, methodName, params, ActionMap.FLAG_ON_PRESSED);
     }
 
@@ -1744,11 +1810,11 @@ public class Widget {
      * can be used to reapply the current theme.
      */
     public void reapplyTheme() {
-        if(themeManager != null) {
+        if (themeManager != null) {
             applyTheme(themeManager);
         }
     }
-    
+
     /**
      * Checks whether the mouse is inside the widget or not.
      * <p>Calls {@link #isInside(int, int)} with the mouse coordinates.</p>
@@ -1759,10 +1825,10 @@ public class Widget {
     protected boolean isMouseInside(Event evt) {
         return isInside(evt.getMouseX(), evt.getMouseY());
     }
-    
+
     /**
      * Called when an event occurred that this widget could be interested in.
-     *
+     * <p>
      * <p>The default implementation handles only keyboard events and delegates
      * them to the child widget which has keyboard focus.
      * If focusKey handling is enabled then this widget cycles the keyboard
@@ -1770,12 +1836,12 @@ public class Widget {
      * If the key was not consumed by a child or focusKey and an inputMap is
      * specified then the event is translated by the InputMap and
      * <code>handleKeyStrokeAction</code> is called when a mapping was found.</p>
-     *
+     * <p>
      * <p>If the widget wants to receive mouse events then it must return true
      * for all mouse events except for MOUSE_WHEEL (which is optional) event.
      * Otherwise the following mouse event are not send. Before mouse movement
      * or button events are send a MOUSE_ENTERED event is send first.</p>
-     * 
+     *
      * @param evt The event - do not store this object - it may be reused
      * @return true if the widget handled this event
      * @see #setFocusKeyEnabled(boolean)
@@ -1783,7 +1849,7 @@ public class Widget {
      * @see #setInputMap(de.matthiasmann.twl.InputMap)
      */
     protected boolean handleEvent(Event evt) {
-        if(evt.isKeyEvent()) {
+        if (evt.isKeyEvent()) {
             return handleKeyEvent(evt);
         }
         return false;
@@ -1793,39 +1859,39 @@ public class Widget {
      * Called when a key stroke was found in the inputMap.
      *
      * @param action the action associated with the key stroke
-     * @param event the event which caused the action
+     * @param event  the event which caused the action
      * @return true if the action was handled
-     * @see #setInputMap(de.matthiasmann.twl.InputMap) 
+     * @see #setInputMap(de.matthiasmann.twl.InputMap)
      */
     protected boolean handleKeyStrokeAction(String action, Event event) {
-        if(actionMap != null) {
+        if (actionMap != null) {
             return actionMap.invoke(action, event);
         }
         return false;
     }
-    
+
     /**
      * Moves the child at index from to index to. This will shift the position
      * of all children in between.
-     * 
+     *
      * @param from the index of the child that should be moved
-     * @param to the new index for the child at from
+     * @param to   the new index for the child at from
      * @throws java.lang.IndexOutOfBoundsException if from or to are invalid
      */
     protected void moveChild(int from, int to) {
-        if(children == null) {
+        if (children == null) {
             throw new IndexOutOfBoundsException();
         }
-        if(to < 0 || to >= children.size()) {
+        if (to < 0 || to >= children.size()) {
             throw new IndexOutOfBoundsException("to");
         }
-        if(from < 0 || from >= children.size()) {
+        if (from < 0 || from >= children.size()) {
             throw new IndexOutOfBoundsException("from");
         }
         Widget child = children.remove(from);
         children.add(to, child);
     }
-    
+
     /**
      * A child requests keyboard focus.
      * Default implementation will grant keyboard focus and
@@ -1835,11 +1901,11 @@ public class Widget {
      * @return true if the child received the focus.
      */
     protected boolean requestKeyboardFocus(Widget child) {
-        if(child != null && child.parent != this) {
+        if (child != null && child.parent != this) {
             throw new IllegalArgumentException("not a direct child");
         }
-        if(focusChild != child) {
-            if(child == null) {
+        if (focusChild != child) {
+            if (child == null) {
                 recursivelyChildFocusLost(focusChild);
                 focusChild = null;
                 keyboardFocusChildChanged(null);
@@ -1849,11 +1915,11 @@ public class Widget {
                     // first request focus for ourself
                     {
                         FocusGainedCause savedCause = focusGainedCause;
-                        if(savedCause == null) {
+                        if (savedCause == null) {
                             focusGainedCause = FocusGainedCause.CHILD_FOCUSED;
                         }
                         try {
-                            if(!requestKeyboardFocus()) {
+                            if (!requestKeyboardFocus()) {
                                 return false;
                             }
                         } finally {
@@ -1865,7 +1931,7 @@ public class Widget {
                     recursivelyChildFocusLost(focusChild);
                     focusChild = child;
                     keyboardFocusChildChanged(child);
-                    if(!child.sharedAnimState) {
+                    if (!child.sharedAnimState) {
                         child.animState.setAnimationState(STATE_KEYBOARD_FOCUS, true);
                     }
 
@@ -1880,34 +1946,34 @@ public class Widget {
                 }
             }
         }
-        if(!sharedAnimState) {
+        if (!sharedAnimState) {
             animState.setAnimationState(STATE_HAS_FOCUSED_CHILD, focusChild != null);
         }
         return focusChild != null;
     }
-    
+
     /**
      * Called when this widget is removed from the GUI tree.
      * After this call getGUI() will return null.
-     * 
+     *
      * @param gui the GUI object - same as getGUI()
      * @see #getGUI()
      */
     protected void beforeRemoveFromGUI(GUI gui) {
     }
-    
+
     /**
      * Called after this widget has been added to a GUI tree.
-     * 
+     *
      * @param gui the GUI object - same as getGUI()
      * @see #getGUI()
      */
     protected void afterAddToGUI(GUI gui) {
     }
-    
+
     /**
      * Called when the layoutInvalid flag is set.
-     *
+     * <p>
      * The default implementation does nothing.
      */
     protected void layout() {
@@ -1916,7 +1982,7 @@ public class Widget {
     /**
      * Called when the position of this widget was changed.
      * The default implementation does nothing.
-     * 
+     * <p>
      * Child positions are already updated to retain the absolute
      * coordinate system. This has the side effect of firing child's
      * positionChanged before the parent's.
@@ -1928,7 +1994,7 @@ public class Widget {
      * Called when the size of this widget has changed.
      * The default implementation calls invalidateLayoutLocally. As size changes
      * are normally the result of the parent's layout() function.
-     * 
+     *
      * @see #invalidateLayoutLocally()
      */
     protected void sizeChanged() {
@@ -1938,7 +2004,7 @@ public class Widget {
     /**
      * Called when the border size has changed.
      * The default implementation calls invalidateLayout.
-     * 
+     *
      * @see #invalidateLayout()
      */
     protected void borderChanged() {
@@ -1970,7 +2036,7 @@ public class Widget {
     /**
      * A child has been removed.
      * The default implementation calls invalidateLayout.
-     * 
+     *
      * @param exChild the removed widget - no longer a child
      * @see #invalidateLayout()
      */
@@ -1981,9 +2047,9 @@ public class Widget {
     /**
      * All children have been removed.
      * This is called by {@code removeAllChildren} instead of {@code childRemoved}.
-     * 
+     * <p>
      * The default implementation calls invalidateLayout.
-     * 
+     *
      * @see #invalidateLayout()
      */
     protected void allChildrenRemoved() {
@@ -1993,9 +2059,9 @@ public class Widget {
     /**
      * Called when the visibility state of a child was changed.
      * The default implementation does nothing.
-     * 
+     *
      * @param child the child which changed it's visibility state
-     * @see #setVisible(boolean) 
+     * @see #setVisible(boolean)
      */
     protected void childVisibilityChanged(Widget child) {
     }
@@ -2003,7 +2069,7 @@ public class Widget {
     /**
      * The current keyboard focus child has changed.
      * The default implementation does nothing.
-     * 
+     *
      * @param child The child which has now the keyboard focus in this hierachy level or null
      */
     protected void keyboardFocusChildChanged(Widget child) {
@@ -2020,7 +2086,7 @@ public class Widget {
      * Called when this widget has gained the keyboard focus.
      * The default implementation does nothing.
      *
-     * @see #keyboardFocusGained(de.matthiasmann.twl.FocusGainedCause, de.matthiasmann.twl.Widget) 
+     * @see #keyboardFocusGained(de.matthiasmann.twl.FocusGainedCause, de.matthiasmann.twl.Widget)
      */
     protected void keyboardFocusGained() {
     }
@@ -2029,7 +2095,7 @@ public class Widget {
      * Called when this widget has gained the keyboard focus.
      * The default implementation calls {@link #keyboardFocusGained() }
      *
-     * @param cause the cause for the this focus transfer
+     * @param cause          the cause for the this focus transfer
      * @param previousWidget the widget which previously had the keyboard focus - can be null.
      */
     protected void keyboardFocusGained(FocusGainedCause cause, Widget previousWidget) {
@@ -2040,7 +2106,7 @@ public class Widget {
     /**
      * This method is called when this widget has been disabled,
      * either directly or one of it's parents.
-     *
+     * <p>
      * <p>The default implementation does nothing.</p>
      */
     protected void widgetDisabled() {
@@ -2049,7 +2115,7 @@ public class Widget {
     /**
      * Paints this widget and it's children.
      * <p>A subclass should overwrite paintWidget() instead of this function.</p>
-     * 
+     * <p>
      * <p>The default implementation calls the following method in order:</p><ol>
      * <li>{@link #paintBackground(de.matthiasmann.twl.GUI)}</li>
      * <li>{@link #paintWidget(de.matthiasmann.twl.GUI)}</li>
@@ -2064,55 +2130,58 @@ public class Widget {
         paintChildren(gui);
         paintOverlay(gui);
     }
-    
+
     /**
      * Called by {@link #paint(de.matthiasmann.twl.GUI)} after painting the
      * background and before painting all children.
-     * 
+     * <p>
      * <p>This should be overwritten instead of {@code paint} if normal themeable
      * painting is desired by the subclass.</p>
-     * 
+     * <p>
      * <p>The default implementation does nothing.</p>
-     * 
+     *
      * @param gui the GUI object - it's the same as getGUI()
      */
     protected void paintWidget(GUI gui) {
     }
-    
+
     /**
      * Paint the background image of this widget.
+     *
      * @param gui the GUI object
-     * @see #paint(de.matthiasmann.twl.GUI) 
+     * @see #paint(de.matthiasmann.twl.GUI)
      */
     protected void paintBackground(GUI gui) {
         Image bgImage = getBackground();
-        if(bgImage != null) {
+        if (bgImage != null) {
             bgImage.draw(getAnimationState(), posX, posY, width, height);
         }
     }
 
     /**
      * Paints the overlay image of this widget.
+     *
      * @param gui the GUI object
-     * @see #paint(de.matthiasmann.twl.GUI) 
+     * @see #paint(de.matthiasmann.twl.GUI)
      */
     protected void paintOverlay(GUI gui) {
         Image ovImage = getOverlay();
-        if(ovImage != null) {
+        if (ovImage != null) {
             ovImage.draw(getAnimationState(), posX, posY, width, height);
         }
     }
 
     /**
      * Paints all children in index order. Invisible children are skipped.
+     *
      * @param gui the GUI object
-     * @see #paint(de.matthiasmann.twl.GUI) 
+     * @see #paint(de.matthiasmann.twl.GUI)
      */
     protected void paintChildren(GUI gui) {
-        if(children != null) {
-            for(int i=0,n=children.size() ; i<n ; i++) {
+        if (children != null) {
+            for (int i = 0, n = children.size(); i < n; i++) {
                 Widget child = children.get(i);
-                if(child.visible) {
+                if (child.visible) {
                     child.drawWidget(gui);
                 }
             }
@@ -2122,11 +2191,11 @@ public class Widget {
     /**
      * Paints a specified child. Does not check for visibility.
      *
-     * @param gui the GUI object
+     * @param gui   the GUI object
      * @param child the child Widget
      */
     protected void paintChild(GUI gui, Widget child) {
-        if(child.parent != this) {
+        if (child.parent != this) {
             throw new IllegalArgumentException("can only render direct children");
         }
         child.drawWidget(gui);
@@ -2135,28 +2204,28 @@ public class Widget {
     /**
      * Called after all other widgets have been rendered when a drag operation is in progress.
      * The mouse position can be outsife of this widget
-     * 
-     * @param gui the GUI object
-     * @param mouseX the current mouse X position
-     * @param mouseY the current mouse Y position
+     *
+     * @param gui      the GUI object
+     * @param mouseX   the current mouse X position
+     * @param mouseY   the current mouse Y position
      * @param modifier the current active modifiers - see {@link Event#getModifiers() }
      */
     protected void paintDragOverlay(GUI gui, int mouseX, int mouseY, int modifier) {
     }
-    
+
     /**
      * Invalidates only the layout of this widget. Does not invalidate the layout of the parent.
      * Should only be used for things like scrolling.
-     *
+     * <p>
      * This method is called by sizeChanged()
-     * 
+     *
      * @see #sizeChanged()
      */
     protected final void invalidateLayoutLocally() {
-        if(layoutInvalid < LAYOUT_INVALID_LOCAL) {
+        if (layoutInvalid < LAYOUT_INVALID_LOCAL) {
             layoutInvalid = LAYOUT_INVALID_LOCAL;
             GUI gui = getGUI();
-            if(gui != null) {
+            if (gui != null) {
                 gui.hasInvalidLayouts = true;
             }
         }
@@ -2169,7 +2238,7 @@ public class Widget {
      * @param child A child widget
      */
     protected void layoutChildFullInnerArea(Widget child) {
-        if(child.parent != this) {
+        if (child.parent != this) {
             throw new IllegalArgumentException("can only layout direct children");
         }
         child.setPosition(getInnerX(), getInnerY());
@@ -2181,8 +2250,8 @@ public class Widget {
      * complete inner area. If there is more then one child then they will overlap.
      */
     protected void layoutChildrenFullInnerArea() {
-        if(children != null) {
-            for(int i=0,n=children.size() ; i<n ; i++) {
+        if (children != null) {
+            for (int i = 0, n = children.size(); i < n; i++) {
                 layoutChildFullInnerArea(children.get(i));
             }
         }
@@ -2193,10 +2262,11 @@ public class Widget {
      * <p>The returned list is only iterated and not stored.</p>
      * <p>The default implementation just returns an unmodifable view of
      * the internal children list.</p>
+     *
      * @return a read only collection with all children in focus order.
      */
     protected List<Widget> getKeyboardFocusOrder() {
-        if(children == null) {
+        if (children == null) {
             return Collections.<Widget>emptyList();
         }
         return Collections.unmodifiableList(children);
@@ -2204,17 +2274,17 @@ public class Widget {
 
     private int collectFocusOrderList(ArrayList<Widget> list) {
         int idx = -1;
-        for(Widget child : getKeyboardFocusOrder()) {
-            if(child.visible && child.isEnabled()) {
-                if(child.canAcceptKeyboardFocus) {
-                    if(child == focusChild) {
+        for (Widget child : getKeyboardFocusOrder()) {
+            if (child.visible && child.isEnabled()) {
+                if (child.canAcceptKeyboardFocus) {
+                    if (child == focusChild) {
                         idx = list.size();
                     }
                     list.add(child);
                 }
-                if(child.depthFocusTraversal) {
+                if (child.depthFocusTraversal) {
                     int subIdx = child.collectFocusOrderList(list);
-                    if(subIdx != -1) {
+                    if (subIdx != -1) {
                         idx = subIdx;
                     }
                 }
@@ -2226,14 +2296,14 @@ public class Widget {
     private boolean moveFocus(boolean relative, int dir) {
         ArrayList<Widget> focusList = new ArrayList<Widget>();
         int curIndex = collectFocusOrderList(focusList);
-        if(focusList.isEmpty()) {
+        if (focusList.isEmpty()) {
             return false;
         }
-        if(dir < 0) {
-            if(!relative || --curIndex < 0) {
+        if (dir < 0) {
+            if (!relative || --curIndex < 0) {
                 curIndex = focusList.size() - 1;
             }
-        } else if(!relative || ++curIndex >= focusList.size()) {
+        } else if (!relative || ++curIndex >= focusList.size()) {
             curIndex = 0;
         }
         Widget widget = focusList.get(curIndex);
@@ -2249,26 +2319,30 @@ public class Widget {
 
     private boolean focusTransferStart() {
         Widget[] fti = focusTransferInfo.get();
-        if(fti == null) {
+        if (fti == null) {
             Widget root = getRootWidget();
             Widget w = root;
-            while(w.focusChild != null) {
+            while (w.focusChild != null) {
                 w = w.focusChild;
             }
-            if(w == root) {
+            if (w == root) {
                 w = null;
             }
-            focusTransferInfo.set(new Widget[]{ w });
+            focusTransferInfo.set(new Widget[]{w});
             return true;
         }
         return false;
     }
 
     private void focusTransferClear(boolean clear) {
-        if(clear) {
+        if (clear) {
             focusTransferInfo.set(null);
         }
     }
+
+    //
+    // start of internal stuff
+    //
 
     /**
      * Returns the visible child widget which is at the specified coordinate.
@@ -2280,10 +2354,10 @@ public class Widget {
      * @see #getY()
      */
     protected final Widget getChildAt(int x, int y) {
-        if(children != null) {
-            for(int i=children.size(); i-->0 ;) {
+        if (children != null) {
+            for (int i = children.size(); i-- > 0; ) {
                 Widget child = children.get(i);
-                if(child.visible && child.isInside(x, y)) {
+                if (child.visible && child.isInside(x, y)) {
                     return child;
                 }
             }
@@ -2293,7 +2367,7 @@ public class Widget {
 
     /**
      * Updates the tint animation when a fade is active.
-     * 
+     * <p>
      * Can be overridden to do additional things like hide the widget
      * after the end of the animation.
      */
@@ -2308,7 +2382,7 @@ public class Widget {
      * @see PropertyChangeSupport#firePropertyChange(java.beans.PropertyChangeEvent)
      */
     protected final void firePropertyChange(PropertyChangeEvent evt) {
-        if(propertyChangeSupport != null) {
+        if (propertyChangeSupport != null) {
             propertyChangeSupport.firePropertyChange(evt);
         }
     }
@@ -2317,12 +2391,12 @@ public class Widget {
      * Report a bound property update to any registered listeners.
      *
      * @param propertyName The programmatic name of the property that was changed
-     * @param oldValue The old value of the property
-     * @param newValue The new value of the property
+     * @param oldValue     The old value of the property
+     * @param newValue     The new value of the property
      * @see PropertyChangeSupport#firePropertyChange(java.lang.String, boolean, boolean)
      */
     protected final void firePropertyChange(String propertyName, boolean oldValue, boolean newValue) {
-        if(propertyChangeSupport != null) {
+        if (propertyChangeSupport != null) {
             propertyChangeSupport.firePropertyChange(propertyName, oldValue, newValue);
         }
     }
@@ -2331,12 +2405,12 @@ public class Widget {
      * Report a bound property update to any registered listeners.
      *
      * @param propertyName The programmatic name of the property that was changed
-     * @param oldValue The old value of the property
-     * @param newValue The new value of the property
-     * @see PropertyChangeSupport#firePropertyChange(java.lang.String, int, int) 
+     * @param oldValue     The old value of the property
+     * @param newValue     The new value of the property
+     * @see PropertyChangeSupport#firePropertyChange(java.lang.String, int, int)
      */
     protected final void firePropertyChange(String propertyName, int oldValue, int newValue) {
-        if(propertyChangeSupport != null) {
+        if (propertyChangeSupport != null) {
             propertyChangeSupport.firePropertyChange(propertyName, oldValue, newValue);
         }
     }
@@ -2345,39 +2419,31 @@ public class Widget {
      * Report a bound property update to any registered listeners.
      *
      * @param propertyName The programmatic name of the property that was changed
-     * @param oldValue The old value of the property
-     * @param newValue The new value of the property
+     * @param oldValue     The old value of the property
+     * @param newValue     The new value of the property
      * @see PropertyChangeSupport#firePropertyChange(java.lang.String, java.lang.Object, java.lang.Object)
      */
     protected final void firePropertyChange(String propertyName, Object oldValue, Object newValue) {
-        if(propertyChangeSupport != null) {
+        if (propertyChangeSupport != null) {
             propertyChangeSupport.firePropertyChange(propertyName, oldValue, newValue);
         }
     }
 
-    //
-    // start of internal stuff
-    //
-    
-    void setParent(Widget parent) {
-        this.parent = parent;
-    }
-    
     private void unparentChild(Widget child) {
         GUI gui = getGUI();
-        if(child.hasOpenPopup) { 
-            assert(gui != null);
+        if (child.hasOpenPopup) {
+            assert (gui != null);
             gui.closePopupFromWidgets(child);
         }
         recursivelyChildFocusLost(child);
-        if(gui != null) {
+        if (gui != null) {
             child.recursivelyRemoveFromGUI(gui);
         }
         child.recursivelyClearGUI(gui);
         child.parent = null;
         try {
             child.destroy();
-        } catch(Exception ex) {
+        } catch (Exception ex) {
             getLogger().log(Level.SEVERE, "Exception in destroy()", ex);
         }
         adjustChildPosition(child, -posX, -posY);
@@ -2387,8 +2453,8 @@ public class Widget {
     private void recursivelySetGUI(GUI gui) {
         assert guiInstance == null : "guiInstance must be null";
         guiInstance = gui;
-        if(children != null) {
-            for(int i=children.size() ; i-->0 ;) {
+        if (children != null) {
+            for (int i = children.size(); i-- > 0; ) {
                 children.get(i).recursivelySetGUI(gui);
             }
         }
@@ -2396,19 +2462,19 @@ public class Widget {
 
     private void recursivelyAddToGUI(GUI gui) {
         assert guiInstance == gui : "guiInstance must be equal to gui";
-        if(layoutInvalid != 0) {
+        if (layoutInvalid != 0) {
             gui.hasInvalidLayouts = true;
         }
-        if(!sharedAnimState) {
+        if (!sharedAnimState) {
             animState.setGUI(gui);
         }
         try {
             afterAddToGUI(gui);
-        } catch(Exception ex) {
+        } catch (Exception ex) {
             getLogger().log(Level.SEVERE, "Exception in afterAddToGUI()", ex);
         }
-        if(children != null) {
-            for(int i=children.size() ; i-->0 ;) {
+        if (children != null) {
+            for (int i = children.size(); i-- > 0; ) {
                 children.get(i).recursivelyAddToGUI(gui);
             }
         }
@@ -2418,8 +2484,8 @@ public class Widget {
         assert guiInstance == gui : "guiInstance must be null";
         guiInstance = null;
         themeManager = null;
-        if(children != null) {
-            for(int i=children.size() ; i-->0 ;) {
+        if (children != null) {
+            for (int i = children.size(); i-- > 0; ) {
                 children.get(i).recursivelyClearGUI(gui);
             }
         }
@@ -2427,31 +2493,31 @@ public class Widget {
 
     private void recursivelyRemoveFromGUI(GUI gui) {
         assert guiInstance == gui : "guiInstance must be equal to gui";
-        if(children != null) {
-            for(int i=children.size() ; i-->0 ;) {
+        if (children != null) {
+            for (int i = children.size(); i-- > 0; ) {
                 children.get(i).recursivelyRemoveFromGUI(gui);
             }
         }
         focusChild = null;
-        if(!sharedAnimState) {
+        if (!sharedAnimState) {
             animState.setGUI(null);
         }
         try {
             beforeRemoveFromGUI(gui);
-        } catch(Exception ex) {
+        } catch (Exception ex) {
             getLogger().log(Level.SEVERE, "Exception in beforeRemoveFromGUI()", ex);
         }
     }
 
     private void recursivelyChildFocusLost(Widget w) {
-        while(w != null) {
+        while (w != null) {
             Widget next = w.focusChild;
-            if(!w.sharedAnimState) {
+            if (!w.sharedAnimState) {
                 w.animState.setAnimationState(STATE_KEYBOARD_FOCUS, false);
             }
             try {
                 w.keyboardFocusLost();
-            } catch(Exception ex) {
+            } catch (Exception ex) {
                 getLogger().log(Level.SEVERE, "Exception in keyboardFocusLost()", ex);
             }
             w.focusChild = null;
@@ -2461,58 +2527,58 @@ public class Widget {
 
     private void recursivelyEnabledChanged(GUI gui, boolean enabled) {
         enabled &= locallyEnabled;
-        if(this.enabled != enabled) {
+        if (this.enabled != enabled) {
             this.enabled = enabled;
-            if(!sharedAnimState) {
+            if (!sharedAnimState) {
                 getAnimationState().setAnimationState(STATE_DISABLED, !enabled);
             }
-            if(!enabled) {
-                if(gui != null) {
+            if (!enabled) {
+                if (gui != null) {
                     gui.widgetDisabled(this);
                 }
                 try {
                     widgetDisabled();
-                } catch(Exception ex) {
+                } catch (Exception ex) {
                     getLogger().log(Level.SEVERE, "Exception in widgetDisabled()", ex);
                 }
                 try {
                     giveupKeyboardFocus();
-                } catch(Exception ex) {
+                } catch (Exception ex) {
                     getLogger().log(Level.SEVERE, "Exception in giveupKeyboardFocus()", ex);
                 }
             }
             try {
                 firePropertyChange("enabled", !enabled, enabled);
-            } catch(Exception ex) {
+            } catch (Exception ex) {
                 getLogger().log(Level.SEVERE, "Exception in firePropertyChange(\"enabled\")", ex);
             }
-            if(children != null) {
-                for(int i=children.size() ; i-->0 ;) {
+            if (children != null) {
+                for (int i = children.size(); i-- > 0; ) {
                     Widget child = children.get(i);
                     child.recursivelyEnabledChanged(gui, enabled);
                 }
             }
         }
     }
-    
+
     private void childHidden(Widget child) {
-        if(focusChild == child) {
+        if (focusChild == child) {
             recursivelyChildFocusLost(focusChild);
             focusChild = null;
         }
-        if(lastChildMouseOver == child) {
+        if (lastChildMouseOver == child) {
             lastChildMouseOver = null;
         }
     }
-    
+
     final void setOpenPopup(GUI gui, boolean hasOpenPopup) {
-        if(this.hasOpenPopup != hasOpenPopup) {
+        if (this.hasOpenPopup != hasOpenPopup) {
             this.hasOpenPopup = hasOpenPopup;
-            if(!sharedAnimState) {
+            if (!sharedAnimState) {
                 getAnimationState().setAnimationState(STATE_HAS_OPEN_POPUPS, hasOpenPopup);
             }
-            if(parent != null) {
-                if(hasOpenPopup) {
+            if (parent != null) {
+                if (hasOpenPopup) {
                     parent.setOpenPopup(gui, true);
                 } else {
                     parent.recalcOpenPopups(gui);
@@ -2520,17 +2586,17 @@ public class Widget {
             }
         }
     }
-    
+
     final void recalcOpenPopups(GUI gui) {
         // 1) check self
-        if(gui.hasOpenPopups(this)) {
+        if (gui.hasOpenPopups(this)) {
             setOpenPopup(gui, true);
             return;
         }
         // 2) check children (don't compute, just check the flag)
-        if(children != null) {
-            for(int i=children.size() ; i-->0 ;) {
-                if(children.get(i).hasOpenPopup) {
+        if (children != null) {
+            for (int i = children.size(); i-- > 0; ) {
+                if (children.get(i).hasOpenPopup) {
                     setOpenPopup(gui, true);
                     return;
                 }
@@ -2538,21 +2604,21 @@ public class Widget {
         }
         setOpenPopup(gui, false);
     }
-    
+
     final boolean isLayoutInvalid() {
         return layoutInvalid != 0;
     }
-    
+
     final void drawWidget(GUI gui) {
-        if(renderOffscreen != null) {
+        if (renderOffscreen != null) {
             drawWidgetOffscreen(gui);
             return;
         }
-        if(tintAnimator != null && tintAnimator.hasTint()) {
+        if (tintAnimator != null && tintAnimator.hasTint()) {
             drawWidgetTint(gui);
             return;
         }
-        if(clip) {
+        if (clip) {
             drawWidgetClip(gui);
             return;
         }
@@ -2560,13 +2626,13 @@ public class Widget {
     }
 
     private void drawWidgetTint(GUI gui) {
-        if(tintAnimator.isFadeActive()) {
+        if (tintAnimator.isFadeActive()) {
             updateTintAnimation();
         }
         final Renderer renderer = gui.getRenderer();
         tintAnimator.paintWithTint(renderer);
         try {
-            if(clip) {
+            if (clip) {
                 drawWidgetClip(gui);
             } else {
                 paint(gui);
@@ -2585,33 +2651,33 @@ public class Widget {
             renderer.clipLeave();
         }
     }
-    
+
     private void drawWidgetOffscreen(GUI gui) {
         final RenderOffscreen ro = this.renderOffscreen;
         final Renderer renderer = gui.getRenderer();
         final OffscreenRenderer offscreenRenderer = renderer.getOffscreenRenderer();
-        if(offscreenRenderer != null) {
+        if (offscreenRenderer != null) {
             int extraTop = offscreenExtraTop;
             int extraLeft = offscreenExtraLeft;
             int extraRight = offscreenExtraRight;
             int extraBottom = offscreenExtraBottom;
             int[] effectExtra = ro.getEffectExtraArea(this);
-            if(effectExtra != null) {
+            if (effectExtra != null) {
                 extraTop += effectExtra[0];
                 extraLeft += effectExtra[1];
                 extraRight += effectExtra[2];
                 extraBottom += effectExtra[3];
             }
-            if(offscreenSurface != null && !ro.needPainting(gui, parent, offscreenSurface)) {
+            if (offscreenSurface != null && !ro.needPainting(gui, parent, offscreenSurface)) {
                 ro.paintOffscreenSurface(gui, this, offscreenSurface);
                 return;
             }
             offscreenSurface = offscreenRenderer.startOffscreenRendering(
-                    this, offscreenSurface, posX-extraLeft, posY-extraTop,
-                    width+extraLeft+extraRight, height+extraTop+extraBottom);
-            if(offscreenSurface != null) {
+                    this, offscreenSurface, posX - extraLeft, posY - extraTop,
+                    width + extraLeft + extraRight, height + extraTop + extraBottom);
+            if (offscreenSurface != null) {
                 try {
-                    if(tintAnimator != null && tintAnimator.hasTint()) {
+                    if (tintAnimator != null && tintAnimator.hasTint()) {
                         drawWidgetTint(gui);
                     } else {
                         paint(gui);
@@ -2627,38 +2693,34 @@ public class Widget {
         ro.offscreenRenderingFailed(this);
         drawWidget(gui);
     }
-    
+
     Widget getWidgetUnderMouse() {
-        if(!visible) {
+        if (!visible) {
             return null;
         }
         Widget w = this;
-        while(w.lastChildMouseOver != null && w.visible) {
+        while (w.lastChildMouseOver != null && w.visible) {
             w = w.lastChildMouseOver;
         }
         return w;
-    }
-    
-    private static void adjustChildPosition(Widget child, int deltaX, int deltaY) {
-        child.setPositionImpl(child.posX + deltaX, child.posY + deltaY);
     }
 
     final boolean setPositionImpl(int x, int y) {
         int deltaX = x - posX;
         int deltaY = y - posY;
-        if(deltaX != 0 || deltaY != 0) {
+        if (deltaX != 0 || deltaY != 0) {
             this.posX = x;
             this.posY = y;
 
-            if(children != null) {
-                for(int i=0,n=children.size() ; i<n ; i++) {
+            if (children != null) {
+                for (int i = 0, n = children.size(); i < n; i++) {
                     adjustChildPosition(children.get(i), deltaX, deltaY);
                 }
             }
 
             positionChanged();
 
-            if(propertyChangeSupport != null) {
+            if (propertyChangeSupport != null) {
                 firePropertyChange("x", x - deltaX, x);
                 firePropertyChange("y", y - deltaY, y);
             }
@@ -2666,14 +2728,14 @@ public class Widget {
         }
         return false;
     }
-    
+
     void applyTheme(ThemeManager themeManager) {
         this.themeManager = themeManager;
-        
+
         final String themePath = getThemePath();
-        if(themePath.length() == 0) {
-            if(children != null) {
-                for(int i=0,n=children.size() ; i<n ; i++) {
+        if (themePath.length() == 0) {
+            if (children != null) {
+                for (int i = 0, n = children.size(); i < n; i++) {
                     children.get(i).applyTheme(themeManager);
                 }
             }
@@ -2682,14 +2744,14 @@ public class Widget {
 
         final DebugHook hook = DebugHook.getDebugHook();
         hook.beforeApplyTheme(this);
-        
+
         ThemeInfo themeInfo = null;
         try {
             themeInfo = themeManager.findThemeInfo(themePath);
-            if(themeInfo != null && theme.length() > 0) {
+            if (themeInfo != null && theme.length() > 0) {
                 try {
                     applyTheme(themeInfo);
-                } catch(Exception ex) {
+                } catch (Exception ex) {
                     getLogger().log(Level.SEVERE, "Exception in applyTheme()", ex);
                 }
             }
@@ -2700,31 +2762,20 @@ public class Widget {
         applyThemeToChildren(themeManager, themeInfo, hook);
     }
 
-    /**
-     * Checks if the given theme name is absolute or relative to it's parent.
-     * An absolute theme name starts with a '/'.
-     * 
-     * @param theme the theme name or path.
-     * @return true if the theme is absolute.
-     */
-    public static boolean isAbsoluteTheme(String theme) {
-        return theme.length() > 1 && theme.charAt(0) == '/';
-    }
-
     private void applyThemeImpl(ThemeManager themeManager, ThemeInfo themeInfo, DebugHook hook) {
         this.themeManager = themeManager;
-        if(theme.length() > 0) {
+        if (theme.length() > 0) {
             hook.beforeApplyTheme(this);
             try {
-                if(isAbsoluteTheme(theme)) {
+                if (isAbsoluteTheme(theme)) {
                     themeInfo = themeManager.findThemeInfo(theme.substring(1));
                 } else {
                     themeInfo = themeInfo.getChildTheme(theme);
                 }
-                if(themeInfo != null) {
+                if (themeInfo != null) {
                     try {
                         applyTheme(themeInfo);
-                    } catch(Exception ex) {
+                    } catch (Exception ex) {
                         getLogger().log(Level.SEVERE, "Exception in applyTheme()", ex);
                     }
                 }
@@ -2736,8 +2787,8 @@ public class Widget {
     }
 
     private void applyThemeToChildren(ThemeManager themeManager, ThemeInfo themeInfo, DebugHook hook) {
-        if(children != null && themeInfo != null) {
-            for(int i=0,n=children.size() ; i<n ; i++) {
+        if (children != null && themeInfo != null) {
+            for (int i = 0, n = children.size(); i < n; i++) {
                 Widget child = children.get(i);
                 child.applyThemeImpl(themeManager, themeInfo, hook);
             }
@@ -2748,50 +2799,50 @@ public class Widget {
         StringBuilder sb;
         length += theme.length();
         boolean abs = isAbsoluteTheme(theme);
-        if(parent != null && !abs) {
-            sb = parent.getThemePath(length+1);
-            if(theme.length() > 0 && sb.length() > 0) {
+        if (parent != null && !abs) {
+            sb = parent.getThemePath(length + 1);
+            if (theme.length() > 0 && sb.length() > 0) {
                 sb.append('.');
             }
         } else {
             sb = new StringBuilder(length);
         }
-        if(abs) {
+        if (abs) {
             return sb.append(theme.substring(1));
         }
         return sb.append(theme);
     }
 
     Event translateMouseEvent(Event evt) {
-        if(renderOffscreen instanceof OffscreenMouseAdjustments) {
-            int[] newXY = ((OffscreenMouseAdjustments)renderOffscreen).adjustMouseCoordinates(this, evt);
+        if (renderOffscreen instanceof OffscreenMouseAdjustments) {
+            int[] newXY = ((OffscreenMouseAdjustments) renderOffscreen).adjustMouseCoordinates(this, evt);
             evt = evt.createSubEvent(newXY[0], newXY[1]);
         }
         return evt;
     }
-    
+
     Widget routeMouseEvent(Event evt) {
         assert !evt.isMouseDragEvent();
         evt = translateMouseEvent(evt);
-        if(children != null) {
-            for(int i=children.size(); i-->0 ;) {
+        if (children != null) {
+            for (int i = children.size(); i-- > 0; ) {
                 Widget child = children.get(i);
-                if(child.visible && child.isMouseInside(evt)) {
+                if (child.visible && child.isMouseInside(evt)) {
                     // we send the real event only only if we can transfer the mouse "focus" to this child
-                    if(setMouseOverChild(child, evt)) {
-                        if(evt.getType() == Event.Type.MOUSE_ENTERED ||
+                    if (setMouseOverChild(child, evt)) {
+                        if (evt.getType() == Event.Type.MOUSE_ENTERED ||
                                 evt.getType() == Event.Type.MOUSE_EXITED) {
                             return child;
                         }
                         Widget result = child.routeMouseEvent(evt);
-                        if(result != null) {
+                        if (result != null) {
                             // need to check if the focus was transfered to this child or its descendants
                             // if not we need to transfer focus on mouse click here
                             // this can happen if we click on a widget which doesn't want the keyboard focus itself
-                            if(evt.getType() == Event.Type.MOUSE_BTNDOWN && focusChild != child) {
+                            if (evt.getType() == Event.Type.MOUSE_BTNDOWN && focusChild != child) {
                                 try {
                                     child.focusGainedCause = FocusGainedCause.MOUSE_BTNDOWN;
-                                    if(child.isEnabled() && child.canAcceptKeyboardFocus()) {
+                                    if (child.isEnabled() && child.canAcceptKeyboardFocus()) {
                                         requestKeyboardFocus(child);
                                     }
                                 } finally {
@@ -2810,10 +2861,10 @@ public class Widget {
 
         // the following code is only executed for the widget which received
         // the click event. That's why we can call {@code requestKeyboardFocus(null)}
-        if(evt.getType() == Event.Type.MOUSE_BTNDOWN && isEnabled() && canAcceptKeyboardFocus()) {
+        if (evt.getType() == Event.Type.MOUSE_BTNDOWN && isEnabled() && canAcceptKeyboardFocus()) {
             try {
                 focusGainedCause = FocusGainedCause.MOUSE_BTNDOWN;
-                if(focusChild == null) {
+                if (focusChild == null) {
                     requestKeyboardFocus();
                 } else {
                     requestKeyboardFocus(null);
@@ -2822,67 +2873,49 @@ public class Widget {
                 focusGainedCause = null;
             }
         }
-        if(evt.getType() != Event.Type.MOUSE_WHEEL) {
+        if (evt.getType() != Event.Type.MOUSE_WHEEL) {
             // no child has mouse over
             setMouseOverChild(null, evt);
         }
-        if(!isEnabled() && isMouseAction(evt)) {
+        if (!isEnabled() && isMouseAction(evt)) {
             return this;
         }
-        if(handleEvent(evt)) {
+        if (handleEvent(evt)) {
             return this;
         }
         return null;
     }
 
-    static boolean isMouseAction(Event evt) {
-        Event.Type type = evt.getType();
-        return type == Event.Type.MOUSE_BTNDOWN ||
-                type == Event.Type.MOUSE_BTNUP ||
-                type == Event.Type.MOUSE_CLICKED ||
-                type == Event.Type.MOUSE_DRAGGED;
-    }
-
     void routePopupEvent(Event evt) {
         handleEvent(evt);
-        if(children != null) {
-            for(int i=0,n=children.size() ; i<n ; i++) {
+        if (children != null) {
+            for (int i = 0, n = children.size(); i < n; i++) {
                 children.get(i).routePopupEvent(evt);
             }
         }
     }
 
-    static boolean getSafeBooleanProperty(String name) {
-        try {
-            return Boolean.getBoolean(name);
-        } catch (AccessControlException ex) {
-            return false;
-        }
-    }
-    
-    private static final boolean WARN_ON_UNHANDLED_ACTION = getSafeBooleanProperty("warnOnUnhandledAction");
-
     private boolean handleKeyEvent(Event evt) {
-        if(children != null) {
-            if(focusKeyEnabled && guiInstance != null) {
+        if (children != null) {
+            if (focusKeyEnabled && guiInstance != null) {
                 guiInstance.setFocusKeyWidget(this);
             }
-            if(focusChild != null && focusChild.isVisible()) {
-                if(focusChild.handleEvent(evt)) {
+            if (focusChild != null && focusChild.isVisible()) {
+                if (focusChild.handleEvent(evt)) {
                     return true;
                 }
             }
         }
-        if(inputMap != null) {
+        if (inputMap != null) {
             String action = inputMap.mapEvent(evt);
-            if(action != null) {
-                if(handleKeyStrokeAction(action, evt)) {
+            if (action != null) {
+                if (handleKeyStrokeAction(action, evt)) {
                     return true;
                 }
-                if(WARN_ON_UNHANDLED_ACTION) {
+                if (WARN_ON_UNHANDLED_ACTION) {
                     Logger.getLogger(getClass().getName()).log(Level.WARNING,
                             "Unhandled action ''{0}'' for class ''{1}''",
-                            new Object[]{ action, getClass().getName() });
+                            new Object[]{action, getClass().getName()});
                 }
             }
         }
@@ -2890,8 +2923,8 @@ public class Widget {
     }
 
     void handleFocusKeyEvent(Event evt) {
-        if(evt.isKeyPressedEvent()) {
-            if((evt.getModifiers() & Event.MODIFIER_SHIFT) != 0) {
+        if (evt.isKeyPressedEvent()) {
+            if ((evt.getModifiers() & Event.MODIFIER_SHIFT) != 0) {
                 focusPrevChild();
             } else {
                 focusNextChild();
@@ -2901,9 +2934,9 @@ public class Widget {
 
     boolean setMouseOverChild(Widget child, Event evt) {
         if (lastChildMouseOver != child) {
-            if(child != null) {
+            if (child != null) {
                 Widget result = child.routeMouseEvent(evt.createSubEvent(Event.Type.MOUSE_ENTERED));
-                if(result == null) {
+                if (result == null) {
                     // this child widget doesn't want mouse events
                     return false;
                 }
@@ -2915,20 +2948,20 @@ public class Widget {
         }
         return true;
     }
-    
+
     void collectLayoutLoop(ArrayList<Widget> result) {
-        if(layoutInvalid != 0) {
+        if (layoutInvalid != 0) {
             result.add(this);
         }
-        if(children != null) {
-            for(int i=0,n=children.size() ; i<n ; i++) {
+        if (children != null) {
+            for (int i = 0, n = children.size(); i < n; i++) {
                 children.get(i).collectLayoutLoop(result);
             }
         }
     }
 
     private PropertyChangeSupport createPropertyChangeSupport() {
-        if(propertyChangeSupport == null) {
+        if (propertyChangeSupport == null) {
             propertyChangeSupport = new PropertyChangeSupport(this);
         }
         return propertyChangeSupport;
@@ -2937,7 +2970,7 @@ public class Widget {
     private Logger getLogger() {
         return Logger.getLogger(Widget.class.getName());
     }
-    
+
     /**
      * When this interface is installed in a Widget then the widget tries to
      * render into an offscreen surface.
@@ -2946,62 +2979,63 @@ public class Widget {
         /**
          * This method is called after the widget has been sucessfully rendered
          * into an offscreen surface.
-         * 
-         * @param gui the GUI instance
-         * @param widget the widget
+         *
+         * @param gui     the GUI instance
+         * @param widget  the widget
          * @param surface the resulting offscreen surface
          */
         public void paintOffscreenSurface(GUI gui, Widget widget, OffscreenSurface surface);
-        
+
         /**
          * Called when {@link OffscreenRenderer#startOffscreenRendering(de.matthiasmann.twl.renderer.OffscreenSurface, int, int, int, int) }
          * failed.
          * At the moment this method is called the RenderOffscreen instance has
          * already been removed from the widget.
+         *
          * @param widget the widget
          */
         public void offscreenRenderingFailed(Widget widget);
-        
+
         /**
          * Returns the extra area around the widget needed for the effect.
          * <p>All returned values must be &gt;= 0.</p>
-         * 
+         * <p>
          * <p>The returned object can be reused on the next call and should not
          * be stored by the caller.</p>
-         * 
+         *
          * @param widget the widget
          * @return the extra area in {@code top, left, right, bottom} order or null
          */
         public int[] getEffectExtraArea(Widget widget);
-        
+
         /**
          * Called before offscreen rendering is started.
-         * 
+         * <p>
          * <p>NOTE: when this function returns false none of the paint methods
          * of that widget are called which might effect some widgets.</p>
-         * 
+         * <p>
          * <p>If you are unsure it is always safer to return true.</p>
-         * 
-         * @param gui the GUI instance
-         * @param widget the widget
+         *
+         * @param gui     the GUI instance
+         * @param widget  the widget
          * @param surface the previous offscreen surface - never null
          * @return true if the surface needs to be updated, false if no new rendering should be done
          */
         public boolean needPainting(GUI gui, Widget widget, OffscreenSurface surface);
     }
-    
+
     public interface OffscreenMouseAdjustments extends RenderOffscreen {
-        
+
         /**
          * Called when mouse events are routed for the widget.
-         * 
+         * <p>
          * <p>All mouse coordinates in TWL are absolute.</p>
-         * 
+         * <p>
          * <p>The returned object can be reused on the next call and should not
          * be stored by the caller.</p>
-         * 
+         *
          * @param widget the widget
-         * @param evt the mouse event
+         * @param evt    the mouse event
          * @return the new mouse coordinates in {@code x, y} order
          */
         public int[] adjustMouseCoordinates(Widget widget, Event evt);

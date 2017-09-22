@@ -31,6 +31,7 @@ package de.matthiasmann.twl.renderer;
 
 /**
  * A resource is an object that needs to be destroyed when no longer in used.
+ *
  * @author Matthias Mann
  */
 public interface Resource {
@@ -39,5 +40,5 @@ public interface Resource {
      * After destroying a resurce it is no longer useable.
      */
     public void destroy();
-    
+
 }

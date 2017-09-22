@@ -31,10 +31,10 @@ package de.matthiasmann.twl.model;
 
 /**
  * A color space used by the color selector widget.
- *
+ * <p>
  * It supports a variable number of color components.
  * It does not include an alpha channel.
- * 
+ *
  * @author Matthias Mann
  */
 public interface ColorSpace {
@@ -43,6 +43,7 @@ public interface ColorSpace {
 
     /**
      * Returns the number of component for this model. Must be >= 3.
+     *
      * @return the number of component for this model. Must be >= 3.
      */
     public int getNumComponents();
@@ -58,7 +59,7 @@ public interface ColorSpace {
     /**
      * A short version of the component name for use in UIs. For best results
      * all short names should have the same length.
-     * 
+     *
      * @param component the color component index
      * @return the name of the color component
      */
@@ -82,6 +83,7 @@ public interface ColorSpace {
 
     /**
      * Returns the default component for the initial color
+     *
      * @param component the color component index
      * @return the default value
      */
@@ -90,7 +92,7 @@ public interface ColorSpace {
     /**
      * Converts the specified color into a RGB value without alpha part.
      * This convertion is not exact.
-     * 
+     * <p>
      * bits  0- 7 are blue
      * bits  8-15 are green
      * bits 16-23 are red
@@ -106,8 +108,8 @@ public interface ColorSpace {
      *
      * @param rgb the RGB value
      * @return the color values corespondig to the RGB value
-     * @see #toRGB(float[]) 
+     * @see #toRGB(float[])
      */
     public float[] fromRGB(int rgb);
-    
+
 }

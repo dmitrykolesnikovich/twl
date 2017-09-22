@@ -31,12 +31,12 @@ package de.matthiasmann.twl.renderer;
 
 /**
  * An offscreen surface.
- * 
+ * <p>
  * <p>It exposes all Image methods, in order to do special effects
  * you need to cast this to the implementation</p>.
- * 
+ *
  * @author Matthias Mann
  */
 public interface OffscreenSurface extends Resource, Image {
-    
+
 }

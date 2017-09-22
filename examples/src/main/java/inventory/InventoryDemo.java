@@ -43,11 +43,30 @@ import test.TestUtils;
 
 /**
  * A simple login panel
- * 
+ *
  * @author Matthias Mann
  */
 public class InventoryDemo extends DesktopArea {
-    
+
+    final FPSCounter fpsCounter;
+    final ResizableFrame frame;
+    final InventoryPanel inventoryPanel;
+    boolean quit;
+
+    public InventoryDemo() {
+        fpsCounter = new FPSCounter();
+
+        inventoryPanel = new InventoryPanel(10, 5);
+
+        frame = new ResizableFrame();
+        frame.setTitle("Inventory");
+        frame.setResizableAxis(ResizableFrame.ResizableAxis.NONE);
+        frame.add(inventoryPanel);
+
+        add(fpsCounter);
+        add(frame);
+    }
+
     public static void main(String[] args) {
         try {
             Display.setDisplayMode(new DisplayMode(800, 600));
@@ -56,9 +75,9 @@ public class InventoryDemo extends DesktopArea {
             Display.setVSyncEnabled(true);
 
             Mouse.setClipMouseCoordinatesToWindow(false);
-            
+
             InventoryDemo demo = new InventoryDemo();
-            
+
             LWJGLRenderer renderer = new LWJGLRenderer();
             GUI gui = new GUI(demo, renderer);
 
@@ -68,8 +87,8 @@ public class InventoryDemo extends DesktopArea {
 
             gui.validateLayout();
             demo.positionFrame();
-            
-            while(!Display.isCloseRequested() && !demo.quit) {
+
+            while (!Display.isCloseRequested() && !demo.quit) {
                 GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
 
                 gui.update();
@@ -84,42 +103,22 @@ public class InventoryDemo extends DesktopArea {
         Display.destroy();
     }
 
-    final FPSCounter fpsCounter;
-    final ResizableFrame frame;
-    final InventoryPanel inventoryPanel;
-    
-    boolean quit;
-
-    public InventoryDemo() {
-        fpsCounter = new FPSCounter();
-        
-        inventoryPanel = new InventoryPanel(10, 5);
-        
-        frame = new ResizableFrame();
-        frame.setTitle("Inventory");
-        frame.setResizableAxis(ResizableFrame.ResizableAxis.NONE);
-        frame.add(inventoryPanel);
-        
-        add(fpsCounter);
-        add(frame);
-    }
-
     void positionFrame() {
         frame.adjustSize();
         frame.setPosition(
-                getInnerX() + (getInnerWidth() - frame.getWidth())/2,
-                getInnerY() + (getInnerHeight() - frame.getHeight())/2);
+                getInnerX() + (getInnerWidth() - frame.getWidth()) / 2,
+                getInnerY() + (getInnerHeight() - frame.getHeight()) / 2);
     }
-    
+
     @Override
     protected void layout() {
         super.layout();
-        
+
         // fpsCounter is bottom right
         fpsCounter.adjustSize();
         fpsCounter.setPosition(
                 getInnerRight() - fpsCounter.getWidth(),
                 getInnerBottom() - fpsCounter.getHeight());
     }
-    
+
 }

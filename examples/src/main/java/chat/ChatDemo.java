@@ -29,17 +29,9 @@
  */
 package chat;
 
-import de.matthiasmann.twl.DesktopArea;
-import de.matthiasmann.twl.DialogLayout;
-import de.matthiasmann.twl.EditField;
-import de.matthiasmann.twl.Event;
-import de.matthiasmann.twl.FPSCounter;
-import de.matthiasmann.twl.GUI;
-import de.matthiasmann.twl.ResizableFrame;
-import de.matthiasmann.twl.ScrollPane;
-import de.matthiasmann.twl.TextArea;
-import de.matthiasmann.twl.textarea.HTMLTextAreaModel;
+import de.matthiasmann.twl.*;
 import de.matthiasmann.twl.renderer.lwjgl.LWJGLRenderer;
+import de.matthiasmann.twl.textarea.HTMLTextAreaModel;
 import de.matthiasmann.twl.theme.ThemeManager;
 import org.lwjgl.Sys;
 import org.lwjgl.opengl.Display;
@@ -49,12 +41,27 @@ import test.TestUtils;
 
 /**
  * A chat demo
- *
+ * <p>
  * This class also acts as root pane
  *
  * @author Matthias Mann
  */
 public class ChatDemo extends DesktopArea {
+
+    private final FPSCounter fpsCounter;
+    private final ChatFrame chatFrame;
+    public boolean quit;
+
+    public ChatDemo() {
+        fpsCounter = new FPSCounter();
+        add(fpsCounter);
+
+        chatFrame = new ChatFrame();
+        add(chatFrame);
+
+        chatFrame.setSize(400, 200);
+        chatFrame.setPosition(10, 350);
+    }
 
     public static void main(String[] args) {
         try {
@@ -71,7 +78,7 @@ public class ChatDemo extends DesktopArea {
                     ChatDemo.class.getResource("chat.xml"), renderer);
             gui.applyTheme(theme);
 
-            while(!Display.isCloseRequested() && !chat.quit) {
+            while (!Display.isCloseRequested() && !chat.quit) {
                 GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
 
                 gui.update();
@@ -87,22 +94,6 @@ public class ChatDemo extends DesktopArea {
         Display.destroy();
     }
 
-    private final FPSCounter fpsCounter;
-    private final ChatFrame chatFrame;
-
-    public boolean quit;
-
-    public ChatDemo() {
-        fpsCounter = new FPSCounter();
-        add(fpsCounter);
-
-        chatFrame = new ChatFrame();
-        add(chatFrame);
-
-        chatFrame.setSize(400, 200);
-        chatFrame.setPosition(10, 350);
-    }
-
     @Override
     protected void layout() {
         super.layout();
@@ -116,7 +107,7 @@ public class ChatDemo extends DesktopArea {
 
     @Override
     protected boolean handleEvent(Event evt) {
-        if(super.handleEvent(evt)) {
+        if (super.handleEvent(evt)) {
             return true;
         }
         switch (evt.getType()) {
@@ -148,9 +139,9 @@ public class ChatDemo extends DesktopArea {
 
             editField.addCallback(new EditField.Callback() {
                 public void callback(int key) {
-                    if(key == Event.KEY_RETURN) {
+                    if (key == Event.KEY_RETURN) {
                         // cycle through 3 different colors/font styles
-                        appendRow("color"+curColor, editField.getText());
+                        appendRow("color" + curColor, editField.getText());
                         editField.setText("");
                         curColor = (curColor + 1) % 3;
                     }
@@ -179,15 +170,23 @@ public class ChatDemo extends DesktopArea {
         private void appendRow(String font, String text) {
             sb.append("<div style=\"word-wrap: break-word; font-family: ").append(font).append("; \">");
             // not efficient but simple
-            for(int i=0,l=text.length() ; i<l ; i++) {
+            for (int i = 0, l = text.length(); i < l; i++) {
                 char ch = text.charAt(i);
-                switch(ch) {
-                    case '<': sb.append("&lt;"); break;
-                    case '>': sb.append("&gt;"); break;
-                    case '&': sb.append("&amp;"); break;
-                    case '"': sb.append("&quot;"); break;
+                switch (ch) {
+                    case '<':
+                        sb.append("&lt;");
+                        break;
+                    case '>':
+                        sb.append("&gt;");
+                        break;
+                    case '&':
+                        sb.append("&amp;");
+                        break;
+                    case '"':
+                        sb.append("&quot;");
+                        break;
                     case ':':
-                        if(text.startsWith(":)", i)) {
+                        if (text.startsWith(":)", i)) {
                             sb.append("<img src=\"smiley\" alt=\":)\"/>");
                             i += 1; // skip one less because of i++ in the for loop
                             break;
@@ -195,9 +194,9 @@ public class ChatDemo extends DesktopArea {
                         sb.append(ch);
                         break;
                     case 'h':
-                        if(text.startsWith("http://", i)) {
+                        if (text.startsWith("http://", i)) {
                             int end = i + 7;
-                            while(end < l && isURLChar(text.charAt(end))) {
+                            while (end < l && isURLChar(text.charAt(end))) {
                                 end++;
                             }
                             String href = text.substring(i, end);
@@ -218,7 +217,7 @@ public class ChatDemo extends DesktopArea {
 
             textAreaModel.setHtml(sb.toString());
 
-            if(isAtEnd) {
+            if (isAtEnd) {
                 scrollPane.validateLayout();
                 scrollPane.setScrollPositionY(scrollPane.getMaxScrollPosY());
             }

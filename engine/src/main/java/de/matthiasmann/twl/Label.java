@@ -29,28 +29,24 @@
  */
 package de.matthiasmann.twl;
 
-import de.matthiasmann.twl.utils.TextUtil;
-import de.matthiasmann.twl.utils.CallbackSupport;
 import de.matthiasmann.twl.renderer.Font;
+import de.matthiasmann.twl.utils.CallbackSupport;
+import de.matthiasmann.twl.utils.TextUtil;
 
 /**
  * A label widget.
- * 
+ *
  * @author Matthias Mann
  */
 public class Label extends TextWidget {
 
-    public enum CallbackReason {
-        CLICK,
-        DOUBLE_CLICK
-    };
-    
     private boolean autoSize = true;
+
+    ;
     private Widget labelFor;
     private CallbackWithReason<?>[] callbacks;
-    
     public Label() {
-        this((AnimationState)null, false);
+        this((AnimationState) null, false);
     }
 
     /**
@@ -66,7 +62,7 @@ public class Label extends TextWidget {
      * Creates a Label with a shared or inherited animation state
      *
      * @param animState the animation state to share or inherit, can be null
-     * @param inherit true if the animation state should be inherited false for sharing
+     * @param inherit   true if the animation state should be inherited false for sharing
      */
     public Label(AnimationState animState, boolean inherit) {
         super(animState, inherit);
@@ -101,7 +97,7 @@ public class Label extends TextWidget {
     @Override
     public void setFont(Font font) {
         super.setFont(font);
-        if(autoSize) {
+        if (autoSize) {
             invalidateLayout();
         }
     }
@@ -109,12 +105,12 @@ public class Label extends TextWidget {
     public String getText() {
         return super.getCharSequence().toString();
     }
-    
+
     public void setText(String text) {
         text = TextUtil.notNull(text);
-        if(!text.equals(getText())) {
+        if (!text.equals(getText())) {
             super.setCharSequence(text);
-            if(autoSize) {
+            if (autoSize) {
                 invalidateLayout();
             }
         }
@@ -123,7 +119,7 @@ public class Label extends TextWidget {
     @Override
     public Object getTooltipContent() {
         Object toolTipContent = super.getTooltipContent();
-        if(toolTipContent == null && labelFor != null) {
+        if (toolTipContent == null && labelFor != null) {
             return labelFor.getTooltipContent();
         }
         return toolTipContent;
@@ -141,7 +137,7 @@ public class Label extends TextWidget {
      * @param labelFor the associated widget. Can be {@code null}.
      */
     public void setLabelFor(Widget labelFor) {
-        if(labelFor == this) {
+        if (labelFor == this) {
             throw new IllegalArgumentException("labelFor == this");
         }
         this.labelFor = labelFor;
@@ -149,7 +145,7 @@ public class Label extends TextWidget {
 
     protected void applyThemeLabel(ThemeInfo themeInfo) {
         String themeText = themeInfo.getParameterValue("text", false, String.class);
-        if(themeText != null) {
+        if (themeText != null) {
             setText(themeText);
         }
     }
@@ -162,7 +158,7 @@ public class Label extends TextWidget {
 
     @Override
     public boolean requestKeyboardFocus() {
-        if(labelFor != null) {
+        if (labelFor != null) {
             return labelFor.requestKeyboardFocus();
         } else {
             return super.requestKeyboardFocus();
@@ -182,9 +178,9 @@ public class Label extends TextWidget {
     @Override
     protected boolean handleEvent(Event evt) {
         handleMouseHover(evt);
-        if(evt.isMouseEvent()) {
-            if(evt.getType() == Event.Type.MOUSE_CLICKED) {
-                switch(evt.getMouseClickCount()) {
+        if (evt.isMouseEvent()) {
+            if (evt.getType() == Event.Type.MOUSE_CLICKED) {
+                switch (evt.getMouseClickCount()) {
                     case 1:
                         handleClick(false);
                         break;
@@ -195,10 +191,15 @@ public class Label extends TextWidget {
             }
             return evt.getType() != Event.Type.MOUSE_WHEEL;
         }
-        return false;  
+        return false;
     }
-    
+
     protected void handleClick(boolean doubleClick) {
         doCallback(doubleClick ? CallbackReason.DOUBLE_CLICK : CallbackReason.CLICK);
+    }
+
+    public enum CallbackReason {
+        CLICK,
+        DOUBLE_CLICK
     }
 }

@@ -29,24 +29,27 @@
  */
 package test;
 
-import java.applet.Applet;
-import java.awt.BorderLayout;
-import java.awt.Canvas;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.Sys;
 import org.lwjgl.opengl.Display;
 
+import java.applet.Applet;
+import java.awt.*;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+
 /**
- *
  * @author Matthias Mann
  */
 public class SimpleApplet extends Applet {
 
-    /** The Canvas where the LWJGL Display is added */
+    /**
+     * The Canvas where the LWJGL Display is added
+     */
     Canvas display_parent;
-    /** Thread which runs the main game loop */
+    /**
+     * Thread which runs the main game loop
+     */
     Thread gameThread;
 
     SimpleTest simpleTest;
@@ -74,7 +77,7 @@ public class SimpleApplet extends Applet {
      * The main thread will wait for the Display.destroy() to complete
      */
     private void stopLWJGL() {
-        if(simpleTest != null) {
+        if (simpleTest != null) {
             simpleTest.closeRequested = true;
         }
         try {
@@ -118,6 +121,7 @@ public class SimpleApplet extends Applet {
                     super.addNotify();
                     startLWJGL();
                 }
+
                 @Override
                 public final void removeNotify() {
                     stopLWJGL();

@@ -33,44 +33,48 @@ import de.matthiasmann.twl.Color;
 
 /**
  * A image object can be used for rendering.
- * 
+ *
  * @author Matthias Mann
  */
 public interface Image {
 
     /**
      * Returns the width in pixels of the image
+     *
      * @return the width in pixels of the image
      */
     public int getWidth();
-    
+
     /**
      * Returns the height in pixels of the image
+     *
      * @return the height in pixels of the image
      */
     public int getHeight();
-    
+
     /**
      * Draws the image in it's original size at the given location
+     *
      * @param as A time source for animation - may be null
-     * @param x left coordinate
-     * @param y top coordinate
+     * @param x  left coordinate
+     * @param y  top coordinate
      */
     public void draw(AnimationState as, int x, int y);
-    
+
     /**
      * Draws the image scaled to the given size at the given location
-     * @param as A time source for animation - may be null
-     * @param x left coordinate
-     * @param y top coordinate
-     * @param width the width in pixels
+     *
+     * @param as     A time source for animation - may be null
+     * @param x      left coordinate
+     * @param y      top coordinate
+     * @param width  the width in pixels
      * @param height the height in pixels
      */
     public void draw(AnimationState as, int x, int y, int width, int height);
 
     /**
      * Creates a new image with is tinted with the specified color.
-     *
+     * <p>
      * Tinting works by multiplying the color of the image's pixels
      * with the specified color.
      *

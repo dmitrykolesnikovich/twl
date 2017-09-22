@@ -36,23 +36,19 @@ import java.nio.channels.ReadableByteChannel;
 /**
  * An generic file system abstraction which is used as base for file system
  * widgets like FolderBrowser.
- * 
- * @author Matthias Mann
  *
+ * @author Matthias Mann
  * @see de.matthiasmann.twl.FileSelector
  * @see de.matthiasmann.twl.FolderBrowser
  */
 public interface FileSystemModel {
 
     public static final String SPECIAL_FOLDER_HOME = "user.home";
-    
-    public interface FileFilter {
-        public boolean accept(FileSystemModel model, Object file);
-    }
 
     /**
      * The separator character used to separate folder names in a path.
      * This should be a string with one character.
+     *
      * @return the separator character
      */
     public String getSeparator();
@@ -67,6 +63,7 @@ public interface FileSystemModel {
 
     /**
      * Returns the parent folder of the specified file or folder
+     *
      * @param file the file or folder - needs to be a valid file or folder
      * @return the parent folder or null if the file parameter was invalid or was a root node
      */
@@ -74,6 +71,7 @@ public interface FileSystemModel {
 
     /**
      * Returns true if the object is a valid folder in this file system
+     *
      * @param file the object to check
      * @return true if it is a folder
      */
@@ -81,6 +79,7 @@ public interface FileSystemModel {
 
     /**
      * Returns true if the object is a valid file in this file system
+     *
      * @param file the object to check
      * @return true if it is a file
      */
@@ -96,6 +95,7 @@ public interface FileSystemModel {
 
     /**
      * Returns the name of the specified object
+     *
      * @param file the object to query
      * @return the name or null if it was not a valid file or folder
      */
@@ -112,14 +112,16 @@ public interface FileSystemModel {
 
     /**
      * Computes a relative path from {@code from} to {@code to}
+     *
      * @param from staring point for the relative path - must be a folder
-     * @param to the destination for the relative path
+     * @param to   the destination for the relative path
      * @return the relative path or null if it could not be computed
      */
     public String getRelativePath(Object from, Object to);
 
     /**
      * Returns the size of the file
+     *
      * @param file the object to query
      * @return the size of the file or -1 if it's not a valid file
      */
@@ -127,6 +129,7 @@ public interface FileSystemModel {
 
     /**
      * Returns the last modified date/time of the file or folder
+     *
      * @param file the object to query
      * @return the last modified date/time or 0
      * @see System#currentTimeMillis()
@@ -135,6 +138,7 @@ public interface FileSystemModel {
 
     /**
      * Checks if the two objects specify the same file or folder
+     *
      * @param file1 the first object
      * @param file2 the second object
      * @return true if they are equal
@@ -154,13 +158,15 @@ public interface FileSystemModel {
 
     /**
      * Lists all file system roots
+     *
      * @return the file system roots
      */
     public Object[] listRoots();
 
     /**
      * Lists all files or folders in the specified folder.
-     * @param file the folder to list
+     *
+     * @param file   the folder to list
      * @param filter an optional filter - can be null
      * @return the (filtered) content of the folder
      */
@@ -168,6 +174,7 @@ public interface FileSystemModel {
 
     /**
      * Locates a special folder like {@link #SPECIAL_FOLDER_HOME}
+     *
      * @param key the special folder key
      * @return the object for this folder or null if it couldn't be located
      */
@@ -175,6 +182,7 @@ public interface FileSystemModel {
 
     /**
      * Opens an InputStream for the specified file
+     *
      * @param file the file object to read
      * @return an InputStream or null if the file object is not valid
      * @throws IOException if the file can't be read
@@ -183,11 +191,16 @@ public interface FileSystemModel {
 
     /**
      * Opens a ReadableByteChannel for the specified file
+     *
      * @param file the file object to read
      * @return an ReadableByteChannel or null if the file object is not valid
-     *      or a ReadableByteChannel can't be created
+     * or a ReadableByteChannel can't be created
      * @throws IOException if the file can't be read
      */
     public ReadableByteChannel openChannel(Object file) throws IOException;
- 
+
+    public interface FileFilter {
+        public boolean accept(FileSystemModel model, Object file);
+    }
+
 }

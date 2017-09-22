@@ -62,7 +62,7 @@ public class NodeDemo {
                     NodeDemo.class.getResource("nodes.xml"), renderer);
             gui.applyTheme(theme);
             gui.update();
-            
+
             Node nodeSource = nodeArea.addNode("Source");
             nodeSource.setPosition(50, 50);
             Pad nodeSourceColor = nodeSource.addPad("Color", false);
@@ -74,7 +74,7 @@ public class NodeDemo {
 
             nodeArea.addConnection(nodeSourceColor, nodeSinkColor);
 
-            while(!Display.isCloseRequested()) {
+            while (!Display.isCloseRequested()) {
                 GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
 
                 gui.update();

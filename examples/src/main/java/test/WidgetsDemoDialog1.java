@@ -29,30 +29,14 @@
  */
 package test;
 
-import de.matthiasmann.twl.model.AutoCompletionResult;
-import de.matthiasmann.twl.model.IntegerModel;
-import de.matthiasmann.twl.model.SimpleChangableListModel;
-import de.matthiasmann.twl.model.SimpleIntegerModel;
-import de.matthiasmann.twl.Button;
-import de.matthiasmann.twl.ComboBox;
-import de.matthiasmann.twl.DialogLayout;
-import de.matthiasmann.twl.EditField;
-import de.matthiasmann.twl.GUI;
-import de.matthiasmann.twl.Label;
-import de.matthiasmann.twl.ListBox;
-import de.matthiasmann.twl.ProgressBar;
-import de.matthiasmann.twl.ScrollPane;
-import de.matthiasmann.twl.ToggleButton;
-import de.matthiasmann.twl.ValueAdjusterInt;
-import de.matthiasmann.twl.model.AutoCompletionDataSource;
-import de.matthiasmann.twl.model.OptionBooleanModel;
-import de.matthiasmann.twl.model.SimpleAutoCompletionResult;
-import java.util.ArrayList;
-import java.util.Random;
+import de.matthiasmann.twl.*;
+import de.matthiasmann.twl.model.*;
 import test.SimpleTest.StyleItem;
 
+import java.util.ArrayList;
+import java.util.Random;
+
 /**
- *
  * @author Matthias Mann
  */
 public class WidgetsDemoDialog1 extends FadeFrame {
@@ -64,7 +48,7 @@ public class WidgetsDemoDialog1 extends FadeFrame {
     private int timeout = 100;
     private boolean onoff = true;
     private Random r = new Random();
-    
+
     public WidgetsDemoDialog1() {
         Label l1 = new Label("new Entry");
         final EditField e1 = new EditField();
@@ -100,12 +84,12 @@ public class WidgetsDemoDialog1 extends FadeFrame {
             public AutoCompletionResult collectSuggestions(String text, int cursorPos, AutoCompletionResult prev) {
                 text = text.substring(0, cursorPos);
                 ArrayList<String> result = new ArrayList<String>();
-                for(int i=0 ; i<lm.getNumEntries() ; i++) {
-                    if(lm.matchPrefix(i, text)) {
+                for (int i = 0; i < lm.getNumEntries(); i++) {
+                    if (lm.matchPrefix(i, text)) {
                         result.add(lm.getEntry(i));
                     }
                 }
-                if(result.isEmpty()) {
+                if (result.isEmpty()) {
                     return null;
                 }
                 return new SimpleAutoCompletionResult(text, 0, result);
@@ -135,7 +119,7 @@ public class WidgetsDemoDialog1 extends FadeFrame {
         tb.setTooltipContent("Toggles the Frame title on/off");
         tb.addCallback(new Runnable() {
             public void run() {
-                if(tb.isActive()) {
+                if (tb.isActive()) {
                     setTheme(SimpleTest.WITH_TITLE);
                 } else {
                     setTheme(SimpleTest.WITHOUT_TITLE);
@@ -165,9 +149,9 @@ public class WidgetsDemoDialog1 extends FadeFrame {
 
         ToggleButton[] optionBtns = new ToggleButton[4];
         SimpleIntegerModel optionModel = new SimpleIntegerModel(1, optionBtns.length, 1);
-        for(int i=0 ; i<optionBtns.length ; i++) {
-            optionBtns[i] = new ToggleButton(new OptionBooleanModel(optionModel, i+1));
-            optionBtns[i].setText(Integer.toString(i+1));
+        for (int i = 0; i < optionBtns.length; i++) {
+            optionBtns[i] = new ToggleButton(new OptionBooleanModel(optionModel, i + 1));
+            optionBtns[i].setText(Integer.toString(i + 1));
             optionBtns[i].setTheme("radiobutton");
         }
 
@@ -175,8 +159,8 @@ public class WidgetsDemoDialog1 extends FadeFrame {
         box.setTheme("/optionsdialog"); // the '/' causes this theme to start at the root again
         box.setHorizontalGroup(box.createParallelGroup().addGroup(
                 box.createSequentialGroup(
-                    box.createParallelGroup(l1, l2, l4),
-                    box.createParallelGroup().addGroup(box.createSequentialGroup(e1, addBtn)).addWidgets(e2, vai))).
+                        box.createParallelGroup(l1, l2, l4),
+                        box.createParallelGroup().addGroup(box.createSequentialGroup(e1, addBtn)).addWidgets(e2, vai))).
                 addWidget(progressBar).addWidget(lb).
                 addWidget(sp).
                 addGroup(box.createSequentialGroup(cb).addGap()).
@@ -199,11 +183,11 @@ public class WidgetsDemoDialog1 extends FadeFrame {
     protected void paint(GUI gui) {
         super.paint(gui);
 
-        if(onoff) {
+        if (onoff) {
             progressBar.setValue(progress / 5000f);
-            progress = (progress+mSpeed.getValue()) % 5000;
+            progress = (progress + mSpeed.getValue()) % 5000;
         }
-        if(--timeout == 0) {
+        if (--timeout == 0) {
             onoff ^= true;
             timeout = 100 + r.nextInt(200);
         }

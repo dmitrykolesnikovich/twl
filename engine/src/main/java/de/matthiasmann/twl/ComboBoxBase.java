@@ -33,7 +33,7 @@ import de.matthiasmann.twl.renderer.AnimationState.StateKey;
 
 /**
  * base class for drop down comboboxes.
- *
+ * <p>
  * Manages layout of label and button and opening the popup.
  * Subclasses have to create and add the label, and add the popup content.
  *
@@ -42,10 +42,10 @@ import de.matthiasmann.twl.renderer.AnimationState.StateKey;
 public abstract class ComboBoxBase extends Widget {
 
     public static final StateKey STATE_COMBOBOX_KEYBOARD_FOCUS = StateKey.get("comboboxKeyboardFocus");
-    
+
     protected final Button button;
     protected final PopupWindow popup;
-    
+
     protected ComboBoxBase() {
         this.button = new Button(getAnimationState());
         this.popup = new PopupWindow(this) {
@@ -65,11 +65,19 @@ public abstract class ComboBoxBase extends Widget {
         setCanAcceptKeyboardFocus(true);
         setDepthFocusTraversal(false);
     }
-    
+
+    private static void setRecursive(Widget w, StateKey what, boolean state) {
+        w.getAnimationState().setAnimationState(what, state);
+        for (int i = 0; i < w.getNumChildren(); ++i) {
+            Widget child = w.getChild(i);
+            setRecursive(child, what, state);
+        }
+    }
+
     protected abstract Widget getLabel();
 
     protected boolean openPopup() {
-        if(popup.openPopup()) {
+        if (popup.openPopup()) {
             setPopupSize();
             return true;
         }
@@ -105,8 +113,8 @@ public abstract class ComboBoxBase extends Widget {
                 popup.getPreferredHeight(),
                 popup.getMaxHeight());
         int popupMaxBottom = popup.getParent().getInnerBottom();
-        if(getBottom() + minHeight > popupMaxBottom) {
-            if(getY() - popupHeight >= popup.getParent().getInnerY()) {
+        if (getBottom() + minHeight > popupMaxBottom) {
+            if (getY() - popupHeight >= popup.getParent().getInnerY()) {
                 popup.setPosition(getX(), getY() - popupHeight);
             } else {
                 popup.setPosition(getX(), popupMaxBottom - minHeight);
@@ -133,16 +141,8 @@ public abstract class ComboBoxBase extends Widget {
     @Override
     protected void sizeChanged() {
         super.sizeChanged();
-        if(popup.isOpen()) {
+        if (popup.isOpen()) {
             setPopupSize();
-        }
-    }
-
-    private static void setRecursive(Widget w, StateKey what, boolean state) {
-        w.getAnimationState().setAnimationState(what, state);
-        for(int i=0 ; i<w.getNumChildren() ; ++i) {
-            Widget child = w.getChild(i);
-            setRecursive(child, what, state);
         }
     }
 
@@ -157,12 +157,12 @@ public abstract class ComboBoxBase extends Widget {
         super.keyboardFocusLost();
         setRecursive(getLabel(), STATE_COMBOBOX_KEYBOARD_FOCUS, false);
     }
-    
+
     /**
      * Called when the escape key is pressed in the open popup.
-     * 
+     * <p>
      * The default implementation closes the popup.
-     * 
+     *
      * @param evt the event
      */
     protected void popupEscapePressed(Event evt) {

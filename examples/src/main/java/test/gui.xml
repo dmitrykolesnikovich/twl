@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE themes PUBLIC "-//www.matthiasmann.de//TWL-Theme//EN" "http://hg.l33tlabs.org/twl/raw-file/tip/src/de/matthiasmann/twl/theme/theme.dtd">
+<!DOCTYPE themes PUBLIC "-//www.matthiasmann.de//TWL-Theme//EN"
+        "http://hg.l33tlabs.org/twl/raw-file/tip/src/de/matthiasmann/twl/theme/theme.dtd">
 <!--
     Document   : gui.xml
     Created on : November 22, 2007, 9:23 PM
     Author     : Matthias Mann
     Description:
         Contains image declarations for gui.png
---><themes>
+-->
+<themes>
     <images file="gui.png" format="RGBA">
         <area name="button.normal" border="5" xywh="60,80,20,20" splitx="L5,R5" splity="T5,B5"/>
         <area name="button.hoverX" border="5" xywh="20,0,20,20" splitx="L5,R5" splity="T5,B5"/>
@@ -27,7 +29,7 @@
             <alias ref="button.hoverframe"/>
         </composed>
         <alias name="button.armed" ref="button.pressed"/>
-        
+
         <area name="togglebutton.inactive.normal" border="5" xywh="0,0,20,20" splitx="L5,R5" splity="T5,B5"/>
         <area name="togglebutton.inactive.hover" border="5" xywh="20,0,20,20" splitx="L5,R5" splity="T5,B5"/>
         <area name="togglebutton.inactive.pressed" border="5" xywh="40,0,20,20" splitx="L5,R5" splity="T5,B5"/>
@@ -55,17 +57,17 @@
         <alias name="scrollbar.upbutton.focused" ref="scrollbar.upbutton.hover"/>
         <alias name="scrollbar.downbutton.focused" ref="scrollbar.downbutton.hover"/>
         <alias name="scrollbar.thumb.focused" ref="scrollbar.thumb.hover"/>
-        
+
         <area name="pausebutton.inactive.normal" xywh="0,100,30,30"/>
         <area name="pausebutton.inactive.hover" xywh="30,100,30,30"/>
         <area name="pausebutton.inactive.pressed" xywh="60,100,30,30"/>
         <area name="pausebutton.active.normal" xywh="0,20,30,30"/>
         <area name="pausebutton.active.hover" xywh="30,20,30,30"/>
         <area name="pausebutton.active.pressed" xywh="60,20,30,30"/>
-                
+
         <area name="clock" xywh="1,131,48,48"/>
         <alias name="loadingicon" ref="clock"/>
-        
+
         <area name="pathbutton.hover" splitx="12,16" xywh="120,0,30,10"/>
         <area name="pathbutton.pressed" splitx="12,16" xywh="120,10,30,10"/>
         <alias name="pathbutton.armed" ref="pathbutton.pressed"/>
@@ -81,17 +83,18 @@
             <area xywh="33,77,24,3"/>
             <area xywh="57,77,3,3"/>
         </grid>
-        
+
         <area name="box" border="6,10,9,6" splitx="12,16" splity="4,8" xywh="0,80,20,20"/>
 
         <area name="box.separator" border="0,0,5,0" splitx="8,22" splity="0,0" xywh="120,50,30,5"/>
-        
+
         <area name="menubar.background" border="0,8,7,16" xywh="20,80,40,20" splitx="L8,R16"/>
-            
+
         <area name="listbox.background" xywh="171,101,48,48"/>
-        <area name="listbox.display.background" border="0" splitx="2,10" splity="2,10" nocenter="true" if="selected" xywh="120,55,12,12"/>
+        <area name="listbox.display.background" border="0" splitx="2,10" splity="2,10" nocenter="true" if="selected"
+              xywh="120,55,12,12"/>
         <alias name="listbox.display.overlay" ref="none"/>
-        
+
         <area name="editfield.cursor" xywh="120,55,2,12"/>
         <area name="editfield.selection" tint="#80ffffc0" xywh="121,55,1,12"/>
 
@@ -122,7 +125,7 @@
             <alias ref="checkbox.checkmark.pressed"/>
         </composed>
         <alias name="checkbox.active.armed" ref="checkbox.inactive.pressed"/>
-        
+
         <area name="combobox.background" splitx="8,165" xywh="50,150,171,30"/>
         <area name="combobox.button.normal" xywh="221,150,29,30"/>
         <area name="combobox.button.hover" xywh="221,210,29,30"/>
@@ -130,7 +133,7 @@
         <area name="combobox.display.selection" splitx="8,165" xywh="60,180,171,30"/>
         <alias name="combobox.button.armed" ref="combobox.button.pressed"/>
         <alias name="combobox.button.focused" ref="combobox.button.hover"/>
-        
+
         <area name="valuadjuster.background" border="3" xywh="60,80,20,20" splitx="L3,R3" splity="T3,B3"/>
         <area name="valuadjuster.hover" border="3" xywh="80,80,20,20" splitx="L3,R3" splity="T3,B3"/>
         <area name="valuadjuster.pressed" border="3" xywh="100,80,20,20" splitx="L3,R3" splity="T3,B3"/>

@@ -32,11 +32,10 @@ package de.matthiasmann.twl.utils;
 import java.util.Arrays;
 
 /**
- *
  * @author Matthias Mann
  */
 public class SizeSequence {
-    
+
     private static final int INITIAL_CAPACITY = 64;
 
     protected int[] table;
@@ -59,7 +58,7 @@ public class SizeSequence {
         int low = 0;
         int high = size;
         int result = 0;
-        while(low < high) {
+        while (low < high) {
             int mid = (low + high) >>> 1;
             if (index <= mid) {
                 high = mid;
@@ -75,7 +74,7 @@ public class SizeSequence {
         int low = 0;
         int high = size;
         int result = 0;
-        while(low < high) {
+        while (low < high) {
             int mid = (low + high) >>> 1;
             result += table[mid];
             low = mid + 1;
@@ -86,10 +85,10 @@ public class SizeSequence {
     public int getIndex(int position) {
         int low = 0;
         int high = size;
-        while(low < high) {
+        while (low < high) {
             int mid = (low + high) >>> 1;
             int pos = table[mid];
-            if(position < pos) {
+            if (position < pos) {
                 high = mid;
             } else {
                 low = mid + 1;
@@ -100,12 +99,12 @@ public class SizeSequence {
     }
 
     public int getSize(int index) {
-        return getPosition(index+1) - getPosition(index);
+        return getPosition(index + 1) - getPosition(index);
     }
 
     public boolean setSize(int index, int size) {
         int delta = size - getSize(index);
-        if(delta != 0) {
+        if (delta != 0) {
             adjustSize(index, delta);
             return true;
         }
@@ -116,9 +115,9 @@ public class SizeSequence {
         int low = 0;
         int high = size;
 
-        while(low < high) {
+        while (low < high) {
             int mid = (low + high) >>> 1;
-            if(index <= mid) {
+            if (index <= mid) {
                 table[mid] += delta;
                 high = mid;
             } else {
@@ -129,7 +128,7 @@ public class SizeSequence {
 
     protected int toSizes(int low, int high, int[] dst) {
         int subResult = 0;
-        while(low < high) {
+        while (low < high) {
             int mid = (low + high) >>> 1;
             int pos = table[mid];
             dst[mid] = pos - toSizes(low, mid, dst);
@@ -141,7 +140,7 @@ public class SizeSequence {
 
     protected int fromSizes(int low, int high) {
         int subResult = 0;
-        while(low < high) {
+        while (low < high) {
             int mid = (low + high) >>> 1;
             int pos = table[mid] + fromSizes(low, mid);
             table[mid] = pos;
@@ -153,14 +152,14 @@ public class SizeSequence {
 
     public void insert(int index, int count) {
         int newSize = size + count;
-        if(newSize >= table.length) {
+        if (newSize >= table.length) {
             int[] sizes = new int[newSize];
             toSizes(0, size, sizes);
             table = sizes;
         } else {
             toSizes(0, size, table);
         }
-        System.arraycopy(table, index, table, index+count, size-index);
+        System.arraycopy(table, index, table, index + count, size - index);
         size = newSize;
         initializeSizes(index, count);
         fromSizes(0, newSize);
@@ -169,13 +168,13 @@ public class SizeSequence {
     public void remove(int index, int count) {
         toSizes(0, size, table);
         int newSize = size - count;
-        System.arraycopy(table, index+count, table, index, newSize-index);
+        System.arraycopy(table, index + count, table, index, newSize - index);
         size = newSize;
         fromSizes(0, newSize);
     }
 
     public void initializeAll(int count) {
-        if(table.length < count) {
+        if (table.length < count) {
             table = new int[count];
         }
         size = count;
@@ -188,6 +187,6 @@ public class SizeSequence {
     }
 
     protected void initializeSizes(int index, int count) {
-        Arrays.fill(table, index, index+count, defaultValue);
+        Arrays.fill(table, index, index + count, defaultValue);
     }
 }

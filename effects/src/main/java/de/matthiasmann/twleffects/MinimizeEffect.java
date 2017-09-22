@@ -36,7 +36,6 @@ import de.matthiasmann.twl.utils.TintAnimator;
 import de.matthiasmann.twl.utils.TintAnimator.TimeSource;
 
 /**
- *
  * @author Matthias Mann
  */
 public class MinimizeEffect implements Widget.RenderOffscreen {
@@ -50,7 +49,7 @@ public class MinimizeEffect implements Widget.RenderOffscreen {
     public MinimizeEffect(TimeSource timeSource) {
         this.timeSource = timeSource;
         this.animationDuration = 1000;
-        
+
         setNumVertices(4, 4);
         timeSource.resetTime();
     }
@@ -64,52 +63,52 @@ public class MinimizeEffect implements Widget.RenderOffscreen {
     }
 
     public void setAnimationDuration(float animationDuration) {
-        if(animationDuration <= 0.0f) {
+        if (animationDuration <= 0.0f) {
             throw new IllegalArgumentException("animationDuration");
         }
         this.animationDuration = animationDuration;
     }
-    
+
     public final void setNumVertices(int x, int y) {
-        if(x < 2 || y < 2) {
+        if (x < 2 || y < 2) {
             throw new IllegalArgumentException("not enough vertices");
         }
         this.numVerticesX = x;
         this.numVerticesY = y;
-        this.xy = new float[x*y*2];
+        this.xy = new float[x * y * 2];
     }
-    
+
     public void offscreenRenderingFailed(Widget widget) {
     }
 
     public void paintOffscreenSurface(GUI gui, Widget widget, OffscreenSurface surface) {
         float time = timeSource.getTime() / animationDuration;
-        if(time >= 1.0f) {
+        if (time >= 1.0f) {
             widget.setRenderOffscreen(null);
             surface.destroy();
             return;
         }
-        
+
         int widgetY = widget.getY() - widget.getOffscreenExtraTop();
         int widgetX = widget.getX() - widget.getOffscreenExtraTop();
         int width = surface.getWidth();
         int height = surface.getHeight();
         int centerX = gui.getWidth() / 2;
-        
-        for(int r=0,idx=0 ; r<numVerticesY ; r++) {
-            final float yfrac = r / (float)(numVerticesY-1);
+
+        for (int r = 0, idx = 0; r < numVerticesY; r++) {
+            final float yfrac = r / (float) (numVerticesY - 1);
             float t = time * (1 + yfrac);
-            float tt1 = (1+t) * (1+t);
-            float y = widgetY + height*yfrac + gui.getHeight() * t;
-            
-            for(int c=0 ; c<numVerticesX ; c++,idx+=2) {
-                float x = centerX + (widgetX - centerX + width * c / (float)(numVerticesX-1)) / tt1;
-                xy[idx+0] = x;
-                xy[idx+1] = y;
+            float tt1 = (1 + t) * (1 + t);
+            float y = widgetY + height * yfrac + gui.getHeight() * t;
+
+            for (int c = 0; c < numVerticesX; c++, idx += 2) {
+                float x = centerX + (widgetX - centerX + width * c / (float) (numVerticesX - 1)) / tt1;
+                xy[idx + 0] = x;
+                xy[idx + 1] = y;
             }
         }
-        
-        ((GridImage)surface).draw(null, xy, numVerticesX, numVerticesY);
+
+        ((GridImage) surface).draw(null, xy, numVerticesX, numVerticesY);
     }
 
     public int[] getEffectExtraArea(Widget widget) {
@@ -119,5 +118,5 @@ public class MinimizeEffect implements Widget.RenderOffscreen {
     public boolean needPainting(GUI gui, Widget widget, OffscreenSurface surface) {
         return true;
     }
-    
+
 }

@@ -32,7 +32,6 @@ package de.matthiasmann.twl;
 import java.util.IdentityHashMap;
 
 /**
- *
  * @author Matthias Mann
  */
 public class MenuManager extends PopupWindow {
@@ -68,64 +67,64 @@ public class MenuManager extends PopupWindow {
 
     boolean isSubMenuOpen(Menu menu) {
         Widget popup = popups.get(menu);
-        if(popup != null) {
+        if (popup != null) {
             return popup.getParent() == this;
         }
         return false;
     }
 
     void closeSubMenu(int level) {
-        while(getNumChildren() > level) {
+        while (getNumChildren() > level) {
             closeSubMenu();
         }
     }
-    
+
     Widget openSubMenu(int level, Menu menu, Widget btn, boolean setPosition) {
         Widget popup = popups.get(menu);
-        if(popup == null) {
-            popup = menu.createPopup(this, level+1, btn);
+        if (popup == null) {
+            popup = menu.createPopup(this, level + 1, btn);
             popups.put(menu, popup);
         }
 
-        if(popup.getParent() == this) {
-            closeSubMenu(level+1);
+        if (popup.getParent() == this) {
+            closeSubMenu(level + 1);
             return popup;
         }
 
-        if(!isOpen()) {
-            if(!openPopup()) {
+        if (!isOpen()) {
+            if (!openPopup()) {
                 closePopup();
                 return null;
             }
             getParent().layoutChildFullInnerArea(this);
         }
 
-        while(getNumChildren() > level) {
+        while (getNumChildren() > level) {
             closeSubMenu();
         }
         add(popup);
 
         popup.adjustSize();
 
-        if(setPosition) {
+        if (setPosition) {
             int popupWidth = popup.getWidth();
             int popupX = btn.getRight();
             int popupY = btn.getY();
 
-            if(level == 0) {
+            if (level == 0) {
                 popupX = btn.getX();
                 popupY = btn.getBottom();
             }
 
-            if(popupWidth + btn.getRight() > getInnerRight()) {
+            if (popupWidth + btn.getRight() > getInnerRight()) {
                 popupX = btn.getX() - popupWidth;
-                if(popupX < getInnerX()) {
+                if (popupX < getInnerX()) {
                     popupX = getInnerRight() - popupWidth;
                 }
             }
 
             int popupHeight = popup.getHeight();
-            if(popupY + popupHeight > getInnerBottom()) {
+            if (popupY + popupHeight > getInnerBottom()) {
                 popupY = Math.max(getInnerY(), getInnerBottom() - popupHeight);
             }
 
@@ -134,7 +133,7 @@ public class MenuManager extends PopupWindow {
 
         return popup;
     }
-    
+
     void closeSubMenu() {
         removeChild(getNumChildren() - 1);
     }
@@ -146,13 +145,14 @@ public class MenuManager extends PopupWindow {
         super.closePopup();
         removeAllChildren();
         popups.clear();
-        if(gui != null) {
+        if (gui != null) {
             gui.resendLastMouseMove();
         }
     }
-    
+
     /**
      * Returns the popup widget for the specified menu
+     *
      * @param menu the menu for which to return the popup
      * @return the popup widget or null if not open
      */
@@ -176,36 +176,36 @@ public class MenuManager extends PopupWindow {
     Widget routeMouseEvent(Event evt) {
         mouseOverOwner = false;
         Widget widget = super.routeMouseEvent(evt);
-        if(widget == this && isMenuBar && getOwner().isMouseInside(evt)) {
+        if (widget == this && isMenuBar && getOwner().isMouseInside(evt)) {
             Widget menuBarWidget = getOwner().routeMouseEvent(evt);
-            if(menuBarWidget != null) {
+            if (menuBarWidget != null) {
                 mouseOverOwner = true;
                 widget = menuBarWidget;
             }
         }
 
         Widget mouseOverWidget = getWidgetUnderMouse();
-        if(lastMouseOverWidget != mouseOverWidget) {
+        if (lastMouseOverWidget != mouseOverWidget) {
             lastMouseOverWidget = mouseOverWidget;
-            if(isMenuBar && widget.getParent() == getOwner() && (widget instanceof Menu.SubMenuBtn)) {
+            if (isMenuBar && widget.getParent() == getOwner() && (widget instanceof Menu.SubMenuBtn)) {
                 popupTimer();   // no delay on menu bar itself
             } else {
                 startTimer();
             }
         }
-        
+
         return widget;
     }
 
     @Override
     protected boolean handleEventPopup(Event evt) {
-        if(isMenuBar && getOwner().handleEvent(evt)) {
+        if (isMenuBar && getOwner().handleEvent(evt)) {
             return true;
         }
-        if(super.handleEventPopup(evt)) {
+        if (super.handleEventPopup(evt)) {
             return true;
         }
-        if(evt.getType() == Event.Type.MOUSE_CLICKED) {
+        if (evt.getType() == Event.Type.MOUSE_CLICKED) {
             mouseClickedOutside(evt);
             return true;
         }
@@ -214,22 +214,22 @@ public class MenuManager extends PopupWindow {
 
     @Override
     Widget getWidgetUnderMouse() {
-        if(mouseOverOwner) {
+        if (mouseOverOwner) {
             return getOwner().getWidgetUnderMouse();
         }
         return super.getWidgetUnderMouse();
     }
 
     void popupTimer() {
-        if((lastMouseOverWidget instanceof Menu.SubMenuBtn) && lastMouseOverWidget.isEnabled()) {
-            ((Menu.SubMenuBtn)lastMouseOverWidget).run();
-        } else if(lastMouseOverWidget != this) {
+        if ((lastMouseOverWidget instanceof Menu.SubMenuBtn) && lastMouseOverWidget.isEnabled()) {
+            ((Menu.SubMenuBtn) lastMouseOverWidget).run();
+        } else if (lastMouseOverWidget != this) {
             int level = 0;
             // search for the MenuPopup containing this widget
             // it knows which menu level we need to close
-            for(Widget w=lastMouseOverWidget ; w!=null ; w=w.getParent()) {
-                if(w instanceof Menu.MenuPopup) {
-                    level = ((Menu.MenuPopup)w).level;
+            for (Widget w = lastMouseOverWidget; w != null; w = w.getParent()) {
+                if (w instanceof Menu.MenuPopup) {
+                    level = ((Menu.MenuPopup) w).level;
                     break;
                 }
             }
@@ -238,14 +238,14 @@ public class MenuManager extends PopupWindow {
     }
 
     void startTimer() {
-        if(timer != null) {
+        if (timer != null) {
             timer.stop();
             timer.start();
         }
     }
-    
+
     void stopTimer() {
-        if(timer != null) {
+        if (timer != null) {
             timer.stop();
         }
     }

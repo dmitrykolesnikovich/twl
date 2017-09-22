@@ -29,7 +29,7 @@
  */
 package de.matthiasmann.twl;
 
-import java.awt.Toolkit;
+import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
@@ -50,7 +50,7 @@ public final class Clipboard {
             java.awt.datatransfer.Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
             Transferable transferable = clipboard.getContents(null);
             if (transferable.isDataFlavorSupported(DataFlavor.stringFlavor)) {
-                return (String)transferable.getTransferData(DataFlavor.stringFlavor);
+                return (String) transferable.getTransferData(DataFlavor.stringFlavor);
             }
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -68,5 +68,5 @@ public final class Clipboard {
             ex.printStackTrace();
         }
     }
-    
+
 }

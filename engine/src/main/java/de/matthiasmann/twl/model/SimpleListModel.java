@@ -30,7 +30,6 @@
 package de.matthiasmann.twl.model;
 
 /**
- *
  * @param <T> The type of the list entries
  * @author Matthias Mann
  */
@@ -42,7 +41,7 @@ public abstract class SimpleListModel<T> extends AbstractListModel<T> {
 
     public boolean matchPrefix(int index, String prefix) {
         Object entry = getEntry(index);
-        if(entry != null) {
+        if (entry != null) {
             return entry.toString().regionMatches(true, 0, prefix, 0, prefix.length());
         }
         return false;

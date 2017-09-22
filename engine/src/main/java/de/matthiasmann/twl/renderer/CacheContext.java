@@ -31,13 +31,13 @@ package de.matthiasmann.twl.renderer;
 
 /**
  * A cache context is used by the renderer to cache images and fonts.
- * 
+ * <p>
  * When reloading a theme a new CacheContext should be used to ensure that
  * all images and fonts are reloaded.
- * 
+ * <p>
  * When switching between different themes the same CacheContext should be
  * used to prevent reloading of already loaded images and fonts.
- *
+ * <p>
  * When a cache context is destroyed then all loaded resources may become
  * unavilable.
  *
@@ -47,9 +47,9 @@ public interface CacheContext extends Resource {
 
     /**
      * A cache context is valid until it's destroyed.
-     * 
+     *
      * @return true if it is valid
      */
     public boolean isValid();
-    
+
 }

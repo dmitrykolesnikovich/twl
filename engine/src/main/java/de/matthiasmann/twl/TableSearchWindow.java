@@ -62,7 +62,7 @@ public class TableSearchWindow extends InfoWindow implements TableBase.KeyboardS
         label.setLabelFor(searchTextField);
 
         searchTextField.setReadOnly(true);
-        
+
         DialogLayout l = new DialogLayout();
         l.setHorizontalGroup(l.createSequentialGroup()
                 .addWidget(label)
@@ -74,19 +74,29 @@ public class TableSearchWindow extends InfoWindow implements TableBase.KeyboardS
         add(l);
     }
 
-    public Table getTable() {
-        return (Table)getOwner();
+    private static int wrap(int row, int numRows) {
+        if (row < 0) {
+            return numRows - 1;
+        }
+        if (row >= numRows) {
+            return 0;
+        }
+        return row;
     }
-    
+
+    public Table getTable() {
+        return (Table) getOwner();
+    }
+
     public TableModel getModel() {
         return model;
     }
 
     public void setModel(TableModel model, int column) {
-        if(column < 0) {
+        if (column < 0) {
             throw new IllegalArgumentException("column");
         }
-        if(model != null && column >= model.getNumColumns()) {
+        if (model != null && column >= model.getNumColumns()) {
             throw new IllegalArgumentException("column");
         }
         this.model = model;
@@ -105,14 +115,14 @@ public class TableSearchWindow extends InfoWindow implements TableBase.KeyboardS
     }
 
     public boolean handleKeyEvent(Event evt) {
-        if(model == null) {
+        if (model == null) {
             return false;
         }
-        
-        if(evt.isKeyPressedEvent()) {
+
+        if (evt.isKeyPressedEvent()) {
             switch (evt.getKeyCode()) {
                 case Event.KEY_ESCAPE:
-                    if(isOpen()) {
+                    if (isOpen()) {
                         cancelSearch();
                         return true;
                     }
@@ -120,9 +130,9 @@ public class TableSearchWindow extends InfoWindow implements TableBase.KeyboardS
                 case Event.KEY_RETURN:
                     return false;
                 case Event.KEY_BACK: {
-                    if(isOpen()) {
+                    if (isOpen()) {
                         int length = searchTextBuffer.length();
-                        if(length > 0) {
+                        if (length > 0) {
                             searchTextBuffer.setLength(length - 1);
                             updateText();
                         }
@@ -132,22 +142,22 @@ public class TableSearchWindow extends InfoWindow implements TableBase.KeyboardS
                     break;
                 }
                 case Event.KEY_UP:
-                    if(isOpen()) {
+                    if (isOpen()) {
                         searchDir(-1);
                         restartTimer();
                         return true;
                     }
                     break;
                 case Event.KEY_DOWN:
-                    if(isOpen()) {
+                    if (isOpen()) {
                         searchDir(+1);
                         restartTimer();
                         return true;
                     }
                     break;
                 default:
-                    if(evt.hasKeyCharNoModifiers() && !Character.isISOControl(evt.getKeyChar())) {
-                        if(searchTextBuffer.length() == 0) {
+                    if (evt.hasKeyCharNoModifiers() && !Character.isISOControl(evt.getKeyChar())) {
+                        if (searchTextBuffer.length() == 0) {
                             currentRow = Math.max(0, getTable().getSelectionManager().getLeadRow());
                             searchStartOnly = true;
                         }
@@ -167,7 +177,7 @@ public class TableSearchWindow extends InfoWindow implements TableBase.KeyboardS
         searchTextBuffer.setLength(0);
         updateText();
         closeInfo();
-        if(timer != null) {
+        if (timer != null) {
             timer.stop();
         }
     }
@@ -188,7 +198,7 @@ public class TableSearchWindow extends InfoWindow implements TableBase.KeyboardS
     protected void beforeRemoveFromGUI(GUI gui) {
         timer.stop();
         timer = null;
-        
+
         super.beforeRemoveFromGUI(gui);
     }
 
@@ -196,8 +206,8 @@ public class TableSearchWindow extends InfoWindow implements TableBase.KeyboardS
         searchText = searchTextBuffer.toString();
         searchTextLowercase = null;
         searchTextField.setText(searchText);
-        if(searchText.length() >= 0 && model != null) {
-            if(!isOpen() && openInfo()) {
+        if (searchText.length() >= 0 && model != null) {
+            if (!isOpen() && openInfo()) {
                 updateInfoWindowPosition();
             }
             updateSearch();
@@ -211,22 +221,22 @@ public class TableSearchWindow extends InfoWindow implements TableBase.KeyboardS
 
     private void updateSearch() {
         int numRows = model.getNumRows();
-        if(numRows == 0) {
+        if (numRows == 0) {
             return;
         }
-        for(int row=currentRow ; row<numRows ; row++) {
-            if(checkRow(row)) {
+        for (int row = currentRow; row < numRows; row++) {
+            if (checkRow(row)) {
                 setRow(row);
                 return;
             }
         }
-        if(searchStartOnly) {
+        if (searchStartOnly) {
             searchStartOnly = false;
         } else {
             numRows = currentRow;
         }
-        for(int row=0 ; row<numRows ; row++) {
-            if(checkRow(row)) {
+        for (int row = 0; row < numRows; row++) {
+            if (checkRow(row)) {
                 setRow(row);
                 return;
             }
@@ -236,23 +246,23 @@ public class TableSearchWindow extends InfoWindow implements TableBase.KeyboardS
 
     private void searchDir(int dir) {
         int numRows = model.getNumRows();
-        if(numRows == 0) {
+        if (numRows == 0) {
             return;
         }
 
         int startRow = wrap(currentRow, numRows);
         int row = startRow;
 
-        for(;;) {
+        for (; ; ) {
             do {
                 row = wrap(row + dir, numRows);
-                if(checkRow(row)) {
+                if (checkRow(row)) {
                     setRow(row);
                     return;
                 }
-            } while(row != startRow);
+            } while (row != startRow);
 
-            if(!searchStartOnly) {
+            if (!searchStartOnly) {
                 break;
             }
             searchStartOnly = false;
@@ -260,10 +270,10 @@ public class TableSearchWindow extends InfoWindow implements TableBase.KeyboardS
     }
 
     private void setRow(int row) {
-        if(currentRow != row) {
+        if (currentRow != row) {
             currentRow = row;
             getTable().scrollToRow(row);
-            if(selectionModel != null) {
+            if (selectionModel != null) {
                 selectionModel.setSelection(row, row);
             }
         }
@@ -272,27 +282,17 @@ public class TableSearchWindow extends InfoWindow implements TableBase.KeyboardS
 
     private boolean checkRow(int row) {
         Object data = model.getCell(row, column);
-        if(data == null) {
+        if (data == null) {
             return false;
         }
         String str = data.toString();
-        if(searchStartOnly) {
+        if (searchStartOnly) {
             return str.regionMatches(true, 0, searchText, 0, searchText.length());
         }
         str = str.toLowerCase();
-        if(searchTextLowercase == null) {
+        if (searchTextLowercase == null) {
             searchTextLowercase = searchText.toLowerCase();
         }
         return str.contains(searchTextLowercase);
-    }
-
-    private static int wrap(int row, int numRows) {
-        if(row < 0) {
-            return numRows - 1;
-        }
-        if(row >= numRows) {
-            return 0;
-        }
-        return row;
     }
 }

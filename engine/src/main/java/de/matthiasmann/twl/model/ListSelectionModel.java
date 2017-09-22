@@ -31,9 +31,9 @@ package de.matthiasmann.twl.model;
 
 /**
  * Represents the selection of a list box or combo box.
- *
+ * <p>
  * Implementation should not register callbacks on the list model.
- * 
+ *
  * @param <T> the data type of the list model
  * @author Matthias Mann
  */
@@ -43,18 +43,19 @@ public interface ListSelectionModel<T> extends IntegerModel {
      * The index when nothing is selected
      */
     public static final int NO_SELECTION = -1;
-    
+
     public ListModel<T> getListModel();
 
     /**
      * Returns the selected entry in the list or null if nothing is selected.
+     *
      * @return the selected entry or null.
      */
     public T getSelectedEntry();
 
     /**
      * Selects the specified entry or nothing if the entry was not found.
-     *
+     * <p>
      * This method behaves like {@code setSelectedEntry(entry, NO_SELECTION)}
      *
      * @param entry the entry to select - can be null.
@@ -66,7 +67,8 @@ public interface ListSelectionModel<T> extends IntegerModel {
 
     /**
      * Selects the specified entry or the default index if the entry was not found
-     * @param entry the entry to select - can be null.
+     *
+     * @param entry        the entry to select - can be null.
      * @param defaultIndex the index to select when the entry was not found
      * @return true if the entry was found
      * @see #NO_SELECTION

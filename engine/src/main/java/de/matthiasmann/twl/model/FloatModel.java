@@ -40,10 +40,10 @@ public interface FloatModel extends WithRunnableCallback {
 
     public float getValue();
 
+    public void setValue(float value);
+
     public float getMinValue();
 
     public float getMaxValue();
 
-    public void setValue(float value);
-    
 }

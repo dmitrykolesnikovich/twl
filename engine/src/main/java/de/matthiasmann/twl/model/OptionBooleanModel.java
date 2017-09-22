@@ -32,7 +32,7 @@ package de.matthiasmann.twl.model;
 /**
  * A BooleanModel which is true when the underlying IntegerModel has the specified
  * option code. This can be used for radio/option buttons.
- *
+ * <p>
  * It is not possible to set this BooleanModel to false. It can only be set to
  * false by setting the underlying IntegerModel to another value. Eg by setting
  * another OptionBooleanModel working on the same IntegerModel to true.
@@ -49,13 +49,13 @@ public class OptionBooleanModel extends AbstractOptionModel {
      * option code.
      *
      * @param optionState the IntegerModel which stores the current active option
-     * @param optionCode the option code of this option in the IntegerModel
+     * @param optionCode  the option code of this option in the IntegerModel
      */
     public OptionBooleanModel(IntegerModel optionState, int optionCode) {
-        if(optionState == null) {
+        if (optionState == null) {
             throw new NullPointerException("optionState");
         }
-        if(optionCode < optionState.getMinValue() ||
+        if (optionCode < optionState.getMinValue() ||
                 optionCode > optionState.getMaxValue()) {
             throw new IllegalArgumentException("optionCode");
         }
@@ -70,13 +70,13 @@ public class OptionBooleanModel extends AbstractOptionModel {
     /**
      * If value is true, then the underlying IntegerModel is set to the
      * option code of this OptionBooleanModel.
-     *
+     * <p>
      * if value if false then nothing happens.
      *
      * @param value the new value of this BooleanModel
      */
     public void setValue(boolean value) {
-        if(value) {
+        if (value) {
             optionState.setValue(optionCode);
         }
     }

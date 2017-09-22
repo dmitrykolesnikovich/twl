@@ -48,16 +48,16 @@ public class ParameterStringParser {
 
     /**
      * Creates a new parser object.
-     * 
-     * @param str the String to parse
+     *
+     * @param str                the String to parse
      * @param parameterSeparator the character which separates key-value pairs from each other
-     * @param keyValueSeparator the character which separates key and value from each other
+     * @param keyValueSeparator  the character which separates key and value from each other
      */
     public ParameterStringParser(String str, char parameterSeparator, char keyValueSeparator) {
-        if(str == null) {
+        if (str == null) {
             throw new NullPointerException("str");
         }
-        if(parameterSeparator == keyValueSeparator) {
+        if (parameterSeparator == keyValueSeparator) {
             throw new IllegalArgumentException("parameterSeperator == keyValueSeperator");
         }
         this.str = str;
@@ -71,6 +71,7 @@ public class ParameterStringParser {
 
     /**
      * Enables trimming of white spaces on key and values
+     *
      * @param trim true if white spaces should be trimmed
      * @see Character#isWhitespace(char)
      */
@@ -80,15 +81,16 @@ public class ParameterStringParser {
 
     /**
      * Extract the next key-value pair
+     *
      * @return true if a pair was extracted false if the end of the string was reached.
      */
     public boolean next() {
-        while(pos < str.length()) {
+        while (pos < str.length()) {
             int kvPairEnd = TextUtil.indexOf(str, parameterSeparator, pos);
             int keyEnd = TextUtil.indexOf(str, keyValueSeparator, pos);
-            if(keyEnd < kvPairEnd) {
+            if (keyEnd < kvPairEnd) {
                 key = substring(pos, keyEnd);
-                value = substring(keyEnd+1, kvPairEnd);
+                value = substring(keyEnd + 1, kvPairEnd);
                 pos = kvPairEnd + 1;
                 return true;
             }
@@ -101,11 +103,12 @@ public class ParameterStringParser {
 
     /**
      * Returns the current key
+     *
      * @return the current key
      * @see #next()
      */
     public String getKey() {
-        if(key == null) {
+        if (key == null) {
             throw new IllegalStateException("no key-value pair available");
         }
         return key;
@@ -113,18 +116,19 @@ public class ParameterStringParser {
 
     /**
      * Returns the current value
+     *
      * @return the current value
      * @see #next()
      */
     public String getValue() {
-        if(value == null) {
+        if (value == null) {
             throw new IllegalStateException("no key-value pair available");
         }
         return value;
     }
 
     private String substring(int start, int end) {
-        if(trim) {
+        if (trim) {
             return TextUtil.trim(str, start, end);
         }
         return str.substring(start, end);

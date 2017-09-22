@@ -34,14 +34,13 @@ import de.matthiasmann.twl.Widget;
 import de.matthiasmann.twl.renderer.AnimationState.StateKey;
 
 /**
- *
  * @author Matthias Mann
  */
 public class Pad extends Widget {
 
-    public static final StateKey STATE_HOVER            = StateKey.get("hover");
+    public static final StateKey STATE_HOVER = StateKey.get("hover");
     public static final StateKey STATE_DRAG_DESTINATION = StateKey.get("dragDestination");
-    
+
     public static final int RADIUS = 5;
 
     private final Node node;
@@ -71,20 +70,20 @@ public class Pad extends Widget {
     public void setInConnection(Connection inConnection) {
         this.inConnection = inConnection;
     }
-    
+
     @Override
     protected boolean handleEvent(Event evt) {
-        if(evt.isMouseEvent()) {
+        if (evt.isMouseEvent()) {
             getAnimationState().setAnimationState(STATE_HOVER, evt.getType() != Event.Type.MOUSE_EXITED);
         }
-        
-        if(evt.getType() == Event.Type.MOUSE_DRAGGED) {
+
+        if (evt.getType() == Event.Type.MOUSE_DRAGGED) {
             NodeArea nodeArea = node.getNodeArea();
 
-            if(!isDragActive) {
+            if (!isDragActive) {
                 isDragActive = true;
-                
-                if(isInput()) {
+
+                if (isInput()) {
                     nodeArea.removeConnection(getInConnection());
                 }
             }
@@ -95,10 +94,10 @@ public class Pad extends Widget {
             setDragDestPad(pad);
         }
 
-        if(isDragActive && evt.isMouseDragEnd()) {
+        if (isDragActive && evt.isMouseDragEnd()) {
             NodeArea nodeArea = node.getNodeArea();
-            if(dragDestinationPad != null) {
-                if(isInput()) {
+            if (dragDestinationPad != null) {
+                if (isInput()) {
                     nodeArea.addConnection(dragDestinationPad, this);
                 } else {
                     nodeArea.addConnection(this, dragDestinationPad);
@@ -114,12 +113,12 @@ public class Pad extends Widget {
 
     @Override
     public int getPreferredHeight() {
-        return RADIUS*2;
+        return RADIUS * 2;
     }
 
     @Override
     public int getPreferredWidth() {
-        return RADIUS*2;
+        return RADIUS * 2;
     }
 
     public int getCenterX() {
@@ -134,16 +133,16 @@ public class Pad extends Widget {
     public boolean isInside(int x, int y) {
         int dx = x - getCenterX();
         int dy = y - getCenterY();
-        return dx*dx + dy*dy <= RADIUS*RADIUS;
+        return dx * dx + dy * dy <= RADIUS * RADIUS;
     }
 
     private void setDragDestPad(Pad pad) {
-        if(pad != dragDestinationPad) {
-            if(dragDestinationPad != null) {
+        if (pad != dragDestinationPad) {
+            if (dragDestinationPad != null) {
                 dragDestinationPad.getAnimationState().setAnimationState(STATE_DRAG_DESTINATION, false);
             }
             dragDestinationPad = pad;
-            if(dragDestinationPad != null) {
+            if (dragDestinationPad != null) {
                 dragDestinationPad.getAnimationState().setAnimationState(STATE_DRAG_DESTINATION, true);
             }
         }

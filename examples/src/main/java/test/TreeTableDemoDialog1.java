@@ -29,25 +29,16 @@
  */
 package test;
 
-import de.matthiasmann.twl.EditField;
-import de.matthiasmann.twl.GUI;
-import de.matthiasmann.twl.ScrollPane;
-import de.matthiasmann.twl.ThemeInfo;
-import de.matthiasmann.twl.Timer;
-import de.matthiasmann.twl.TreeTable;
-import de.matthiasmann.twl.Widget;
-import de.matthiasmann.twl.model.AbstractTreeTableModel;
-import de.matthiasmann.twl.model.AbstractTreeTableNode;
-import de.matthiasmann.twl.model.PersistentStringModel;
-import de.matthiasmann.twl.model.StringModel;
-import de.matthiasmann.twl.model.TreeTableNode;
+import de.matthiasmann.twl.*;
+import de.matthiasmann.twl.model.*;
 
 /**
- *
  * @author Matthias Mann
  */
 public class TreeTableDemoDialog1 extends FadeFrame implements Runnable {
 
+    int state;
+    MyNode subNode;
     private ScrollPane scrollPane;
     private Timer timer;
     private MyNode dynamicNode;
@@ -97,58 +88,55 @@ public class TreeTableDemoDialog1 extends FadeFrame implements Runnable {
         timer.start();
     }
 
-    int state;
-    MyNode subNode;
-
     public void run() {
         //System.out.println("state="+state);
-        switch(state++) {
-        case 0:
-            dynamicNode.insert("Counting", "3...");
-            break;
-        case 1:
-            dynamicNode.insert("Counting", "2...");
-            break;
-        case 2:
-            dynamicNode.insert("Counting", "1...");
-            break;
-        case 3:
-            subNode = dynamicNode.insert("this is a", "folder");
-            break;
-        case 4:
-            subNode.insert("first", "entry");
-            break;
-        case 5:
-            subNode.insert("now starting to remove", "counter");
-            break;
-        case 6:
-        case 7:
-        case 8:
-            dynamicNode.remove(0);
-            break;
-        case 9:
-            subNode.insert("last", "entry");
-            break;
-        case 10:
-            dynamicNode.insert("now removing", "folder");
-            break;
-        case 11:
-            dynamicNode.remove(0);
-            break;
-        case 12:
-            dynamicNode.insert("starting", "again");
-            break;
-        case 13:
-            dynamicNode.removeAll();
-            state = 0;
-            break;
+        switch (state++) {
+            case 0:
+                dynamicNode.insert("Counting", "3...");
+                break;
+            case 1:
+                dynamicNode.insert("Counting", "2...");
+                break;
+            case 2:
+                dynamicNode.insert("Counting", "1...");
+                break;
+            case 3:
+                subNode = dynamicNode.insert("this is a", "folder");
+                break;
+            case 4:
+                subNode.insert("first", "entry");
+                break;
+            case 5:
+                subNode.insert("now starting to remove", "counter");
+                break;
+            case 6:
+            case 7:
+            case 8:
+                dynamicNode.remove(0);
+                break;
+            case 9:
+                subNode.insert("last", "entry");
+                break;
+            case 10:
+                dynamicNode.insert("now removing", "folder");
+                break;
+            case 11:
+                dynamicNode.remove(0);
+                break;
+            case 12:
+                dynamicNode.insert("starting", "again");
+                break;
+            case 13:
+                dynamicNode.removeAll();
+                state = 0;
+                break;
         }
     }
 
     public void centerScrollPane() {
         scrollPane.updateScrollbarSizes();
-        scrollPane.setScrollPositionX(scrollPane.getMaxScrollPosX()/2);
-        scrollPane.setScrollPositionY(scrollPane.getMaxScrollPosY()/2);
+        scrollPane.setScrollPositionX(scrollPane.getMaxScrollPosX() / 2);
+        scrollPane.setScrollPositionY(scrollPane.getMaxScrollPosY() / 2);
     }
 
     static class MyNode extends AbstractTreeTableNode {
@@ -184,12 +172,15 @@ public class TreeTableDemoDialog1 extends FadeFrame implements Runnable {
 
     static class MyModel extends AbstractTreeTableModel {
         private static final String[] COLUMN_NAMES = {"Left", "Right"};
+
         public int getNumColumns() {
             return 2;
         }
+
         public String getColumnHeaderText(int column) {
             return COLUMN_NAMES[column];
         }
+
         public MyNode insert(Object str0, String str1) {
             MyNode n = new MyNode(this, str0, str1);
             insertChild(n, getNumChildren());
@@ -211,14 +202,14 @@ public class TreeTableDemoDialog1 extends FadeFrame implements Runnable {
             return str;
         }
     }
-    
+
     static class SpanRenderer extends TreeTable.StringCellRenderer {
         int span;
 
         @Override
         public void setCellData(int row, int column, Object data) {
             super.setCellData(row, column, data);
-            span = ((SpanString)data).span;
+            span = ((SpanString) data).span;
         }
 
         @Override
@@ -232,8 +223,8 @@ public class TreeTableDemoDialog1 extends FadeFrame implements Runnable {
         private int editFieldHeight;
 
         public Widget updateWidget(Widget existingWidget) {
-            EditField ef = (EditField)existingWidget;
-            if(ef == null) {
+            EditField ef = (EditField) existingWidget;
+            if (ef == null) {
                 ef = new EditField();
             }
             ef.setModel(model);
@@ -254,7 +245,7 @@ public class TreeTableDemoDialog1 extends FadeFrame implements Runnable {
         }
 
         public void setCellData(int row, int column, Object data) {
-            this.model = (StringModel)data;
+            this.model = (StringModel) data;
         }
 
         public int getColumnSpan() {

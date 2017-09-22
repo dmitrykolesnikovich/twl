@@ -44,15 +44,15 @@ public interface ListBoxDisplay {
     public boolean isFocused();
 
     public void setFocused(boolean focused);
-    
+
     public void setData(Object data);
 
     public void setTooltipContent(Object content);
 
     public Widget getWidget();
-    
+
     public void addListBoxCallback(CallbackWithReason<ListBox.CallbackReason> cb);
-    
+
     public void removeListBoxCallback(CallbackWithReason<ListBox.CallbackReason> cb);
-    
+
 }

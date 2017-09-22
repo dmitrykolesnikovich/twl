@@ -31,22 +31,23 @@ package de.matthiasmann.twl.model;
 
 /**
  * A {@link CharSequence} with change callback support.
- * 
+ *
  * @author Matthias Mann
  */
 public interface ObservableCharSequence extends CharSequence {
 
+    public void addCallback(Callback callback);
+
+    public void removeCallback(Callback callback);
+
     public interface Callback {
         /**
          * The sequence has been modified.
-         * @param start the start offset of the change
+         *
+         * @param start    the start offset of the change
          * @param oldCount the number of characters which have been replaced
          * @param newCount the number of new characters inserted
          */
         public void charactersChanged(int start, int oldCount, int newCount);
     }
-
-    public void addCallback(Callback callback);
-    
-    public void removeCallback(Callback callback);
 }

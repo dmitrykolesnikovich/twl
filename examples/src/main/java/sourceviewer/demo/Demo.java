@@ -29,27 +29,12 @@
  */
 package sourceviewer.demo;
 
-import de.matthiasmann.twl.DesktopArea;
-import de.matthiasmann.twl.EditField;
-import de.matthiasmann.twl.Event;
-import de.matthiasmann.twl.FPSCounter;
-import de.matthiasmann.twl.GUI;
-import de.matthiasmann.twl.ResizableFrame;
-import de.matthiasmann.twl.ScrollPane;
-import de.matthiasmann.twl.TabbedPane;
-import de.matthiasmann.twl.TextArea;
-import de.matthiasmann.twl.ToggleButton;
+import de.matthiasmann.twl.*;
 import de.matthiasmann.twl.model.DefaultEditFieldModel;
 import de.matthiasmann.twl.model.EditFieldModel;
 import de.matthiasmann.twl.renderer.lwjgl.LWJGLRenderer;
 import de.matthiasmann.twl.textarea.StyleSheet;
 import de.matthiasmann.twl.theme.ThemeManager;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
 import org.lwjgl.opengl.GL11;
@@ -57,11 +42,111 @@ import sourceviewer.JavaTextAreaModel;
 import sourceviewer.StringSyntaxHighlighter;
 import test.TestUtils;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 /**
- *
  * @author Matthias Mann
  */
 public final class Demo extends DesktopArea {
+
+    private final FPSCounter fpsCounter;
+    private final ResizableFrame frame;
+    private final TabbedPane tabbedPane;
+    private final StyleSheet styleSheet;
+    private final ArrayList<TabEntry> entrys;
+    private final ToggleButton showLineNumbersBtn;
+    private final ToggleButton scrollTabsBtn;
+    public boolean quit;
+
+    public Demo() {
+        entrys = new ArrayList<TabEntry>();
+
+        fpsCounter = new FPSCounter();
+        add(fpsCounter);
+
+        showLineNumbersBtn = new ToggleButton("Show line numbers");
+        add(showLineNumbersBtn);
+
+        scrollTabsBtn = new ToggleButton("Scroll tabs");
+        scrollTabsBtn.setActive(true);
+        add(scrollTabsBtn);
+
+        tabbedPane = new TabbedPane();
+        tabbedPane.setScrollTabs(scrollTabsBtn.isActive());
+
+        frame = new ResizableFrame();
+        frame.setTitle("Source code viewer");
+        frame.add(tabbedPane);
+        add(frame);
+
+        frame.setSize(1100, 520);
+        frame.setPosition(40, 20);
+
+        styleSheet = new StyleSheet();
+
+        try {
+            styleSheet.parse(
+                    "ol > li { padding-left: 5px; }" +
+                            "pre {font-family: code }" +
+                            ".comment    { font-family: codeComment }" +
+                            ".commentTag { font-family: codeCommentTag }" +
+                            ".string     { font-family: codeString  }" +
+                            ".keyword    { font-family: codeKeyword }");
+        } catch (IOException ex) {
+            Logger.getLogger(Demo.class.getName()).log(Level.SEVERE, "Can't parse style sheet", ex);
+        }
+
+        final String[] files = new String[]{
+                "demo/Demo.java",
+                "JavaScanner.java",
+                "JavaTextAreaModel.java",
+                "CharacterIterator.java",
+                "KeywordList.java",
+        };
+        for (String path : files) {
+            try {
+                addSourceFile(path);
+            } catch (IOException ex) {
+                Logger.getLogger(Demo.class.getName()).log(Level.SEVERE, "Can't open file: " + path, ex);
+            }
+        }
+
+        parseFiles();
+
+        showLineNumbersBtn.addCallback(new Runnable() {
+            public void run() {
+                parseFiles();
+            }
+        });
+        scrollTabsBtn.addCallback(new Runnable() {
+            public void run() {
+                tabbedPane.setScrollTabs(scrollTabsBtn.isActive());
+            }
+        });
+
+        EditFieldModel efm = new DefaultEditFieldModel();
+        EditField ef = new EditField(null, efm);
+        ef.setMultiLine(true);
+        ef.setText("public class HelloWorld {\n"
+                + "    public static void main(String[] args) {\n"
+                + "        System.out.println(\"Hello World\");\n"
+                + "    }\n"
+                + "}\n");
+
+        StringSyntaxHighlighter ssh = new StringSyntaxHighlighter(efm, ef.getStringAttributes());
+        ssh.registerCallback();
+
+        ScrollPane sp = new ScrollPane(ef);
+        sp.setFixed(ScrollPane.Fixed.HORIZONTAL);
+        sp.setExpandContentSize(true);
+
+        tabbedPane.addTab("Source editor", sp);
+    }
 
     public static void main(String[] args) {
         try {
@@ -78,7 +163,7 @@ public final class Demo extends DesktopArea {
                     Demo.class.getResource("demo.xml"), renderer);
             gui.applyTheme(theme);
 
-            while(!Display.isCloseRequested() && !demo.quit) {
+            while (!Display.isCloseRequested() && !demo.quit) {
                 GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
 
                 gui.update();
@@ -100,107 +185,12 @@ public final class Demo extends DesktopArea {
         Display.destroy();
     }
 
-    private final FPSCounter fpsCounter;
-    private final ResizableFrame frame;
-    private final TabbedPane tabbedPane;
-    private final StyleSheet styleSheet;
-    private final ArrayList<TabEntry> entrys;
-    private final ToggleButton showLineNumbersBtn;
-    private final ToggleButton scrollTabsBtn;
-
-    public boolean quit;
-
-    public Demo() {
-        entrys = new ArrayList<TabEntry>();
-        
-        fpsCounter = new FPSCounter();
-        add(fpsCounter);
-
-        showLineNumbersBtn = new ToggleButton("Show line numbers");
-        add(showLineNumbersBtn);
-
-        scrollTabsBtn = new ToggleButton("Scroll tabs");
-        scrollTabsBtn.setActive(true);
-        add(scrollTabsBtn);
-
-        tabbedPane = new TabbedPane();
-        tabbedPane.setScrollTabs(scrollTabsBtn.isActive());
-
-        frame = new ResizableFrame();
-        frame.setTitle("Source code viewer");
-        frame.add(tabbedPane);
-        add(frame);
-
-        frame.setSize(1100, 520);
-        frame.setPosition(40, 20);
-        
-        styleSheet = new StyleSheet();
-
-        try {
-            styleSheet.parse(
-                    "ol > li { padding-left: 5px; }" +
-                    "pre {font-family: code }" +
-                    ".comment    { font-family: codeComment }" +
-                    ".commentTag { font-family: codeCommentTag }" +
-                    ".string     { font-family: codeString  }" +
-                    ".keyword    { font-family: codeKeyword }");
-        } catch(IOException ex) {
-            Logger.getLogger(Demo.class.getName()).log(Level.SEVERE, "Can't parse style sheet", ex);
-        }
-
-        final String[] files = new String[] {
-            "demo/Demo.java",
-            "JavaScanner.java",
-            "JavaTextAreaModel.java",
-            "CharacterIterator.java",
-            "KeywordList.java",
-        };
-        for(String path : files) {
-            try {
-                addSourceFile(path);
-            } catch(IOException ex) {
-                Logger.getLogger(Demo.class.getName()).log(Level.SEVERE, "Can't open file: " + path, ex);
-            }
-        }
-
-        parseFiles();
-
-        showLineNumbersBtn.addCallback(new Runnable() {
-            public void run() {
-                parseFiles();
-            }
-        });
-        scrollTabsBtn.addCallback(new Runnable() {
-            public void run() {
-                tabbedPane.setScrollTabs(scrollTabsBtn.isActive());
-            }
-        });
-        
-        EditFieldModel efm = new DefaultEditFieldModel();
-        EditField ef = new EditField(null, efm);
-        ef.setMultiLine(true);
-        ef.setText("public class HelloWorld {\n"
-                + "    public static void main(String[] args) {\n"
-                + "        System.out.println(\"Hello World\");\n"
-                + "    }\n"
-                + "}\n");
-        
-        StringSyntaxHighlighter ssh = new StringSyntaxHighlighter(efm, ef.getStringAttributes());
-        ssh.registerCallback();
-        
-        ScrollPane sp = new ScrollPane(ef);
-        sp.setFixed(ScrollPane.Fixed.HORIZONTAL);
-        sp.setExpandContentSize(true);
-        
-        tabbedPane.addTab("Source editor", sp);
-    }
-
     public void parseFiles() {
         boolean withLineNumbers = showLineNumbersBtn.isActive();
-        for(TabEntry e : entrys) {
+        for (TabEntry e : entrys) {
             try {
                 e.parse(withLineNumbers);
-            } catch(IOException ex) {
+            } catch (IOException ex) {
                 Logger.getLogger(Demo.class.getName()).log(Level.SEVERE, "Can't parse file: " + e.url, ex);
             }
         }
@@ -209,10 +199,10 @@ public final class Demo extends DesktopArea {
     public void addSourceFile(String path) throws IOException {
         URL ref = Demo.class.getResource("demo.xml");
         URL url = new URL(ref, "../../sourceviewer/".concat(path));
-        if(url == null) {
+        if (url == null) {
             throw new FileNotFoundException(path);
         }
-        
+
         JavaTextAreaModel jtam = new JavaTextAreaModel();
         entrys.add(new TabEntry(jtam, url));
 
@@ -227,7 +217,7 @@ public final class Demo extends DesktopArea {
 
         tabbedPane.addTab(path, sp);
     }
-    
+
     @Override
     protected void layout() {
         super.layout();
@@ -252,7 +242,7 @@ public final class Demo extends DesktopArea {
 
     @Override
     protected boolean handleEvent(Event evt) {
-        if(super.handleEvent(evt)) {
+        if (super.handleEvent(evt)) {
             return true;
         }
         switch (evt.getType()) {

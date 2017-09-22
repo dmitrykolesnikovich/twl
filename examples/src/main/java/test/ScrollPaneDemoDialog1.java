@@ -33,7 +33,6 @@ import de.matthiasmann.twl.ScrollPane;
 import de.matthiasmann.twl.Widget;
 
 /**
- *
  * @author Matthias Mann
  */
 public class ScrollPaneDemoDialog1 extends FadeFrame {
@@ -54,8 +53,8 @@ public class ScrollPaneDemoDialog1 extends FadeFrame {
 
     public void centerScrollPane() {
         scrollPane.updateScrollbarSizes();
-        scrollPane.setScrollPositionX(scrollPane.getMaxScrollPosX()/2);
-        scrollPane.setScrollPositionY(scrollPane.getMaxScrollPosY()/2);
+        scrollPane.setScrollPositionX(scrollPane.getMaxScrollPosX() / 2);
+        scrollPane.setScrollPositionY(scrollPane.getMaxScrollPosY() / 2);
     }
 
 }

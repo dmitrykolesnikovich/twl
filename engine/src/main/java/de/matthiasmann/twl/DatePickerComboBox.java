@@ -29,14 +29,15 @@
  */
 package de.matthiasmann.twl;
 
+import de.matthiasmann.twl.model.DateModel;
+
 import java.text.DateFormat;
 import java.util.Calendar;
 import java.util.Locale;
-import de.matthiasmann.twl.model.DateModel;
 
 /**
  * A date picker combobox
- * 
+ *
  * @author Matthias Mann
  */
 public class DatePickerComboBox extends ComboBoxBase {
@@ -47,41 +48,42 @@ public class DatePickerComboBox extends ComboBoxBase {
     public DatePickerComboBox() {
         this(Locale.getDefault(), DateFormat.getDateInstance());
     }
-    
+
     /**
      * Constructs a date picker combo box using the specified locale and date format style
+     *
      * @param locale the locale
-     * @param style the date style
-     * @see DateFormat#getDateInstance(int, java.util.Locale) 
+     * @param style  the date style
+     * @see DateFormat#getDateInstance(int, java.util.Locale)
      */
     public DatePickerComboBox(Locale locale, int style) {
         this(locale, DateFormat.getDateInstance(style, locale));
     }
-    
+
     public DatePickerComboBox(Locale locale, DateFormat dateFormat) {
         L l = new L();
-        
+
         label = new ComboboxLabel(getAnimationState());
         label.setTheme("display");
         label.addCallback(l);
-        
+
         datePicker = new DatePicker(locale, dateFormat);
         datePicker.addCallback(l);
-        
+
         popup.add(datePicker);
         popup.setTheme("datepickercomboboxPopup");
-        
-        button.getModel().addStateCallback(l);
-        
-        add(label);
-    }
 
-    public void setModel(DateModel model) {
-        datePicker.setModel(model);
+        button.getModel().addStateCallback(l);
+
+        add(label);
     }
 
     public DateModel getModel() {
         return datePicker.getModel();
+    }
+
+    public void setModel(DateModel model) {
+        datePicker.setModel(model);
     }
 
     public void setDateFormat(Locale locale, DateFormat dateFormat) {
@@ -95,7 +97,7 @@ public class DatePickerComboBox extends ComboBoxBase {
     public Locale getLocale() {
         return datePicker.getLocale();
     }
-    
+
     @Override
     protected ComboboxLabel getLabel() {
         return label;
@@ -104,7 +106,7 @@ public class DatePickerComboBox extends ComboBoxBase {
     protected DatePicker getDatePicker() {
         return datePicker;
     }
-    
+
     @Override
     protected void setPopupSize() {
         int minWidth = popup.getMinWidth();
@@ -120,15 +122,15 @@ public class DatePickerComboBox extends ComboBoxBase {
         int popupMaxBottom = container.getInnerBottom();
         int x = getX();
         int y = getBottom();
-        if(x + popupWidth > popupMaxRight) {
-            if(getRight() - popupWidth >= container.getInnerX()) {
+        if (x + popupWidth > popupMaxRight) {
+            if (getRight() - popupWidth >= container.getInnerX()) {
                 x = getRight() - popupWidth;
             } else {
                 x = popupMaxRight - minWidth;
             }
         }
-        if(y + popupHeight > popupMaxBottom) {
-            if(getY() - popupHeight >= container.getInnerY()) {
+        if (y + popupHeight > popupMaxBottom) {
+            if (getY() - popupHeight >= container.getInnerY()) {
                 y = getY() - popupHeight;
             } else {
                 y = popupMaxBottom - minHeight;
@@ -139,11 +141,11 @@ public class DatePickerComboBox extends ComboBoxBase {
         popup.setPosition(x, y);
         popup.setSize(popupWidth, popupHeight);
     }
-    
+
     protected void updateLabel() {
         label.setText(datePicker.formatDate());
     }
-    
+
     void updateHover() {
         getAnimationState().setAnimationState(Label.STATE_HOVER,
                 label.hover || button.getModel().isHover());
@@ -162,7 +164,7 @@ public class DatePickerComboBox extends ComboBoxBase {
         @Override
         public int getPreferredInnerHeight() {
             int prefHeight = super.getPreferredInnerHeight();
-            if(getFont() != null) {
+            if (getFont() != null) {
                 prefHeight = Math.max(prefHeight, getFont().getLineHeight());
             }
             return prefHeight;
@@ -170,16 +172,16 @@ public class DatePickerComboBox extends ComboBoxBase {
 
         @Override
         protected void handleMouseHover(Event evt) {
-            if(evt.isMouseEvent()) {
+            if (evt.isMouseEvent()) {
                 boolean newHover = evt.getType() != Event.Type.MOUSE_EXITED;
-                if(newHover != hover) {
+                if (newHover != hover) {
                     hover = newHover;
                     updateHover();
                 }
             }
         }
     }
-    
+
     class L implements Runnable, CallbackWithReason<Label.CallbackReason>, DatePicker.Callback {
         public void run() {
             updateHover();

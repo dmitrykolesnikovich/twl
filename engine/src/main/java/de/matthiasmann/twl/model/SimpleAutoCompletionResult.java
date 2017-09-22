@@ -44,7 +44,7 @@ public class SimpleAutoCompletionResult extends AutoCompletionResult {
         this.results = results.toArray(new String[results.size()]);
     }
 
-    public SimpleAutoCompletionResult(String text, int prefixLength, String ... results) {
+    public SimpleAutoCompletionResult(String text, int prefixLength, String... results) {
         super(text, prefixLength);
         this.results = results.clone();
     }

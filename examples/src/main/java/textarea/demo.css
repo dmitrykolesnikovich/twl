@@ -39,8 +39,27 @@ h1 {
     font-family: big;
 }
 
-pre { font-family: code; color: #000000 }
-.ST0 { font-family: codeBold; color: #404040 }
-.comment { font-family: code; color: #404040 }
-.character { font-family: code; color: #ce7b00 }
-.keyword-directive { font-family: code; color: #0000e6 }
+pre {
+    font-family: code;
+    color: #000000
+}
+
+.ST0 {
+    font-family: codeBold;
+    color: #404040
+}
+
+.comment {
+    font-family: code;
+    color: #404040
+}
+
+.character {
+    font-family: code;
+    color: #ce7b00
+}
+
+.keyword-directive {
+    font-family: code;
+    color: #0000e6
+}

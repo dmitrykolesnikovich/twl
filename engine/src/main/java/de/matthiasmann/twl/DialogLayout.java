@@ -30,6 +30,7 @@
 package de.matthiasmann.twl;
 
 import de.matthiasmann.twl.renderer.AnimationState.StateKey;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -39,62 +40,65 @@ import java.util.logging.Logger;
 
 /**
  * A layout manager similar to Swing's GroupLayout
- *
+ * <p>
  * This layout manager uses two independant layout groups:
- *   one for the horizontal axis
- *   one for the vertical axis.
+ * one for the horizontal axis
+ * one for the vertical axis.
  * Every widget must be added to both the horizontal and the vertical group.
- *
+ * <p>
  * When a widget is added to a group it will also be added as a child widget
  * if it was not already added. You can add widgets to DialogLayout before
  * adding them to a group to set the focus order.
- *
+ * <p>
  * There are two kinds of groups:
- *   a sequential group which which behaves similar to BoxLayout
- *   a parallel group which alignes the start and size of each child
- *
+ * a sequential group which which behaves similar to BoxLayout
+ * a parallel group which alignes the start and size of each child
+ * <p>
  * Groups can be cascaded as a tree without restrictions.
- *
+ * <p>
  * It is also possible to add widgets to DialogLayout without adding them
  * to the layout groups. These widgets are then not touched by DialogLayout's
  * layout system.
- *
+ * <p>
  * When a widget is only added to either the horizontal or vertical groups
  * and not both, then an IllegalStateException exception is created on layout.
- *
+ * <p>
  * To help debugging the group construction you can set the system property
  * "debugLayoutGroups" to "true" which will collect additional stack traces
  * to help locate the source of the error.
  *
  * @author Matthias Mann
- * @see #createParallelGroup() 
+ * @see #createParallelGroup()
  * @see #createSequentialGroup()
  */
 public class DialogLayout extends Widget {
 
     /**
      * Symbolic constant to refer to "small gap".
+     *
      * @see #getSmallGap()
      * @see Group#addGap(int)
      * @see Group#addGap(int, int, int)
      */
-    public static final int SMALL_GAP   = -1;
+    public static final int SMALL_GAP = -1;
 
     /**
      * Symbolic constant to refer to "medium gap".
+     *
      * @see #getMediumGap()
      * @see Group#addGap(int)
      * @see Group#addGap(int, int, int)
      */
-    public static final int MEDIUM_GAP  = -2;
+    public static final int MEDIUM_GAP = -2;
 
     /**
      * Symbolic constant to refer to "large gap".
+     *
      * @see #getLargeGap()
      * @see Group#addGap(int)
      * @see Group#addGap(int, int, int)
      */
-    public static final int LARGE_GAP   = -3;
+    public static final int LARGE_GAP = -3;
 
     /**
      * Symbolic constant to refer to "default gap".
@@ -107,43 +111,44 @@ public class DialogLayout extends Widget {
      * @see Group#addGap(int, int, int)
      */
     public static final int DEFAULT_GAP = -4;
-
+    static final int AXIS_X = 0;
+    static final int AXIS_Y = 1;
+    static final Gap NO_GAP = new Gap(0, 0, 32767);
     private static final boolean DEBUG_LAYOUT_GROUPS = Widget.getSafeBooleanProperty("debugLayoutGroups");
-    
+    final HashMap<Widget, WidgetSpring> widgetSprings;
     protected Dimension smallGap;
     protected Dimension mediumGap;
     protected Dimension largeGap;
     protected Dimension defaultGap;
     protected ParameterMap namedGaps;
-
     protected boolean addDefaultGaps = true;
     protected boolean includeInvisibleWidgets = true;
     protected boolean redoDefaultGaps;
     protected boolean isPrepared;
     protected boolean blockInvalidateLayoutTree;
     protected boolean warnOnIncomplete;
-
-    private Group horz;
-    private Group vert;
-
     /**
      * Debugging aid. Captures the stack trace where one of the group was last assigned.
      */
     Throwable debugStackTrace;
-
-    final HashMap<Widget, WidgetSpring> widgetSprings;
+    private Group horz;
+    private Group vert;
 
     /**
      * Creates a new DialogLayout widget.
-     *
+     * <p>
      * Initially both the horizontal and the vertical group are null.
-     * 
+     *
      * @see #setHorizontalGroup(de.matthiasmann.twl.DialogLayout.Group)
      * @see #setVerticalGroup(de.matthiasmann.twl.DialogLayout.Group)
      */
     public DialogLayout() {
         widgetSprings = new HashMap<Widget, WidgetSpring>();
         collectDebugStack();
+    }
+
+    static Logger getLogger() {
+        return Logger.getLogger(DialogLayout.class.getName());
     }
 
     public Group getHorizontalGroup() {
@@ -153,10 +158,10 @@ public class DialogLayout extends Widget {
     /**
      * The horizontal group controls the position and size of all child
      * widgets along the X axis.
-     *
+     * <p>
      * Every widget must be part of both horizontal and vertical group.
      * Otherwise a IllegalStateException is thrown at layout time.
-     *
+     * <p>
      * If you want to change both horizontal and vertical group then
      * it's recommended to set the other group first to null:
      * <pre>
@@ -169,7 +174,7 @@ public class DialogLayout extends Widget {
      * @see #setVerticalGroup(de.matthiasmann.twl.DialogLayout.Group)
      */
     public void setHorizontalGroup(Group g) {
-        if(g != null) {
+        if (g != null) {
             g.checkGroup(this);
         }
         this.horz = g;
@@ -184,15 +189,15 @@ public class DialogLayout extends Widget {
     /**
      * The vertical group controls the position and size of all child
      * widgets along the Y axis.
-     *
+     * <p>
      * Every widget must be part of both horizontal and vertical group.
      * Otherwise a IllegalStateException is thrown at layout time.
      *
      * @param g the group used for the Y axis
-     * @see #setHorizontalGroup(de.matthiasmann.twl.DialogLayout.Group) 
+     * @see #setHorizontalGroup(de.matthiasmann.twl.DialogLayout.Group)
      */
     public void setVerticalGroup(Group g) {
-        if(g != null) {
+        if (g != null) {
             g.checkGroup(this);
         }
         this.vert = g;
@@ -242,7 +247,7 @@ public class DialogLayout extends Widget {
 
     /**
      * Determine whether default gaps should be added from the theme or not.
-     * 
+     *
      * @param addDefaultGaps if true then default gaps are added.
      */
     public void setAddDefaultGaps(boolean addDefaultGaps) {
@@ -253,7 +258,7 @@ public class DialogLayout extends Widget {
      * removes all default gaps from all groups.
      */
     public void removeDefaultGaps() {
-        if(horz != null && vert != null) {
+        if (horz != null && vert != null) {
             horz.removeDefaultGaps();
             vert.removeDefaultGaps();
             maybeInvalidateLayoutTree();
@@ -264,7 +269,7 @@ public class DialogLayout extends Widget {
      * Adds theme dependant default gaps to all groups.
      */
     public void addDefaultGaps() {
-        if(horz != null && vert != null) {
+        if (horz != null && vert != null) {
             horz.addDefaultGap();
             vert.addDefaultGap();
             maybeInvalidateLayoutTree();
@@ -279,14 +284,14 @@ public class DialogLayout extends Widget {
      * Controls whether invisible widgets should be included in the layout or
      * not. If they are not included then the layout is recomputed when the
      * visibility of a child widget changes.
-     *
+     * <p>
      * The default is true
      *
      * @param includeInvisibleWidgets If true then invisible widgets are included,
-     *      if false they don't contribute to the layout.
+     *                                if false they don't contribute to the layout.
      */
     public void setIncludeInvisibleWidgets(boolean includeInvisibleWidgets) {
-        if(this.includeInvisibleWidgets != includeInvisibleWidgets) {
+        if (this.includeInvisibleWidgets != includeInvisibleWidgets) {
             this.includeInvisibleWidgets = includeInvisibleWidgets;
             layoutGroupsChanged();
         }
@@ -294,7 +299,7 @@ public class DialogLayout extends Widget {
 
     private void collectDebugStack() {
         warnOnIncomplete = true;
-        if(DEBUG_LAYOUT_GROUPS) {
+        if (DEBUG_LAYOUT_GROUPS) {
             debugStackTrace = new Throwable("DialogLayout created/used here").fillInStackTrace();
         }
     }
@@ -302,10 +307,6 @@ public class DialogLayout extends Widget {
     private void warnOnIncomplete() {
         warnOnIncomplete = false;
         getLogger().log(Level.WARNING, "Dialog layout has incomplete state", debugStackTrace);
-    }
-
-    static Logger getLogger() {
-        return Logger.getLogger(DialogLayout.class.getName());
     }
 
     protected void applyThemeDialogLayout(ThemeInfo themeInfo) {
@@ -330,7 +331,7 @@ public class DialogLayout extends Widget {
 
     @Override
     public int getMinWidth() {
-        if(horz != null) {
+        if (horz != null) {
             prepare();
             return horz.getMinSize(AXIS_X) + getBorderHorizontal();
         }
@@ -339,7 +340,7 @@ public class DialogLayout extends Widget {
 
     @Override
     public int getMinHeight() {
-        if(vert != null) {
+        if (vert != null) {
             prepare();
             return vert.getMinSize(AXIS_Y) + getBorderVertical();
         }
@@ -348,7 +349,7 @@ public class DialogLayout extends Widget {
 
     @Override
     public int getPreferredInnerWidth() {
-        if(horz != null) {
+        if (horz != null) {
             prepare();
             return horz.getPrefSize(AXIS_X);
         }
@@ -357,7 +358,7 @@ public class DialogLayout extends Widget {
 
     @Override
     public int getPreferredInnerHeight() {
-        if(vert != null) {
+        if (vert != null) {
             prepare();
             return vert.getPrefSize(AXIS_Y);
         }
@@ -366,7 +367,7 @@ public class DialogLayout extends Widget {
 
     @Override
     public void adjustSize() {
-        if(horz != null && vert != null) {
+        if (horz != null && vert != null) {
             prepare();
             int minWidth = horz.getMinSize(AXIS_X);
             int minHeight = vert.getMinSize(AXIS_Y);
@@ -383,17 +384,17 @@ public class DialogLayout extends Widget {
 
     @Override
     protected void layout() {
-        if(horz != null && vert != null) {
+        if (horz != null && vert != null) {
             prepare();
             doLayout();
-        } else if(warnOnIncomplete) {
+        } else if (warnOnIncomplete) {
             warnOnIncomplete();
         }
     }
-    
+
     protected void prepare() {
-        if(redoDefaultGaps) {
-            if(addDefaultGaps) {
+        if (redoDefaultGaps) {
+            if (addDefaultGaps) {
                 try {
                     blockInvalidateLayoutTree = true;
                     removeDefaultGaps();
@@ -405,9 +406,9 @@ public class DialogLayout extends Widget {
             redoDefaultGaps = false;
             isPrepared = false;
         }
-        if(!isPrepared) {
-            for(WidgetSpring s : widgetSprings.values()) {
-                if(includeInvisibleWidgets || s.w.isVisible()) {
+        if (!isPrepared) {
+            for (WidgetSpring s : widgetSprings.values()) {
+                if (includeInvisibleWidgets || s.w.isVisible()) {
                     s.prepare();
                 }
             }
@@ -418,14 +419,14 @@ public class DialogLayout extends Widget {
     protected void doLayout() {
         horz.setSize(AXIS_X, getInnerX(), getInnerWidth());
         vert.setSize(AXIS_Y, getInnerY(), getInnerHeight());
-        try{
-            for(WidgetSpring s : widgetSprings.values()) {
-                if(includeInvisibleWidgets || s.w.isVisible()) {
+        try {
+            for (WidgetSpring s : widgetSprings.values()) {
+                if (includeInvisibleWidgets || s.w.isVisible()) {
                     s.apply();
                 }
             }
-        }catch(IllegalStateException ex) {
-            if(debugStackTrace != null && ex.getCause() == null) {
+        } catch (IllegalStateException ex) {
+            if (debugStackTrace != null && ex.getCause() == null) {
                 ex.initCause(debugStackTrace);
             }
             throw ex;
@@ -469,22 +470,22 @@ public class DialogLayout extends Widget {
     /**
      * Creates a parallel group and adds the specified widgets.
      *
-     * @see #createParallelGroup()
      * @param widgets the widgets to add
      * @return a new parallel Group.
+     * @see #createParallelGroup()
      */
-    public Group createParallelGroup(Widget ... widgets) {
+    public Group createParallelGroup(Widget... widgets) {
         return createParallelGroup().addWidgets(widgets);
     }
 
     /**
      * Creates a parallel group and adds the specified groups.
      *
-     * @see #createParallelGroup()
      * @param groups the groups to add
      * @return a new parallel Group.
+     * @see #createParallelGroup()
      */
-    public Group createParallelGroup(Group ... groups) {
+    public Group createParallelGroup(Group... groups) {
         return createParallelGroup().addGroups(groups);
     }
 
@@ -494,7 +495,7 @@ public class DialogLayout extends Widget {
      * along it's axis in the order they are added to the group. The available
      * size is distributed among the children depending on their min/preferred/max
      * sizes.
-     * 
+     *
      * @return a new sequential Group.
      */
     public Group createSequentialGroup() {
@@ -504,22 +505,22 @@ public class DialogLayout extends Widget {
     /**
      * Creates a sequential group and adds the specified widgets.
      *
-     * @see #createSequentialGroup()
      * @param widgets the widgets to add
      * @return a new sequential Group.
+     * @see #createSequentialGroup()
      */
-    public Group createSequentialGroup(Widget ... widgets) {
+    public Group createSequentialGroup(Widget... widgets) {
         return createSequentialGroup().addWidgets(widgets);
     }
 
     /**
      * Creates a sequential group and adds the specified groups.
      *
-     * @see #createSequentialGroup()
      * @param groups the groups to add
      * @return a new sequential Group.
+     * @see #createSequentialGroup()
      */
-    public Group createSequentialGroup(Group ... groups) {
+    public Group createSequentialGroup(Group... groups) {
         return createSequentialGroup().addGroups(groups);
     }
 
@@ -549,22 +550,22 @@ public class DialogLayout extends Widget {
     /**
      * Sets the alignment of the specified widget.
      * The widget must have already been added to this container for this method to work.
-     *
+     * <p>
      * <p>The default alignment of a widget is {@link Alignment#FILL}</p>
-     * 
-     * @param widget the widget for which the alignment should be set
+     *
+     * @param widget    the widget for which the alignment should be set
      * @param alignment the new alignment
      * @return true if the widget's alignment was changed, false otherwise
      */
     public boolean setWidgetAlignment(Widget widget, Alignment alignment) {
-        if(widget == null) {
+        if (widget == null) {
             throw new NullPointerException("widget");
         }
-        if(alignment == null) {
+        if (alignment == null) {
             throw new NullPointerException("alignment");
         }
         WidgetSpring ws = widgetSprings.get(widget);
-        if(ws != null) {
+        if (ws != null) {
             assert widget.getParent() == this;
             ws.alignment = alignment;
             return true;
@@ -573,28 +574,28 @@ public class DialogLayout extends Widget {
     }
 
     protected void recheckWidgets() {
-        if(horz != null) {
+        if (horz != null) {
             horz.recheckWidgets();
         }
-        if(vert != null) {
+        if (vert != null) {
             vert.recheckWidgets();
         }
     }
-    
+
     protected void layoutGroupsChanged() {
         redoDefaultGaps = true;
         maybeInvalidateLayoutTree();
     }
-    
+
     protected void maybeInvalidateLayoutTree() {
-        if(horz != null && vert != null && !blockInvalidateLayoutTree) {
+        if (horz != null && vert != null && !blockInvalidateLayoutTree) {
             invalidateLayout();
         }
     }
 
     @Override
     protected void childVisibilityChanged(Widget child) {
-        if(!includeInvisibleWidgets) {
+        if (!includeInvisibleWidgets) {
             layoutGroupsChanged(); // this will also clear isPrepared
         }
     }
@@ -613,22 +614,25 @@ public class DialogLayout extends Widget {
         public final int max;
 
         public Gap() {
-            this(0,0,32767);
+            this(0, 0, 32767);
         }
+
         public Gap(int size) {
             this(size, size, size);
         }
+
         public Gap(int min, int preferred) {
             this(min, preferred, 32767);
         }
+
         public Gap(int min, int preferred, int max) {
-            if(min < 0) {
+            if (min < 0) {
                 throw new IllegalArgumentException("min");
             }
-            if(preferred < min) {
+            if (preferred < min) {
                 throw new IllegalArgumentException("preferred");
             }
-            if(max < 0 || (max > 0 && max < preferred)) {
+            if (max < 0 || (max > 0 && max < preferred)) {
                 throw new IllegalArgumentException("max");
             }
             this.min = min;
@@ -636,19 +640,19 @@ public class DialogLayout extends Widget {
             this.max = max;
         }
     }
-    
-    static final int AXIS_X = 0;
-    static final int AXIS_Y = 1;
 
     static abstract class Spring {
-        abstract int getMinSize(int axis);
-        abstract int getPrefSize(int axis);
-        abstract int getMaxSize(int axis);
-        abstract void setSize(int axis, int pos, int size);
-
         Spring() {
         }
-        
+
+        abstract int getMinSize(int axis);
+
+        abstract int getPrefSize(int axis);
+
+        abstract int getMaxSize(int axis);
+
+        abstract void setSize(int axis, int pos, int size);
+
         void collectAllSprings(HashSet<Spring> result) {
             result.add(this);
         }
@@ -694,53 +698,62 @@ public class DialogLayout extends Widget {
 
         @Override
         int getMinSize(int axis) {
-            switch(axis) {
-            case AXIS_X: return minWidth;
-            case AXIS_Y: return minHeight;
-            default: throw new IllegalArgumentException("axis");
+            switch (axis) {
+                case AXIS_X:
+                    return minWidth;
+                case AXIS_Y:
+                    return minHeight;
+                default:
+                    throw new IllegalArgumentException("axis");
             }
         }
 
         @Override
         int getPrefSize(int axis) {
-            switch(axis) {
-            case AXIS_X: return prefWidth;
-            case AXIS_Y: return prefHeight;
-            default: throw new IllegalArgumentException("axis");
+            switch (axis) {
+                case AXIS_X:
+                    return prefWidth;
+                case AXIS_Y:
+                    return prefHeight;
+                default:
+                    throw new IllegalArgumentException("axis");
             }
         }
 
         @Override
         int getMaxSize(int axis) {
-            switch(axis) {
-            case AXIS_X: return maxWidth;
-            case AXIS_Y: return maxHeight;
-            default: throw new IllegalArgumentException("axis");
+            switch (axis) {
+                case AXIS_X:
+                    return maxWidth;
+                case AXIS_Y:
+                    return maxHeight;
+                default:
+                    throw new IllegalArgumentException("axis");
             }
         }
 
         @Override
         void setSize(int axis, int pos, int size) {
             this.flags |= 1 << axis;
-            switch(axis) {
-            case AXIS_X:
-                this.x = pos;
-                this.width = size;
-                break;
-            case AXIS_Y:
-                this.y = pos;
-                this.height = size;
-                break;
-            default:
-                throw new IllegalArgumentException("axis");
+            switch (axis) {
+                case AXIS_X:
+                    this.x = pos;
+                    this.width = size;
+                    break;
+                case AXIS_Y:
+                    this.y = pos;
+                    this.height = size;
+                    break;
+                default:
+                    throw new IllegalArgumentException("axis");
             }
         }
 
         void apply() {
-            if(flags != 3) {
+            if (flags != 3) {
                 invalidState();
             }
-            if(alignment != Alignment.FILL) {
+            if (alignment != Alignment.FILL) {
                 int newWidth = Math.min(width, prefWidth);
                 int newHeight = Math.min(height, prefHeight);
                 w.setPosition(
@@ -764,13 +777,27 @@ public class DialogLayout extends Widget {
             sb.append("Widget ").append(w)
                     .append(" with theme ").append(w.getTheme())
                     .append(" is not part of the following groups:");
-            if((flags & (1 << AXIS_X)) == 0) {
+            if ((flags & (1 << AXIS_X)) == 0) {
                 sb.append(" horizontal");
             }
-            if((flags & (1 << AXIS_Y)) == 0) {
+            if ((flags & (1 << AXIS_Y)) == 0) {
                 sb.append(" vertical");
             }
             throw new IllegalStateException(sb.toString());
+        }
+    }
+
+    static class SpringDelta implements Comparable<SpringDelta> {
+        final int idx;
+        final int delta;
+
+        SpringDelta(int idx, int delta) {
+            this.idx = idx;
+            this.delta = delta;
+        }
+
+        public int compareTo(SpringDelta o) {
+            return delta - o.delta;
         }
     }
 
@@ -810,37 +837,35 @@ public class DialogLayout extends Widget {
         }
 
         private int convertConstant(int axis, int value) {
-            if(value >= 0) {
+            if (value >= 0) {
                 return value;
             }
             Dimension dim;
-            switch(value) {
-            case SMALL_GAP:
-                dim = smallGap;
-                break;
-            case MEDIUM_GAP:
-                dim = mediumGap;
-                break;
-            case LARGE_GAP:
-                dim = largeGap;
-                break;
-            case DEFAULT_GAP:
-                dim = defaultGap;
-                break;
-            default:
-                throw new IllegalArgumentException("Invalid gap size: " + value);
+            switch (value) {
+                case SMALL_GAP:
+                    dim = smallGap;
+                    break;
+                case MEDIUM_GAP:
+                    dim = mediumGap;
+                    break;
+                case LARGE_GAP:
+                    dim = largeGap;
+                    break;
+                case DEFAULT_GAP:
+                    dim = defaultGap;
+                    break;
+                default:
+                    throw new IllegalArgumentException("Invalid gap size: " + value);
             }
-            if(dim == null) {
+            if (dim == null) {
                 return 0;
-            } else if(axis == AXIS_X) {
+            } else if (axis == AXIS_X) {
                 return dim.getX();
             } else {
                 return dim.getY();
             }
         }
     }
-
-    static final Gap NO_GAP = new Gap(0,0,32767);
 
     private class NamedGapSpring extends Spring {
         final String name;
@@ -869,7 +894,7 @@ public class DialogLayout extends Widget {
         }
 
         private Gap getGap() {
-            if(namedGaps != null) {
+            if (namedGaps != null) {
                 return namedGaps.getParameterValue(name, true, Gap.class, NO_GAP);
             }
             return NO_GAP;
@@ -881,19 +906,19 @@ public class DialogLayout extends Widget {
         boolean alreadyAdded;
 
         void checkGroup(DialogLayout owner) {
-            if(DialogLayout.this != owner) {
+            if (DialogLayout.this != owner) {
                 throw new IllegalArgumentException("Can't add group from different layout");
             }
-            if(alreadyAdded) {
+            if (alreadyAdded) {
                 throw new IllegalArgumentException("Group already added to another group");
             }
         }
 
         /**
          * Adds another group. A group can only be added once.
-         *
+         * <p>
          * WARNING: No check is made to prevent cycles.
-         * 
+         *
          * @param g the child Group
          * @return this Group
          */
@@ -906,14 +931,14 @@ public class DialogLayout extends Widget {
 
         /**
          * Adds several groups. A group can only be added once.
-         *
+         * <p>
          * WARNING: No check is made to prevent cycles.
          *
          * @param groups the groups to add
          * @return this Group
          */
-        public Group addGroups(Group ... groups) {
-            for(Group g : groups) {
+        public Group addGroups(Group... groups) {
+            for (Group g : groups) {
                 addGroup(g);
             }
             return this;
@@ -921,7 +946,7 @@ public class DialogLayout extends Widget {
 
         /**
          * Adds a widget to this group.
-         *
+         * <p>
          * <p>If the widget is already a child widget of the DialogLayout then it
          * keeps it current settings, otherwise it is added the alignment is set
          * to {@link Alignment#FILL}.</p>
@@ -931,11 +956,11 @@ public class DialogLayout extends Widget {
          * @see Widget#add(de.matthiasmann.twl.Widget)
          */
         public Group addWidget(Widget w) {
-            if(w.getParent() != DialogLayout.this) {
+            if (w.getParent() != DialogLayout.this) {
                 DialogLayout.this.add(w);
             }
             WidgetSpring s = widgetSprings.get(w);
-            if(s == null) {
+            if (s == null) {
                 throw new IllegalStateException("WidgetSpring for Widget not found: " + w);
             }
             addSpring(s);
@@ -944,15 +969,15 @@ public class DialogLayout extends Widget {
 
         /**
          * Adds a widget to this group.
-         *
+         * <p>
          * <p>If the widget is already a child widget of the DialogLayout then it
          * it's alignment is set to the specified value overwriting any current
          * alignment setting, otherwise it is added to the DialogLayout.</p>
          *
-         * @param w the child widget.
+         * @param w         the child widget.
          * @param alignment the alignment of the child widget.
          * @return this Group
-         * @see Widget#add(de.matthiasmann.twl.Widget) 
+         * @see Widget#add(de.matthiasmann.twl.Widget)
          * @see #setWidgetAlignment(de.matthiasmann.twl.Widget, de.matthiasmann.twl.Alignment)
          */
         public Group addWidget(Widget w, Alignment alignment) {
@@ -963,12 +988,12 @@ public class DialogLayout extends Widget {
 
         /**
          * Adds several widgets to this group. The widget is automatically added as child widget.
-         * 
+         *
          * @param widgets The widgets which should be added.
          * @return this Group
          */
-        public Group addWidgets(Widget ... widgets) {
-            for(Widget w : widgets) {
+        public Group addWidgets(Widget... widgets) {
+            for (Widget w : widgets) {
                 addWidget(w);
             }
             return this;
@@ -977,7 +1002,7 @@ public class DialogLayout extends Widget {
         /**
          * Adds several widgets to this group, inserting the specified gap in between.
          * Each widget also gets an animation state set depending on it's position.
-         *
+         * <p>
          * The state gapName+"NotFirst" is set to false for widgets[0] and true for all others
          * The state gapName+"NotLast" is set to false for widgets[n-1] and true for all others
          *
@@ -985,28 +1010,28 @@ public class DialogLayout extends Widget {
          * @param widgets The widgets which should be added.
          * @return this Group
          */
-        public Group addWidgetsWithGap(String gapName, Widget ... widgets) {
+        public Group addWidgetsWithGap(String gapName, Widget... widgets) {
             StateKey stateNotFirst = StateKey.get(gapName.concat("NotFirst"));
             StateKey stateNotLast = StateKey.get(gapName.concat("NotLast"));
-            for(int i=0,n=widgets.length ; i<n ;i++) {
-                if(i > 0) {
+            for (int i = 0, n = widgets.length; i < n; i++) {
+                if (i > 0) {
                     addGap(gapName);
                 }
                 Widget w = widgets[i];
                 addWidget(w);
                 AnimationState as = w.getAnimationState();
                 as.setAnimationState(stateNotFirst, i > 0);
-                as.setAnimationState(stateNotLast, i < n-1);
+                as.setAnimationState(stateNotLast, i < n - 1);
             }
             return this;
         }
-        
+
         /**
          * Adds a generic gap. Can use symbolic gap names.
          *
-         * @param min the minimum size in pixels or a symbolic constant
+         * @param min  the minimum size in pixels or a symbolic constant
          * @param pref the preferred size in pixels or a symbolic constant
-         * @param max the maximum size in pixels or a symbolic constant
+         * @param max  the maximum size in pixels or a symbolic constant
          * @return this Group
          * @see DialogLayout#SMALL_GAP
          * @see DialogLayout#MEDIUM_GAP
@@ -1050,8 +1075,9 @@ public class DialogLayout extends Widget {
 
         /**
          * Adds a flexible gap with no minimum size.
-         *
+         * <p>
          * <p>This is equivalent to {@code addGap(0, 0, Short.MAX_VALUE) }</p>
+         *
          * @return this Group
          */
         public Group addGap() {
@@ -1061,17 +1087,17 @@ public class DialogLayout extends Widget {
 
         /**
          * Adds a named gap.
-         * 
+         * <p>
          * <p>Named gaps are configured via the theme parameter "namedGaps" which
          * maps from names to &lt;gap&gt; objects.</p>
-         * 
+         * <p>
          * <p>They behave equal to {@link #addGap(int, int, int) }.</p>
-         * 
+         *
          * @param name the name of the gap (vcase sensitive)
          * @return this Group
          */
         public Group addGap(String name) {
-            if(name.length() == 0) {
+            if (name.length() == 0) {
                 throw new IllegalArgumentException("name");
             }
             addSpring(new NamedGapSpring(name));
@@ -1082,14 +1108,14 @@ public class DialogLayout extends Widget {
          * Remove all default gaps from this and child groups
          */
         public void removeDefaultGaps() {
-            for(int i=springs.size() ; i-->0 ;) {
+            for (int i = springs.size(); i-- > 0; ) {
                 Spring s = springs.get(i);
-                if(s instanceof GapSpring) {
-                    if(((GapSpring)s).isDefault) {
+                if (s instanceof GapSpring) {
+                    if (((GapSpring) s).isDefault) {
                         springs.remove(i);
                     }
-                } else if(s instanceof Group) {
-                    ((Group)s).removeDefaultGaps();
+                } else if (s instanceof Group) {
+                    ((Group) s).removeDefaultGaps();
                 }
             }
         }
@@ -1098,27 +1124,27 @@ public class DialogLayout extends Widget {
          * Add a default gap between all children except if the neighbour is already a Gap.
          */
         public void addDefaultGap() {
-            for(int i=0 ; i<springs.size() ; i++) {
+            for (int i = 0; i < springs.size(); i++) {
                 Spring s = springs.get(i);
-                if(s instanceof Group) {
-                    ((Group)s).addDefaultGap();
+                if (s instanceof Group) {
+                    ((Group) s).addDefaultGap();
                 }
             }
         }
 
         /**
          * Removes the specified group from this group.
-         * 
-         * @param g the group to remove
+         *
+         * @param g             the group to remove
          * @param removeWidgets if true all widgets in the specified group
-         *      should be removed from the {@code DialogLayout}
+         *                      should be removed from the {@code DialogLayout}
          * @return true if it was found and removed, false otherwise
          */
         public boolean removeGroup(Group g, boolean removeWidgets) {
-            for(int i=0 ; i<springs.size() ; i++) {
-                if(springs.get(i) == g) {
+            for (int i = 0; i < springs.size(); i++) {
+                if (springs.get(i) == g) {
                     springs.remove(i);
-                    if(removeWidgets) {
+                    if (removeWidgets) {
                         g.removeWidgets();
                         DialogLayout.this.recheckWidgets();
                     }
@@ -1133,14 +1159,14 @@ public class DialogLayout extends Widget {
          * Removes all elements from this group
          *
          * @param removeWidgets if true all widgets in this group are removed
-         *      from the {@code DialogLayout}
+         *                      from the {@code DialogLayout}
          */
         public void clear(boolean removeWidgets) {
-            if(removeWidgets) {
+            if (removeWidgets) {
                 removeWidgets();
             }
             springs.clear();
-            if(removeWidgets) {
+            if (removeWidgets) {
                 DialogLayout.this.recheckWidgets();
             }
             DialogLayout.this.layoutGroupsChanged();
@@ -1152,41 +1178,27 @@ public class DialogLayout extends Widget {
         }
 
         void recheckWidgets() {
-            for(int i=springs.size() ; i-->0 ;) {
+            for (int i = springs.size(); i-- > 0; ) {
                 Spring s = springs.get(i);
-                if(s instanceof WidgetSpring) {
-                    if(!widgetSprings.containsKey(((WidgetSpring)s).w)) {
+                if (s instanceof WidgetSpring) {
+                    if (!widgetSprings.containsKey(((WidgetSpring) s).w)) {
                         springs.remove(i);
                     }
-                } else if(s instanceof Group) {
-                    ((Group)s).recheckWidgets();
+                } else if (s instanceof Group) {
+                    ((Group) s).recheckWidgets();
                 }
             }
         }
-        
+
         void removeWidgets() {
-            for(int i=springs.size() ; i-->0 ;) {
+            for (int i = springs.size(); i-- > 0; ) {
                 Spring s = springs.get(i);
-                if(s instanceof WidgetSpring) {
-                    removeChild((WidgetSpring)s);
-                } else if(s instanceof Group) {
-                    ((Group)s).removeWidgets();
+                if (s instanceof WidgetSpring) {
+                    removeChild((WidgetSpring) s);
+                } else if (s instanceof Group) {
+                    ((Group) s).removeWidgets();
                 }
             }
-        }
-    }
-
-    static class SpringDelta implements Comparable<SpringDelta> {
-        final int idx;
-        final int delta;
-
-        SpringDelta(int idx, int delta) {
-            this.idx = idx;
-            this.delta = delta;
-        }
-
-        public int compareTo(SpringDelta o) {
-            return delta - o.delta;
         }
     }
 
@@ -1197,9 +1209,9 @@ public class DialogLayout extends Widget {
         @Override
         int getMinSize(int axis) {
             int size = 0;
-            for(int i=0,n=springs.size() ; i<n ; i++) {
+            for (int i = 0, n = springs.size(); i < n; i++) {
                 Spring s = springs.get(i);
-                if(includeInvisibleWidgets || s.isVisible()) {
+                if (includeInvisibleWidgets || s.isVisible()) {
                     size += s.getMinSize(axis);
                 }
             }
@@ -1209,9 +1221,9 @@ public class DialogLayout extends Widget {
         @Override
         int getPrefSize(int axis) {
             int size = 0;
-            for(int i=0,n=springs.size() ; i<n ; i++) {
+            for (int i = 0, n = springs.size(); i < n; i++) {
                 Spring s = springs.get(i);
-                if(includeInvisibleWidgets || s.isVisible()) {
+                if (includeInvisibleWidgets || s.isVisible()) {
                     size += s.getPrefSize(axis);
                 }
             }
@@ -1222,11 +1234,11 @@ public class DialogLayout extends Widget {
         int getMaxSize(int axis) {
             int size = 0;
             boolean hasMax = false;
-            for(int i=0,n=springs.size() ; i<n ; i++) {
+            for (int i = 0, n = springs.size(); i < n; i++) {
                 Spring s = springs.get(i);
-                if(includeInvisibleWidgets || s.isVisible()) {
+                if (includeInvisibleWidgets || s.isVisible()) {
                     int max = s.getMaxSize(axis);
-                    if(max > 0) {
+                    if (max > 0) {
                         size += max;
                         hasMax = true;
                     } else {
@@ -1236,19 +1248,19 @@ public class DialogLayout extends Widget {
             }
             return hasMax ? size : 0;
         }
-        
+
         /**
          * Add a default gap between all children except if the neighbour is already a Gap.
          */
         @Override
         public void addDefaultGap() {
-            if(springs.size() > 1) {
+            if (springs.size() > 1) {
                 boolean wasGap = true;
-                for(int i=0 ; i<springs.size() ; i++) {
+                for (int i = 0; i < springs.size(); i++) {
                     Spring s = springs.get(i);
-                    if(includeInvisibleWidgets || s.isVisible()) {
+                    if (includeInvisibleWidgets || s.isVisible()) {
                         boolean isGap = (s instanceof GapSpring) || (s instanceof NamedGapSpring);
-                        if(!isGap && !wasGap) {
+                        if (!isGap && !wasGap) {
                             springs.add(i++, new GapSpring(DEFAULT_GAP, DEFAULT_GAP, DEFAULT_GAP, true));
                         }
                         wasGap = isGap;
@@ -1261,19 +1273,19 @@ public class DialogLayout extends Widget {
         @Override
         void setSize(int axis, int pos, int size) {
             int prefSize = getPrefSize(axis);
-            if(size == prefSize) {
-                for(Spring s : springs) {
-                    if(includeInvisibleWidgets || s.isVisible()) {
+            if (size == prefSize) {
+                for (Spring s : springs) {
+                    if (includeInvisibleWidgets || s.isVisible()) {
                         int spref = s.getPrefSize(axis);
                         s.setSize(axis, pos, spref);
                         pos += spref;
                     }
                 }
-            } else if(springs.size() == 1) {
+            } else if (springs.size() == 1) {
                 // no need to check visibility flag
                 Spring s = springs.get(0);
                 s.setSize(axis, pos, size);
-            } else if(springs.size() > 1) {
+            } else if (springs.size() > 1) {
                 setSizeNonPref(axis, pos, size, prefSize);
             }
         }
@@ -1281,62 +1293,62 @@ public class DialogLayout extends Widget {
         private void setSizeNonPref(int axis, int pos, int size, int prefSize) {
             int delta = size - prefSize;
             boolean useMin = delta < 0;
-            if(useMin) {
+            if (useMin) {
                 delta = -delta;
             }
 
             SpringDelta[] deltas = new SpringDelta[springs.size()];
             int resizeable = 0;
-            for(int i=0 ; i<springs.size() ; i++) {
+            for (int i = 0; i < springs.size(); i++) {
                 Spring s = springs.get(i);
-                if(includeInvisibleWidgets || s.isVisible()) {
+                if (includeInvisibleWidgets || s.isVisible()) {
                     int sdelta = useMin
                             ? s.getPrefSize(axis) - s.getMinSize(axis)
                             : s.getMaxSize(axis) - s.getPrefSize(axis);
-                    if(sdelta > 0)  {
+                    if (sdelta > 0) {
                         deltas[resizeable++] = new SpringDelta(i, sdelta);
                     }
                 }
             }
-            if(resizeable > 0) {
-                if(resizeable > 1) {
+            if (resizeable > 0) {
+                if (resizeable > 1) {
                     Arrays.sort(deltas, 0, resizeable);
                 }
-                
+
                 int sizes[] = new int[springs.size()];
 
                 int remaining = resizeable;
-                for(int i=0 ; i<resizeable ; i++) {
+                for (int i = 0; i < resizeable; i++) {
                     SpringDelta d = deltas[i];
-                    
+
                     int sdelta = delta / remaining;
                     int ddelta = Math.min(d.delta, sdelta);
                     delta -= ddelta;
                     remaining--;
-                    
-                    if(useMin) {
+
+                    if (useMin) {
                         ddelta = -ddelta;
                     }
                     sizes[d.idx] = ddelta;
                 }
 
-                for(int i=0 ; i<springs.size() ; i++) {
+                for (int i = 0; i < springs.size(); i++) {
                     Spring s = springs.get(i);
-                    if(includeInvisibleWidgets || s.isVisible()) {
+                    if (includeInvisibleWidgets || s.isVisible()) {
                         int ssize = s.getPrefSize(axis) + sizes[i];
                         s.setSize(axis, pos, ssize);
                         pos += ssize;
                     }
                 }
             } else {
-                for(Spring s : springs) {
-                    if(includeInvisibleWidgets || s.isVisible()) {
+                for (Spring s : springs) {
+                    if (includeInvisibleWidgets || s.isVisible()) {
                         int ssize;
-                        if(useMin) {
+                        if (useMin) {
                             ssize = s.getMinSize(axis);
                         } else {
                             ssize = s.getMaxSize(axis);
-                            if(ssize == 0) {
+                            if (ssize == 0) {
                                 ssize = s.getPrefSize(axis);
                             }
                         }
@@ -1355,9 +1367,9 @@ public class DialogLayout extends Widget {
         @Override
         int getMinSize(int axis) {
             int size = 0;
-            for(int i=0,n=springs.size() ; i<n ; i++) {
+            for (int i = 0, n = springs.size(); i < n; i++) {
                 Spring s = springs.get(i);
-                if(includeInvisibleWidgets || s.isVisible()) {
+                if (includeInvisibleWidgets || s.isVisible()) {
                     size = Math.max(size, s.getMinSize(axis));
                 }
             }
@@ -1367,9 +1379,9 @@ public class DialogLayout extends Widget {
         @Override
         int getPrefSize(int axis) {
             int size = 0;
-            for(int i=0,n=springs.size() ; i<n ; i++) {
+            for (int i = 0, n = springs.size(); i < n; i++) {
                 Spring s = springs.get(i);
-                if(includeInvisibleWidgets || s.isVisible()) {
+                if (includeInvisibleWidgets || s.isVisible()) {
                     size = Math.max(size, s.getPrefSize(axis));
                 }
             }
@@ -1379,9 +1391,9 @@ public class DialogLayout extends Widget {
         @Override
         int getMaxSize(int axis) {
             int size = 0;
-            for(int i=0,n=springs.size() ; i<n ; i++) {
+            for (int i = 0, n = springs.size(); i < n; i++) {
                 Spring s = springs.get(i);
-                if(includeInvisibleWidgets || s.isVisible()) {
+                if (includeInvisibleWidgets || s.isVisible()) {
                     size = Math.max(size, s.getMaxSize(axis));
                 }
             }
@@ -1390,9 +1402,9 @@ public class DialogLayout extends Widget {
 
         @Override
         void setSize(int axis, int pos, int size) {
-            for(int i=0,n=springs.size() ; i<n ; i++) {
+            for (int i = 0, n = springs.size(); i < n; i++) {
                 Spring s = springs.get(i);
-                if(includeInvisibleWidgets || s.isVisible()) {
+                if (includeInvisibleWidgets || s.isVisible()) {
                     s.setSize(axis, pos, size);
                 }
             }

@@ -33,74 +33,69 @@ import de.matthiasmann.twl.model.HasCallback;
 import de.matthiasmann.twl.utils.MultiStringReader;
 import de.matthiasmann.twl.utils.TextUtil;
 import de.matthiasmann.twl.utils.XMLParser;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.io.StringReader;
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
+
+import java.io.*;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserException;
 
 /**
  * A simple XHTML parser.
- *
+ * <p>
  * The following tags are supported:
  * <ul>
- *  <li>{@code a}<br/>Attributes: {@code href}</li>
- *  <li>{@code p}</li>
- *  <li>{@code br}</li>
- *  <li>{@code img}<br/>Attributes: {@code src}, {@code alt}<br/>Styles: {@code float}, {@code display}, {@code width}, {@code height}</li>
- *  <li>{@code span}</li>
- *  <li>{@code div}<br/>Styles: {@code background-image}, {@code float}, {@code width}<br/>Required styles for floating blocks: {@code width}<br/>Optional styles for floating blocks: {@code height}</li>
- *  <li>{@code ul}</li>
- *  <li>{@code li}<br/>Styles: {@code list-style-image}</li>
- *  <li>{@code button}<br/>Attributes: {@code name}, {@code value}<br/>Styles: {@code float}, {@code display}, {@code width}, {@code height}</li>
- *  <li>{@code table}<br/>Attributes: {@code cellspacing}, {@code cellpadding}<br/>Required styles: {@code width}</li>
- *  <li>{@code tr}<br/>Styles: {@code height}</li>
- *  <li>{@code td}<br/>Attributes: {@code colspan}<br/>Styles: {@code width}</li>
+ * <li>{@code a}<br/>Attributes: {@code href}</li>
+ * <li>{@code p}</li>
+ * <li>{@code br}</li>
+ * <li>{@code img}<br/>Attributes: {@code src}, {@code alt}<br/>Styles: {@code float}, {@code display}, {@code width}, {@code height}</li>
+ * <li>{@code span}</li>
+ * <li>{@code div}<br/>Styles: {@code background-image}, {@code float}, {@code width}<br/>Required styles for floating blocks: {@code width}<br/>Optional styles for floating blocks: {@code height}</li>
+ * <li>{@code ul}</li>
+ * <li>{@code li}<br/>Styles: {@code list-style-image}</li>
+ * <li>{@code button}<br/>Attributes: {@code name}, {@code value}<br/>Styles: {@code float}, {@code display}, {@code width}, {@code height}</li>
+ * <li>{@code table}<br/>Attributes: {@code cellspacing}, {@code cellpadding}<br/>Required styles: {@code width}</li>
+ * <li>{@code tr}<br/>Styles: {@code height}</li>
+ * <li>{@code td}<br/>Attributes: {@code colspan}<br/>Styles: {@code width}</li>
  * </ul>
- *
+ * <p>
  * The following generic CSS attributes are supported:
  * <ul>
- *  <li>{@code font-family}<br/>References a font in the theme</li>
- *  <li>{@code text-align}</li>
- *  <li>{@code text-ident}</li>
- *  <li>{@code margin}</li>
- *  <li>{@code margin-top}</li>
- *  <li>{@code margin-left}</li>
- *  <li>{@code margin-right}</li>
- *  <li>{@code margin-bottom}</li>
- *  <li>{@code padding}</li>
- *  <li>{@code padding-top}</li>
- *  <li>{@code padding-left}</li>
- *  <li>{@code padding-right}</li>
- *  <li>{@code padding-bottom}</li>
- *  <li>{@code clear}</li>
- *  <li>{@code vertical-align}</li>
- *  <li>{@code white-space}<br/>Only {@code normal} and {@code pre}</li>
+ * <li>{@code font-family}<br/>References a font in the theme</li>
+ * <li>{@code text-align}</li>
+ * <li>{@code text-ident}</li>
+ * <li>{@code margin}</li>
+ * <li>{@code margin-top}</li>
+ * <li>{@code margin-left}</li>
+ * <li>{@code margin-right}</li>
+ * <li>{@code margin-bottom}</li>
+ * <li>{@code padding}</li>
+ * <li>{@code padding-top}</li>
+ * <li>{@code padding-left}</li>
+ * <li>{@code padding-right}</li>
+ * <li>{@code padding-bottom}</li>
+ * <li>{@code clear}</li>
+ * <li>{@code vertical-align}</li>
+ * <li>{@code white-space}<br/>Only {@code normal} and {@code pre}</li>
  * </ul>
- *
+ * <p>
  * Numeric values must use on of the following units: {@code em}, {@code ex}, {@code px}, {@code %}
  *
  * @author Matthias Mann
  */
 public class HTMLTextAreaModel extends HasCallback implements TextAreaModel {
-    
+
     private final ArrayList<Element> elements;
     private final ArrayList<String> styleSheetLinks;
     private final HashMap<String, Element> idMap;
-    private String title;
-
     private final ArrayList<Style> styleStack;
     private final StringBuilder sb;
     private final int[] startLength;
-
+    private String title;
     private ContainerElement curContainer;
 
     /**
@@ -117,6 +112,7 @@ public class HTMLTextAreaModel extends HasCallback implements TextAreaModel {
 
     /**
      * Creates a new {@code HTMLTextAreaModel} and parses the given html.
+     *
      * @param html the HTML to parse
      * @see #setHtml(java.lang.String)
      */
@@ -130,9 +126,9 @@ public class HTMLTextAreaModel extends HasCallback implements TextAreaModel {
      * Creates a new {@code HTMLTextAreaModel} and parses the content of the
      * given {@code Reader}.
      *
-     * @see #parseXHTML(java.io.Reader)
      * @param r the reader to parse html from
      * @throws IOException if an error occured while reading
+     * @see #parseXHTML(java.io.Reader)
      */
     @SuppressWarnings("OverridableMethodCallInConstructor")
     public HTMLTextAreaModel(Reader r) throws IOException {
@@ -140,14 +136,32 @@ public class HTMLTextAreaModel extends HasCallback implements TextAreaModel {
         parseXHTML(r);
     }
 
+    private static int parseInt(XmlPullParser xpp, String attribute, int defaultValue) {
+        String value = xpp.getAttributeValue(null, attribute);
+        if (value != null) {
+            try {
+                return Integer.parseInt(value);
+            } catch (IllegalArgumentException ignore) {
+            }
+        }
+        return defaultValue;
+    }
+
+    private static boolean isXHTML(String doc) {
+        if (doc.length() > 5 && doc.charAt(0) == '<') {
+            return doc.startsWith("<?xml") || doc.startsWith("<!DOCTYPE") || doc.startsWith("<html>");
+        }
+        return false;
+    }
+
     /**
      * Sets the a html to parse.
-     * 
+     *
      * @param html the html.
      */
     public void setHtml(String html) {
         Reader r;
-        if(isXHTML(html)) {
+        if (isXHTML(html)) {
             r = new StringReader(html);
         } else {
             r = new MultiStringReader("<html><body>", html, "</body></html>");
@@ -194,6 +208,7 @@ public class HTMLTextAreaModel extends HasCallback implements TextAreaModel {
 
     /**
      * Returns all links to CSS style sheets
+     *
      * @return an Iterable containing all hrefs
      */
     public Iterable<String> getStyleSheetLinks() {
@@ -202,6 +217,7 @@ public class HTMLTextAreaModel extends HasCallback implements TextAreaModel {
 
     /**
      * Returns the title of this XHTML document or null if it has no title.
+     *
      * @return the title of this XHTML document or null if it has no title.
      */
     public String getTitle() {
@@ -218,6 +234,7 @@ public class HTMLTextAreaModel extends HasCallback implements TextAreaModel {
 
     /**
      * Parse a XHTML document. The root element must be &lt;html&gt;
+     *
      * @param reader the reader used to read the XHTML document.
      */
     public void parseXHTML(Reader reader) {
@@ -239,23 +256,23 @@ public class HTMLTextAreaModel extends HasCallback implements TextAreaModel {
             curContainer = null;
             sb.setLength(0);
 
-            while(xpp.nextTag() != XmlPullParser.END_TAG) {
+            while (xpp.nextTag() != XmlPullParser.END_TAG) {
                 xpp.require(XmlPullParser.START_TAG, null, null);
                 String name = xpp.getName();
-                if("head".equals(name)) {
+                if ("head".equals(name)) {
                     parseHead(xpp);
-                } else if("body".equals(name)) {
+                } else if ("body".equals(name)) {
                     pushStyle(xpp);
                     BlockElement be = new BlockElement(getStyle());
                     elements.add(be);
                     parseContainer(xpp, be);
                 }
             }
-            
+
             parseMain(xpp);
             finishText();
-        } catch(Throwable ex) {
-             Logger.getLogger(HTMLTextAreaModel.class.getName()).log(Level.SEVERE, "Unable to parse XHTML document", ex);
+        } catch (Throwable ex) {
+            Logger.getLogger(HTMLTextAreaModel.class.getName()).log(Level.SEVERE, "Unable to parse XHTML document", ex);
         } finally {
             // data was modified
             doCallback();
@@ -274,108 +291,108 @@ public class HTMLTextAreaModel extends HasCallback implements TextAreaModel {
     private void parseMain(XmlPullParser xpp) throws XmlPullParserException, IOException {
         int level = 1;
         int type;
-        while(level > 0 && (type=xpp.nextToken()) != XmlPullParser.END_DOCUMENT) {
-            switch(type) {
-            case XmlPullParser.START_TAG: {
-                String name = xpp.getName();
-                if("head".equals(name)) {
-                    parseHead(xpp);
-                    break;
-                }
-                ++level;
-                finishText();
-                Style style = pushStyle(xpp);
-                Element element;
-
-                if("img".equals(name)) {
-                    String src = TextUtil.notNull(xpp.getAttributeValue(null, "src"));
-                    String alt = xpp.getAttributeValue(null, "alt");
-                    element = new ImageElement(style, src, alt);
-                } else if("p".equals(name)) {
-                    ParagraphElement pe = new ParagraphElement(style);
-                    parseContainer(xpp, pe);
-                    element = pe;
-                    --level;
-                } else if("button".equals(name)) {
-                    String btnName = TextUtil.notNull(xpp.getAttributeValue(null, "name"));
-                    String btnParam = TextUtil.notNull(xpp.getAttributeValue(null, "value"));
-                    element = new WidgetElement(style, btnName, btnParam);
-                } else if("ul".equals(name)) {
-                    ContainerElement ce = new ContainerElement(style);
-                    parseContainer(xpp, ce);
-                    element = ce;
-                    --level;
-                } else if("ol".equals(name)) {
-                    element = parseOL(xpp, style);
-                    --level;
-                } else if("li".equals(name)) {
-                    ListElement le = new ListElement(style);
-                    parseContainer(xpp, le);
-                    element = le;
-                    --level;
-                } else if("div".equals(name) || isHeading(name)) {
-                    BlockElement be = new BlockElement(style);
-                    parseContainer(xpp, be);
-                    element = be;
-                    --level;
-                } else if("a".equals(name)) {
-                    String href = xpp.getAttributeValue(null, "href");
-                    if(href == null) {
+        while (level > 0 && (type = xpp.nextToken()) != XmlPullParser.END_DOCUMENT) {
+            switch (type) {
+                case XmlPullParser.START_TAG: {
+                    String name = xpp.getName();
+                    if ("head".equals(name)) {
+                        parseHead(xpp);
                         break;
                     }
-                    LinkElement le = new LinkElement(style, href);
-                    parseContainer(xpp, le);
-                    element = le;
-                    --level;
-                } else if("table".equals(name)) {
-                    element = parseTable(xpp, style);
-                    --level;
-                } else if("br".equals(name)) {
-                    element = new LineBreakElement(style);
-                } else {
+                    ++level;
+                    finishText();
+                    Style style = pushStyle(xpp);
+                    Element element;
+
+                    if ("img".equals(name)) {
+                        String src = TextUtil.notNull(xpp.getAttributeValue(null, "src"));
+                        String alt = xpp.getAttributeValue(null, "alt");
+                        element = new ImageElement(style, src, alt);
+                    } else if ("p".equals(name)) {
+                        ParagraphElement pe = new ParagraphElement(style);
+                        parseContainer(xpp, pe);
+                        element = pe;
+                        --level;
+                    } else if ("button".equals(name)) {
+                        String btnName = TextUtil.notNull(xpp.getAttributeValue(null, "name"));
+                        String btnParam = TextUtil.notNull(xpp.getAttributeValue(null, "value"));
+                        element = new WidgetElement(style, btnName, btnParam);
+                    } else if ("ul".equals(name)) {
+                        ContainerElement ce = new ContainerElement(style);
+                        parseContainer(xpp, ce);
+                        element = ce;
+                        --level;
+                    } else if ("ol".equals(name)) {
+                        element = parseOL(xpp, style);
+                        --level;
+                    } else if ("li".equals(name)) {
+                        ListElement le = new ListElement(style);
+                        parseContainer(xpp, le);
+                        element = le;
+                        --level;
+                    } else if ("div".equals(name) || isHeading(name)) {
+                        BlockElement be = new BlockElement(style);
+                        parseContainer(xpp, be);
+                        element = be;
+                        --level;
+                    } else if ("a".equals(name)) {
+                        String href = xpp.getAttributeValue(null, "href");
+                        if (href == null) {
+                            break;
+                        }
+                        LinkElement le = new LinkElement(style, href);
+                        parseContainer(xpp, le);
+                        element = le;
+                        --level;
+                    } else if ("table".equals(name)) {
+                        element = parseTable(xpp, style);
+                        --level;
+                    } else if ("br".equals(name)) {
+                        element = new LineBreakElement(style);
+                    } else {
+                        break;
+                    }
+
+                    curContainer.add(element);
+                    registerElement(element);
                     break;
                 }
-
-                curContainer.add(element);
-                registerElement(element);
-                break;
-            }
-            case XmlPullParser.END_TAG: {
-                --level;
-                finishText();
-                popStyle();
-                break;
-            }
-            case XmlPullParser.TEXT: {
-                char[] buf = xpp.getTextCharacters(startLength);
-                if(startLength[1] > 0) {
-                    sb.append(buf, startLength[0], startLength[1]);
+                case XmlPullParser.END_TAG: {
+                    --level;
+                    finishText();
+                    popStyle();
+                    break;
                 }
-                break;
-            }
-            case XmlPullParser.ENTITY_REF:
-                sb.append(xpp.getText());
-                break;
+                case XmlPullParser.TEXT: {
+                    char[] buf = xpp.getTextCharacters(startLength);
+                    if (startLength[1] > 0) {
+                        sb.append(buf, startLength[0], startLength[1]);
+                    }
+                    break;
+                }
+                case XmlPullParser.ENTITY_REF:
+                    sb.append(xpp.getText());
+                    break;
             }
         }
     }
 
     private void parseHead(XmlPullParser xpp) throws XmlPullParserException, IOException {
         int level = 1;
-        while(level > 0) {
+        while (level > 0) {
             switch (xpp.nextTag()) {
                 case XmlPullParser.START_TAG: {
                     ++level;
                     String name = xpp.getName();
-                    if("link".equals(name)) {
+                    if ("link".equals(name)) {
                         String linkhref = xpp.getAttributeValue(null, "href");
-                        if("stylesheet".equals(xpp.getAttributeValue(null, "rel")) &&
+                        if ("stylesheet".equals(xpp.getAttributeValue(null, "rel")) &&
                                 "text/css".equals(xpp.getAttributeValue(null, "type")) &&
                                 linkhref != null) {
                             styleSheetLinks.add(linkhref);
                         }
                     }
-                    if("title".equals(name)) {
+                    if ("title".equals(name)) {
                         title = xpp.nextText();
                         --level;
                     }
@@ -395,24 +412,24 @@ public class HTMLTextAreaModel extends HasCallback implements TextAreaModel {
         int numColumns = 0;
         int cellSpacing = parseInt(xpp, "cellspacing", 0);
         int cellPadding = parseInt(xpp, "cellpadding", 0);
-        
-        for(;;) {
+
+        for (; ; ) {
             switch (xpp.nextTag()) {
                 case XmlPullParser.START_TAG: {
                     pushStyle(xpp);
                     String name = xpp.getName();
-                    if("td".equals(name) || "th".equals(name)) {
+                    if ("td".equals(name) || "th".equals(name)) {
                         int colspan = parseInt(xpp, "colspan", 1);
                         TableCellElement cell = new TableCellElement(getStyle(), colspan);
                         parseContainer(xpp, cell);
                         registerElement(cell);
 
                         cells.add(cell);
-                        for(int col=1 ; col<colspan ; col++) {
+                        for (int col = 1; col < colspan; col++) {
                             cells.add(null);
                         }
                     }
-                    if("tr".equals(name)) {
+                    if ("tr".equals(name)) {
                         rowStyles.add(getStyle());
                     }
                     break;
@@ -420,17 +437,17 @@ public class HTMLTextAreaModel extends HasCallback implements TextAreaModel {
                 case XmlPullParser.END_TAG: {
                     popStyle();
                     String name = xpp.getName();
-                    if("tr".equals(name)) {
-                        if(numColumns == 0) {
+                    if ("tr".equals(name)) {
+                        if (numColumns == 0) {
                             numColumns = cells.size();
                         }
                     }
-                    if("table".equals(name)) {
+                    if ("table".equals(name)) {
                         TableElement tableElement = new TableElement(tableStyle,
                                 numColumns, rowStyles.size(), cellSpacing, cellPadding);
-                        for(int row=0,idx=0 ; row<rowStyles.size() ; row++) {
+                        for (int row = 0, idx = 0; row < rowStyles.size(); row++) {
                             tableElement.setRowStyle(row, rowStyles.get(row));
-                            for(int col=0 ; col<numColumns && idx<cells.size() ; col++,idx++) {
+                            for (int col = 0; col < numColumns && idx < cells.size(); col++, idx++) {
                                 TableCellElement cell = cells.get(idx);
                                 tableElement.setCell(row, col, cell);
                             }
@@ -446,12 +463,12 @@ public class HTMLTextAreaModel extends HasCallback implements TextAreaModel {
         int start = parseInt(xpp, "start", 1);
         OrderedListElement ole = new OrderedListElement(olStyle, start);
         registerElement(ole);
-        for(;;) {
+        for (; ; ) {
             switch (xpp.nextTag()) {
                 case XmlPullParser.START_TAG: {
                     pushStyle(xpp);
                     String name = xpp.getName();
-                    if("li".equals(name)) {
+                    if ("li".equals(name)) {
                         ContainerElement ce = new ContainerElement(getStyle());
                         parseContainer(xpp, ce);
                         registerElement(ce);
@@ -462,7 +479,7 @@ public class HTMLTextAreaModel extends HasCallback implements TextAreaModel {
                 case XmlPullParser.END_TAG: {
                     popStyle();
                     String name = xpp.getName();
-                    if("ol".equals(name)) {
+                    if ("ol".equals(name)) {
                         return ole;
                     }
                     break;
@@ -473,57 +490,39 @@ public class HTMLTextAreaModel extends HasCallback implements TextAreaModel {
 
     private void registerElement(Element element) {
         StyleSheetKey styleSheetKey = element.getStyle().getStyleSheetKey();
-        if(styleSheetKey != null) {
+        if (styleSheetKey != null) {
             String id = styleSheetKey.getId();
-            if(id != null) {
+            if (id != null) {
                 idMap.put(id, element);
             }
         }
     }
 
-    private static int parseInt(XmlPullParser xpp, String attribute, int defaultValue) {
-        String value = xpp.getAttributeValue(null, attribute);
-        if(value != null) {
-            try {
-                return Integer.parseInt(value);
-            } catch (IllegalArgumentException ignore) {
-            }
-        }
-        return defaultValue;
-    }
-
-    private static boolean isXHTML(String doc) {
-        if(doc.length() > 5 && doc.charAt(0) == '<') {
-            return doc.startsWith("<?xml") || doc.startsWith("<!DOCTYPE") || doc.startsWith("<html>");
-        }
-        return false;
-    }
-    
     private boolean isHeading(String name) {
         return name.length() == 2 && name.charAt(0) == 'h' &&
                 (name.charAt(1) >= '0' && name.charAt(1) <= '6');
     }
-    
+
     private Style getStyle() {
-        return styleStack.get(styleStack.size()-1);
+        return styleStack.get(styleStack.size() - 1);
     }
 
     private Style pushStyle(XmlPullParser xpp) {
         Style parent = getStyle();
         StyleSheetKey key = null;
         String style = null;
-        
-        if(xpp != null) {
+
+        if (xpp != null) {
             String className = xpp.getAttributeValue(null, "class");
             String element = xpp.getName();
             String id = xpp.getAttributeValue(null, "id");
             key = new StyleSheetKey(element, className, id);
             style = xpp.getAttributeValue(null, "style");
         }
-        
+
         Style newStyle;
 
-        if(style != null) {
+        if (style != null) {
             newStyle = new CSSStyle(parent, key, style);
         } else {
             newStyle = new Style(parent, key);
@@ -535,13 +534,13 @@ public class HTMLTextAreaModel extends HasCallback implements TextAreaModel {
 
     private void popStyle() {
         int stackSize = styleStack.size();
-        if(stackSize > 1) {
-            styleStack.remove(stackSize-1);
+        if (stackSize > 1) {
+            styleStack.remove(stackSize - 1);
         }
     }
 
     private void finishText() {
-        if(sb.length() > 0) {
+        if (sb.length() > 0) {
             Style style = getStyle();
             TextElement e = new TextElement(style, sb.toString());
             registerElement(e);

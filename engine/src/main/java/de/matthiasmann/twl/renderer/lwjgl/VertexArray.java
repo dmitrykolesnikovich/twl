@@ -29,50 +29,51 @@
  */
 package de.matthiasmann.twl.renderer.lwjgl;
 
-import java.nio.FloatBuffer;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 
+import java.nio.FloatBuffer;
+
 /**
  * Simple vertex array class.
- * 
+ * <p>
  * <p>This class manages an interleaved vertex array in float format: {@code tx, ty, x, y}</p>
- * 
+ *
  * @author Matthias Mann
  */
 public class VertexArray {
-    
+
     private FloatBuffer va;
-    
+
     public FloatBuffer allocate(int maxQuads) {
         int capacity = 4 * 4 * maxQuads;
-        if(va == null || va.capacity() < capacity) {
+        if (va == null || va.capacity() < capacity) {
             va = BufferUtils.createFloatBuffer(capacity);
         }
         va.clear();
         return va;
     }
-    
+
     public void bind() {
         va.position(2);
-        GL11.glVertexPointer(2, 4*4, va);
+        GL11.glVertexPointer(2, 4 * 4, va);
         va.position(0);
-        GL11.glTexCoordPointer(2, 4*4, va);
+        GL11.glTexCoordPointer(2, 4 * 4, va);
         GL11.glEnableClientState(GL11.GL_VERTEX_ARRAY);
         GL11.glEnableClientState(GL11.GL_TEXTURE_COORD_ARRAY);
     }
-    
+
     public void drawVertices(int start, int count) {
         GL11.glDrawArrays(GL11.GL_QUADS, start, count);
     }
-    
+
     public void drawQuads(int start, int count) {
-        GL11.glDrawArrays(GL11.GL_QUADS, start*4, count*4);
+        GL11.glDrawArrays(GL11.GL_QUADS, start * 4, count * 4);
     }
-    
+
     public void unbind() {
         GL11.glDisableClientState(GL11.GL_VERTEX_ARRAY);
         GL11.glDisableClientState(GL11.GL_TEXTURE_COORD_ARRAY);
     }
-    
+
 }

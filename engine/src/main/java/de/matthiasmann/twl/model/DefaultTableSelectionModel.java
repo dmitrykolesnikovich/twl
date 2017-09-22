@@ -41,7 +41,7 @@ public class DefaultTableSelectionModel extends AbstractTableSelectionModel {
     private final BitSet value;
     private int minIndex;
     private int maxIndex;
-    
+
     public DefaultTableSelectionModel() {
         this.value = new BitSet();
         this.minIndex = Integer.MAX_VALUE;
@@ -65,41 +65,41 @@ public class DefaultTableSelectionModel extends AbstractTableSelectionModel {
     }
 
     private void clearBit(int idx) {
-        if(value.get(idx)) {
+        if (value.get(idx)) {
             value.clear(idx);
 
-            if(idx == minIndex) {
-                minIndex = value.nextSetBit(minIndex+1);
-                if(minIndex < 0) {
+            if (idx == minIndex) {
+                minIndex = value.nextSetBit(minIndex + 1);
+                if (minIndex < 0) {
                     minIndex = Integer.MAX_VALUE;
                     maxIndex = Integer.MIN_VALUE;
                     return;
                 }
             }
 
-            if(idx == maxIndex) {
+            if (idx == maxIndex) {
                 do {
                     maxIndex--;
-                }while(maxIndex >= minIndex && !value.get(maxIndex));
+                } while (maxIndex >= minIndex && !value.get(maxIndex));
             }
         }
     }
 
     private void setBit(int idx) {
-        if(!value.get(idx)) {
+        if (!value.get(idx)) {
             value.set(idx);
 
-            if(idx < minIndex) {
+            if (idx < minIndex) {
                 minIndex = idx;
             }
-            if(idx > maxIndex) {
+            if (idx > maxIndex) {
                 maxIndex = idx;
             }
         }
     }
 
     private void toggleBit(int idx) {
-        if(value.get(idx)) {
+        if (value.get(idx)) {
             clearBit(idx);
         } else {
             setBit(idx);
@@ -107,7 +107,7 @@ public class DefaultTableSelectionModel extends AbstractTableSelectionModel {
     }
 
     public void clearSelection() {
-        if(hasSelection()) {
+        if (hasSelection()) {
             minIndex = Integer.MAX_VALUE;
             maxIndex = Integer.MIN_VALUE;
             value.clear();
@@ -120,7 +120,7 @@ public class DefaultTableSelectionModel extends AbstractTableSelectionModel {
         minIndex = Math.min(index0, index1);
         maxIndex = Math.max(index0, index1);
         value.clear();
-        value.set(minIndex, maxIndex+1);
+        value.set(minIndex, maxIndex + 1);
         fireSelectionChange();
     }
 
@@ -128,7 +128,7 @@ public class DefaultTableSelectionModel extends AbstractTableSelectionModel {
         updateLeadAndAnchor(index0, index1);
         int min = Math.min(index0, index1);
         int max = Math.max(index0, index1);
-        for(int i=min ; i<=max ; i++) {
+        for (int i = min; i <= max; i++) {
             setBit(i);
         }
         fireSelectionChange();
@@ -138,7 +138,7 @@ public class DefaultTableSelectionModel extends AbstractTableSelectionModel {
         updateLeadAndAnchor(index0, index1);
         int min = Math.min(index0, index1);
         int max = Math.max(index0, index1);
-        for(int i=min ; i<=max ; i++) {
+        for (int i = min; i <= max; i++) {
             toggleBit(i);
         }
         fireSelectionChange();
@@ -146,10 +146,10 @@ public class DefaultTableSelectionModel extends AbstractTableSelectionModel {
 
     public void removeSelection(int index0, int index1) {
         updateLeadAndAnchor(index0, index1);
-        if(hasSelection()) {
+        if (hasSelection()) {
             int min = Math.min(index0, index1);
             int max = Math.max(index0, index1);
-            for(int i=min ; i<=max ; i++) {
+            for (int i = min; i <= max; i++) {
                 clearBit(i);
             }
             fireSelectionChange();
@@ -158,8 +158,8 @@ public class DefaultTableSelectionModel extends AbstractTableSelectionModel {
 
     public int[] getSelection() {
         int result[] = new int[value.cardinality()];
-        int idx=-1;
-        for(int i=0 ; (idx=value.nextSetBit(idx+1)) >= 0 ; i++) {
+        int idx = -1;
+        for (int i = 0; (idx = value.nextSetBit(idx + 1)) >= 0; i++) {
             result[i] = idx;
         }
         return result;
@@ -167,17 +167,17 @@ public class DefaultTableSelectionModel extends AbstractTableSelectionModel {
 
     @Override
     public void rowsInserted(int index, int count) {
-        if(index <= maxIndex) {
-            for(int i=maxIndex ; i>=index ; i--) {
-                if(value.get(i)) {
-                    value.set(i+count);
+        if (index <= maxIndex) {
+            for (int i = maxIndex; i >= index; i--) {
+                if (value.get(i)) {
+                    value.set(i + count);
                 } else {
-                    value.clear(i+count);
+                    value.clear(i + count);
                 }
             }
-            value.clear(index, index+count);
+            value.clear(index, index + count);
             maxIndex += count;
-            if(index <= minIndex) {
+            if (index <= minIndex) {
                 minIndex += count;
             }
         }
@@ -186,20 +186,20 @@ public class DefaultTableSelectionModel extends AbstractTableSelectionModel {
 
     @Override
     public void rowsDeleted(int index, int count) {
-        if(index <= maxIndex) {
-            for(int i=index ; i<=maxIndex ; i++) {
-                if(value.get(i+count)) {
+        if (index <= maxIndex) {
+            for (int i = index; i <= maxIndex; i++) {
+                if (value.get(i + count)) {
                     value.set(i);
                 } else {
                     value.clear(i);
                 }
             }
             minIndex = value.nextSetBit(0);
-            if(minIndex < 0) {
+            if (minIndex < 0) {
                 minIndex = Integer.MAX_VALUE;
                 maxIndex = Integer.MIN_VALUE;
             } else {
-                while(maxIndex >= minIndex && !value.get(maxIndex)) {
+                while (maxIndex >= minIndex && !value.get(maxIndex)) {
                     maxIndex--;
                 }
             }

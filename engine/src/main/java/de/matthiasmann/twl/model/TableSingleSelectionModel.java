@@ -31,7 +31,7 @@ package de.matthiasmann.twl.model;
 
 /**
  * A single selection model
- * 
+ *
  * @author Matthias Mann
  */
 public class TableSingleSelectionModel extends AbstractTableSelectionModel {
@@ -43,12 +43,12 @@ public class TableSingleSelectionModel extends AbstractTableSelectionModel {
     @Override
     public void rowsInserted(int index, int count) {
         boolean changed = false;
-        if(selection >= index) {
+        if (selection >= index) {
             selection += count;
             changed = true;
         }
         super.rowsInserted(index, count);
-        if(changed) {
+        if (changed) {
             fireSelectionChange();
         }
     }
@@ -56,8 +56,8 @@ public class TableSingleSelectionModel extends AbstractTableSelectionModel {
     @Override
     public void rowsDeleted(int index, int count) {
         boolean changed = false;
-        if(selection >= index) {
-            if(selection < index + count) {
+        if (selection >= index) {
+            if (selection < index + count) {
                 selection = NO_SELECTION;
             } else {
                 selection -= count;
@@ -65,13 +65,13 @@ public class TableSingleSelectionModel extends AbstractTableSelectionModel {
             changed = true;
         }
         super.rowsDeleted(index, count);
-        if(changed) {
+        if (changed) {
             fireSelectionChange();
         }
     }
 
     public void clearSelection() {
-        if(hasSelection()) {
+        if (hasSelection()) {
             selection = NO_SELECTION;
             fireSelectionChange();
         }
@@ -91,7 +91,7 @@ public class TableSingleSelectionModel extends AbstractTableSelectionModel {
 
     public void invertSelection(int index0, int index1) {
         updateLeadAndAnchor(index0, index1);
-        if(selection == index1) {
+        if (selection == index1) {
             selection = NO_SELECTION;
         } else {
             selection = index1;
@@ -101,10 +101,10 @@ public class TableSingleSelectionModel extends AbstractTableSelectionModel {
 
     public void removeSelection(int index0, int index1) {
         updateLeadAndAnchor(index0, index1);
-        if(hasSelection()) {
+        if (hasSelection()) {
             int first = Math.min(index0, index1);
             int last = Math.max(index0, index1);
-            if(selection >= first && selection <= last) {
+            if (selection >= first && selection <= last) {
                 selection = NO_SELECTION;
             }
             fireSelectionChange();
@@ -128,8 +128,8 @@ public class TableSingleSelectionModel extends AbstractTableSelectionModel {
     }
 
     public int[] getSelection() {
-        if(selection >= 0) {
-            return new int[] { selection };
+        if (selection >= 0) {
+            return new int[]{selection};
         }
         return new int[0];
     }

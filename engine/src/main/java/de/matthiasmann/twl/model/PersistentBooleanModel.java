@@ -43,12 +43,12 @@ public class PersistentBooleanModel extends HasCallback implements BooleanModel 
     private final String prefKey;
 
     private boolean value;
-    
+
     public PersistentBooleanModel(Preferences prefs, String prefKey, boolean defaultValue) {
-        if(prefs == null) {
+        if (prefs == null) {
             throw new NullPointerException("prefs");
         }
-        if(prefKey == null) {
+        if (prefKey == null) {
             throw new NullPointerException("prefKey");
         }
         this.prefs = prefs;
@@ -61,7 +61,7 @@ public class PersistentBooleanModel extends HasCallback implements BooleanModel 
     }
 
     public void setValue(boolean value) {
-        if(this.value != value) {
+        if (this.value != value) {
             this.value = value;
             storeSettings();
             doCallback();

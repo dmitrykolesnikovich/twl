@@ -50,7 +50,7 @@ public class SimpleDialog {
     }
 
     public void setTheme(String theme) {
-        if(theme == null) {
+        if (theme == null) {
             throw new NullPointerException();
         }
         this.theme = theme;
@@ -62,9 +62,9 @@ public class SimpleDialog {
 
     /**
      * Sets the title for this dialog, can be null
-     *
+     * <p>
      * Default is null
-     * 
+     *
      * @param title the title
      */
     public void setTitle(String title) {
@@ -78,7 +78,7 @@ public class SimpleDialog {
     /**
      * Sets a message object which is displayed below the title.
      * Can be a String or a Widget.
-     *
+     * <p>
      * Default is null
      *
      * @param msg the message object, can be null
@@ -122,7 +122,7 @@ public class SimpleDialog {
     /**
      * Should the cancel button be focused when the dialog is created?
      * Default is false (eg focus the message or the OK button).
-     * 
+     *
      * @param focusCancelButton true to focus the cancel button
      */
     public void setFocusCancelButton(boolean focusCancelButton) {
@@ -136,31 +136,31 @@ public class SimpleDialog {
      * @return the PopupWindow object to close the dialog ealier
      */
     public PopupWindow showDialog(Widget owner) {
-        if(owner == null) {
+        if (owner == null) {
             throw new NullPointerException("owner");
         }
-        
+
         Widget msgWidget = null;
 
-        if(msg instanceof Widget) {
-            msgWidget = (Widget)msg;
+        if (msg instanceof Widget) {
+            msgWidget = (Widget) msg;
 
             // remove message widget from previous owner if it's in a closed dialog
-            if(msgWidget.getParent() instanceof DialogLayout) {
-                if(msgWidget.getParent().getParent() instanceof PopupWindow) {
-                    PopupWindow prevPopup = (PopupWindow)msgWidget.getParent().getParent();
-                    if(!prevPopup.isOpen()) {
+            if (msgWidget.getParent() instanceof DialogLayout) {
+                if (msgWidget.getParent().getParent() instanceof PopupWindow) {
+                    PopupWindow prevPopup = (PopupWindow) msgWidget.getParent().getParent();
+                    if (!prevPopup.isOpen()) {
                         msgWidget.getParent().removeChild(msgWidget);
                     }
                 }
             }
 
-            if(msgWidget.getParent() != null) {
+            if (msgWidget.getParent() != null) {
                 throw new IllegalArgumentException("message widget alreay in use");
             }
-        } else if(msg instanceof String) {
-            msgWidget = new Label((String)msg);
-        } else if(msg != null) {
+        } else if (msg instanceof String) {
+            msgWidget = new Label((String) msg);
+        } else if (msg != null) {
             Logger.getLogger(SimpleDialog.class.getName()).log(Level.WARNING, "Unsupported message type: {0}", msg.getClass());
         }
 
@@ -172,7 +172,7 @@ public class SimpleDialog {
 
         ButtonCB btnCancelCallback = new ButtonCB(popupWindow, cbCancel);
         popupWindow.setRequestCloseCallback(btnCancelCallback);
-        
+
         Button btnCancel = new Button("Cancel");
         btnCancel.setTheme("btnCancel");
         btnCancel.addCallback(btnCancelCallback);
@@ -184,7 +184,7 @@ public class SimpleDialog {
 
         String vertPrevWidget = "top";
 
-        if(title != null) {
+        if (title != null) {
             Label labelTitle = new Label(title);
             labelTitle.setTheme("title");
             labelTitle.setLabelFor(msgWidget);
@@ -194,11 +194,11 @@ public class SimpleDialog {
             vertPrevWidget = "title";
         }
 
-        if(msgWidget != null) {
+        if (msgWidget != null) {
             layout.getHorizontalGroup().addGroup(layout.createSequentialGroup()
-                .addGap("left-msg")
-                .addWidget(msgWidget)
-                .addGap("msg-right"));
+                    .addGap("left-msg")
+                    .addWidget(msgWidget)
+                    .addGap("msg-right"));
             layout.getVerticalGroup().addGap(vertPrevWidget.concat("-msg")).addWidget(msgWidget).addGap("msg-buttons");
         } else {
             layout.getVerticalGroup().addGap(vertPrevWidget.concat("-buttons"));
@@ -216,9 +216,9 @@ public class SimpleDialog {
         popupWindow.add(layout);
         popupWindow.openPopupCentered();
 
-        if(focusCancelButton) {
+        if (focusCancelButton) {
             btnCancel.requestKeyboardFocus();
-        } else if(msgWidget != null && msgWidget.canAcceptKeyboardFocus()) {
+        } else if (msgWidget != null && msgWidget.canAcceptKeyboardFocus()) {
             msgWidget.requestKeyboardFocus();
         }
 
@@ -236,7 +236,7 @@ public class SimpleDialog {
 
         public void run() {
             popupWindow.closePopup();
-            if(cb != null) {
+            if (cb != null) {
                 cb.run();
             }
         }

@@ -31,10 +31,10 @@ package de.matthiasmann.twl;
 
 import de.matthiasmann.twl.model.BooleanModel;
 import de.matthiasmann.twl.model.ToggleButtonModel;
+
 import java.beans.PropertyChangeEvent;
 
 /**
- *
  * @author Matthias Mann
  */
 public class MenuCheckbox extends MenuElement {
@@ -69,7 +69,7 @@ public class MenuCheckbox extends MenuElement {
             @Override
             public void propertyChange(PropertyChangeEvent evt) {
                 super.propertyChange(evt);
-                ((ToggleButtonModel)getModel()).setModel(MenuCheckbox.this.getModel());
+                ((ToggleButtonModel) getModel()).setModel(MenuCheckbox.this.getModel());
             }
         };
         btn.setModel(new ToggleButtonModel(getModel()));

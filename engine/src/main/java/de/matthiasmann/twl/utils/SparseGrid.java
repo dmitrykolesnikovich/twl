@@ -39,34 +39,29 @@ import java.util.Arrays;
  */
 public class SparseGrid {
 
-    public interface GridFunction {
-        public void apply(int row, int column, Entry e);
-    }
-
     Node root;
     int numLevels;
-
     public SparseGrid(int pageSize) {
         root = new Node(pageSize);
         numLevels = 1;
     }
 
     public Entry get(int row, int column) {
-        if(root.size > 0) {
+        if (root.size > 0) {
             int levels = numLevels;
             Entry e = root;
 
             do {
-                Node node = (Node)e;
+                Node node = (Node) e;
                 int pos = node.findPos(row, column, node.size);
-                if(pos == node.size) {
+                if (pos == node.size) {
                     return null;
                 }
                 e = node.children[pos];
-            }while(--levels > 0);
+            } while (--levels > 0);
 
             assert e != null;
-            if(e.compare(row, column) == 0) {
+            if (e.compare(row, column) == 0) {
                 return e;
             }
         }
@@ -77,84 +72,84 @@ public class SparseGrid {
         entry.row = row;
         entry.column = column;
 
-        if(root.size == 0) {
+        if (root.size == 0) {
             root.insertAt(0, entry);
             root.updateRowColumn();
-        } else if(!root.insert(entry, numLevels)) {
+        } else if (!root.insert(entry, numLevels)) {
             splitRoot();
             root.insert(entry, numLevels);
         }
     }
 
     public Entry remove(int row, int column) {
-        if(root.size == 0) {
+        if (root.size == 0) {
             return null;
         }
         Entry e = root.remove(row, column, numLevels);
-        if(e != null) {
+        if (e != null) {
             maybeRemoveRoot();
         }
         return e;
     }
 
     public void insertRows(int row, int count) {
-        if(count > 0 && root.size > 0) {
+        if (count > 0 && root.size > 0) {
             root.insertRows(row, count, numLevels);
         }
     }
 
     public void insertColumns(int column, int count) {
-        if(count > 0 && root.size > 0) {
+        if (count > 0 && root.size > 0) {
             root.insertColumns(column, count, numLevels);
         }
     }
 
     public void removeRows(int row, int count) {
-        if(count > 0) {
+        if (count > 0) {
             root.removeRows(row, count, numLevels);
             maybeRemoveRoot();
         }
     }
 
     public void removeColumns(int column, int count) {
-        if(count > 0) {
+        if (count > 0) {
             root.removeColumns(column, count, numLevels);
             maybeRemoveRoot();
         }
     }
 
     public void iterate(int startRow, int startColumn,
-            int endRow, int endColumn, GridFunction func) {
-        if(root.size > 0) {
+                        int endRow, int endColumn, GridFunction func) {
+        if (root.size > 0) {
             int levels = numLevels;
             Entry e = root;
             Node node;
             int pos;
 
             do {
-                node = (Node)e;
-                pos = node.findPos(startRow, startColumn, node.size-1);
+                node = (Node) e;
+                pos = node.findPos(startRow, startColumn, node.size - 1);
                 e = node.children[pos];
-            }while(--levels > 0);
+            } while (--levels > 0);
 
             assert e != null;
-            if(e.compare(startRow, startColumn) < 0) {
+            if (e.compare(startRow, startColumn) < 0) {
                 return;
             }
 
             do {
-                for(int size=node.size ; pos<size ; pos++) {
+                for (int size = node.size; pos < size; pos++) {
                     e = node.children[pos];
-                    if(e.row > endRow) {
+                    if (e.row > endRow) {
                         return;
                     }
-                    if(e.column >= startColumn && e.column <= endColumn) {
+                    if (e.column >= startColumn && e.column <= endColumn) {
                         func.apply(e.row, e.column, e);
                     }
                 }
                 pos = 0;
                 node = node.next;
-            } while(node != null);
+            } while (node != null);
         }
     }
 
@@ -169,13 +164,13 @@ public class SparseGrid {
     }
 
     private void maybeRemoveRoot() {
-        while(numLevels > 1 && root.size == 1) {
-            root = (Node)root.children[0];
+        while (numLevels > 1 && root.size == 1) {
+            root = (Node) root.children[0];
             root.prev = null;
             root.next = null;
             numLevels--;
         }
-        if(root.size == 0) {
+        if (root.size == 0) {
             numLevels = 1;
         }
     }
@@ -190,6 +185,10 @@ public class SparseGrid {
         numLevels++;
     }
 
+    public interface GridFunction {
+        public void apply(int row, int column, Entry e);
+    }
+
     static class Node extends Entry {
         final Entry[] children;
         int size;
@@ -201,20 +200,20 @@ public class SparseGrid {
         }
 
         boolean insert(Entry e, int levels) {
-            if(--levels == 0) {
+            if (--levels == 0) {
                 return insertLeaf(e);
             }
 
-            for(;;) {
-                int pos = findPos(e.row, e.column, size-1);
+            for (; ; ) {
+                int pos = findPos(e.row, e.column, size - 1);
                 assert pos < size;
-                Node node = (Node)children[pos];
-                if(!node.insert(e, levels)) {
-                    if(isFull()) {
+                Node node = (Node) children[pos];
+                if (!node.insert(e, levels)) {
+                    if (isFull()) {
                         return false;
                     }
                     Node node2 = node.split();
-                    insertAt(pos+1, node2);
+                    insertAt(pos + 1, node2);
                     continue;
                 }
                 updateRowColumn();
@@ -224,18 +223,18 @@ public class SparseGrid {
 
         boolean insertLeaf(Entry e) {
             int pos = findPos(e.row, e.column, size);
-            if(pos < size) {
+            if (pos < size) {
                 Entry c = children[pos];
                 assert c.getClass() != Node.class;
                 int cmp = c.compare(e.row, e.column);
-                if(cmp == 0) {
+                if (cmp == 0) {
                     children[pos] = e;
                     return true;
                 }
                 assert cmp > 0;
             }
 
-            if(isFull()) {
+            if (isFull()) {
                 return false;
             }
             insertAt(pos, e);
@@ -243,18 +242,18 @@ public class SparseGrid {
         }
 
         Entry remove(int row, int column, int levels) {
-            if(--levels == 0) {
+            if (--levels == 0) {
                 return removeLeaf(row, column);
             }
 
-            int pos = findPos(row, column, size-1);
+            int pos = findPos(row, column, size - 1);
             assert pos < size;
-            Node node = (Node)children[pos];
+            Node node = (Node) children[pos];
             Entry e = node.remove(row, column, levels);
-            if(e != null) {
-                if(node.size == 0) {
+            if (e != null) {
+                if (node.size == 0) {
                     removeNodeAt(pos);
-                } else if(node.isBelowHalf()) {
+                } else if (node.isBelowHalf()) {
                     tryMerge(pos);
                 }
                 updateRowColumn();
@@ -264,16 +263,16 @@ public class SparseGrid {
 
         Entry removeLeaf(int row, int column) {
             int pos = findPos(row, column, size);
-            if(pos == size) {
+            if (pos == size) {
                 return null;
             }
 
             Entry c = children[pos];
             assert c.getClass() != Node.class;
             int cmp = c.compare(row, column);
-            if(cmp == 0) {
+            if (cmp == 0) {
                 removeAt(pos);
-                if(pos == size && size > 0) {
+                if (pos == size && size > 0) {
                     updateRowColumn();
                 }
                 return c;
@@ -283,13 +282,13 @@ public class SparseGrid {
 
         int findPos(int row, int column, int high) {
             int low = 0;
-            while(low < high) {
+            while (low < high) {
                 int mid = (low + high) >>> 1;
                 Entry e = children[mid];
                 int cmp = e.compare(row, column);
-                if(cmp > 0) {
+                if (cmp > 0) {
                     high = mid;
-                } else if(cmp < 0) {
+                } else if (cmp < 0) {
                     low = mid + 1;
                 } else {
                     return mid;
@@ -299,18 +298,18 @@ public class SparseGrid {
         }
 
         void insertRows(int row, int count, int levels) {
-            if(--levels > 0) {
-                for(int i=size ; i-->0 ;) {
-                    Node n = (Node)children[i];
-                    if(n.row < row) {
+            if (--levels > 0) {
+                for (int i = size; i-- > 0; ) {
+                    Node n = (Node) children[i];
+                    if (n.row < row) {
                         break;
                     }
                     n.insertRows(row, count, levels);
                 }
             } else {
-                for(int i=size ; i-->0 ;) {
+                for (int i = size; i-- > 0; ) {
                     Entry e = children[i];
-                    if(e.row < row) {
+                    if (e.row < row) {
                         break;
                     }
                     e.row += count;
@@ -320,15 +319,15 @@ public class SparseGrid {
         }
 
         void insertColumns(int column, int count, int levels) {
-            if(--levels > 0) {
-                for(int i=0 ; i<size ; i++) {
-                    Node n = (Node)children[i];
+            if (--levels > 0) {
+                for (int i = 0; i < size; i++) {
+                    Node n = (Node) children[i];
                     n.insertColumns(column, count, levels);
                 }
             } else {
-                for(int i=0 ; i<size ; i++) {
+                for (int i = 0; i < size; i++) {
                     Entry e = children[i];
-                    if(e.column >= column) {
+                    if (e.column >= column) {
                         e.column += count;
                     }
                 }
@@ -337,35 +336,35 @@ public class SparseGrid {
         }
 
         boolean removeRows(int row, int count, int levels) {
-            if(--levels > 0) {
+            if (--levels > 0) {
                 boolean needsMerging = false;
-                for(int i=size ; i-->0 ;) {
-                    Node n = (Node)children[i];
-                    if(n.row < row) {
+                for (int i = size; i-- > 0; ) {
+                    Node n = (Node) children[i];
+                    if (n.row < row) {
                         break;
                     }
-                    if(n.removeRows(row, count, levels)) {
+                    if (n.removeRows(row, count, levels)) {
                         removeNodeAt(i);
                     } else {
                         needsMerging |= n.isBelowHalf();
                     }
                 }
-                if(needsMerging && size > 1) {
+                if (needsMerging && size > 1) {
                     tryMerge();
                 }
             } else {
-                for(int i=size ; i-->0 ;) {
+                for (int i = size; i-- > 0; ) {
                     Entry e = children[i];
-                    if(e.row < row) {
+                    if (e.row < row) {
                         break;
                     }
                     e.row -= count;
-                    if(e.row < row) {
+                    if (e.row < row) {
                         removeAt(i);
                     }
                 }
             }
-            if(size == 0) {
+            if (size == 0) {
                 return true;
             }
             updateRowColumn();
@@ -373,31 +372,31 @@ public class SparseGrid {
         }
 
         boolean removeColumns(int column, int count, int levels) {
-            if(--levels > 0) {
+            if (--levels > 0) {
                 boolean needsMerging = false;
-                for(int i=size ; i-->0 ;) {
-                    Node n = (Node)children[i];
-                    if(n.removeColumns(column, count, levels)) {
+                for (int i = size; i-- > 0; ) {
+                    Node n = (Node) children[i];
+                    if (n.removeColumns(column, count, levels)) {
                         removeNodeAt(i);
                     } else {
                         needsMerging |= n.isBelowHalf();
                     }
                 }
-                if(needsMerging && size > 1) {
+                if (needsMerging && size > 1) {
                     tryMerge();
                 }
             } else {
-                for(int i=size ; i-->0 ;) {
+                for (int i = size; i-- > 0; ) {
                     Entry e = children[i];
-                    if(e.column >= column) {
+                    if (e.column >= column) {
                         e.column -= count;
-                        if(e.column < column) {
+                        if (e.column < column) {
                             removeAt(i);
                         }
                     }
                 }
             }
-            if(size == 0) {
+            if (size == 0) {
                 return true;
             }
             updateRowColumn();
@@ -405,25 +404,25 @@ public class SparseGrid {
         }
 
         void insertAt(int idx, Entry what) {
-            System.arraycopy(children, idx, children, idx+1, size-idx);
+            System.arraycopy(children, idx, children, idx + 1, size - idx);
             children[idx] = what;
-            if(idx == size++) {
+            if (idx == size++) {
                 updateRowColumn();
             }
         }
 
         void removeAt(int idx) {
             size--;
-            System.arraycopy(children, idx+1, children, idx, size-idx);
+            System.arraycopy(children, idx + 1, children, idx, size - idx);
             children[size] = null;
         }
 
         void removeNodeAt(int idx) {
-            Node n = (Node)children[idx];
-            if(n.next != null) {
+            Node n = (Node) children[idx];
+            if (n.next != null) {
                 n.next.prev = n.prev;
             }
-            if(n.prev != null) {
+            if (n.prev != null) {
                 n.prev.next = n.next;
             }
             n.next = null;
@@ -432,11 +431,11 @@ public class SparseGrid {
         }
 
         void tryMerge() {
-            if(size == 2) {
+            if (size == 2) {
                 tryMerge2(0);
             } else {
-                for(int i=size-1 ; i-->1 ;) {
-                    if(tryMerge3(i)) {
+                for (int i = size - 1; i-- > 1; ) {
+                    if (tryMerge3(i)) {
                         i--;
                     }
                 }
@@ -453,9 +452,9 @@ public class SparseGrid {
                     tryMerge2(0);
                     break;
                 default:
-                    if(pos+1 == size) {
-                        tryMerge3(pos-1);
-                    } else if(pos == 0) {
+                    if (pos + 1 == size) {
+                        tryMerge3(pos - 1);
+                    } else if (pos == 0) {
                         tryMerge3(1);
                     } else {
                         tryMerge3(pos);
@@ -465,15 +464,15 @@ public class SparseGrid {
         }
 
         private void tryMerge2(int pos) {
-            Node n1 = (Node)children[pos];
-            Node n2 = (Node)children[pos+1];
-            if(n1.isBelowHalf() || n2.isBelowHalf()) {
+            Node n1 = (Node) children[pos];
+            Node n2 = (Node) children[pos + 1];
+            if (n1.isBelowHalf() || n2.isBelowHalf()) {
                 int sumSize = n1.size + n2.size;
-                if(sumSize < children.length) {
+                if (sumSize < children.length) {
                     System.arraycopy(n2.children, 0, n1.children, n1.size, n2.size);
                     n1.size = sumSize;
                     n1.updateRowColumn();
-                    removeNodeAt(pos+1);
+                    removeNodeAt(pos + 1);
                 } else {
                     Object[] temp = collect2(sumSize, n1, n2);
                     distribute2(temp, n1, n2);
@@ -482,24 +481,24 @@ public class SparseGrid {
         }
 
         private boolean tryMerge3(int pos) {
-            Node n0 = (Node)children[pos-1];
-            Node n1 = (Node)children[pos];
-            Node n2 = (Node)children[pos+1];
-            if(n0.isBelowHalf() || n1.isBelowHalf() || n2.isBelowHalf()) {
+            Node n0 = (Node) children[pos - 1];
+            Node n1 = (Node) children[pos];
+            Node n2 = (Node) children[pos + 1];
+            if (n0.isBelowHalf() || n1.isBelowHalf() || n2.isBelowHalf()) {
                 int sumSize = n0.size + n1.size + n2.size;
-                if(sumSize < children.length) {
-                    System.arraycopy(n1.children, 0, n0.children, n0.size,         n1.size);
-                    System.arraycopy(n2.children, 0, n0.children, n0.size+n1.size, n2.size);
+                if (sumSize < children.length) {
+                    System.arraycopy(n1.children, 0, n0.children, n0.size, n1.size);
+                    System.arraycopy(n2.children, 0, n0.children, n0.size + n1.size, n2.size);
                     n0.size = sumSize;
                     n0.updateRowColumn();
-                    removeNodeAt(pos+1);
-                    removeNodeAt(pos  );
+                    removeNodeAt(pos + 1);
+                    removeNodeAt(pos);
                     return true;
                 } else {
                     Object[] temp = collect3(sumSize, n0, n1, n2);
-                    if(sumSize < 2*children.length) {
+                    if (sumSize < 2 * children.length) {
                         distribute2(temp, n0, n1);
-                        removeNodeAt(pos+1);
+                        removeNodeAt(pos + 1);
                     } else {
                         distribute3(temp, n0, n1, n2);
                     }
@@ -526,10 +525,10 @@ public class SparseGrid {
         private void distribute2(Object[] src, Node n0, Node n1) {
             int sumSize = src.length;
 
-            n0.size = sumSize/2;
+            n0.size = sumSize / 2;
             n1.size = sumSize - n0.size;
 
-            System.arraycopy(src, 0,       n0.children, 0, n0.size);
+            System.arraycopy(src, 0, n0.children, 0, n0.size);
             System.arraycopy(src, n0.size, n1.children, 0, n1.size);
 
             n0.updateRowColumn();
@@ -539,13 +538,13 @@ public class SparseGrid {
         private void distribute3(Object[] src, Node n0, Node n1, Node n2) {
             int sumSize = src.length;
 
-            n0.size = sumSize/3;
+            n0.size = sumSize / 3;
             n1.size = (sumSize - n0.size) / 2;
             n2.size = sumSize - (n0.size + n1.size);
 
-            System.arraycopy(src, 0,               n0.children, 0, n0.size);
-            System.arraycopy(src, n0.size,         n1.children, 0, n1.size);
-            System.arraycopy(src, n0.size+n1.size, n2.children, 0, n2.size);
+            System.arraycopy(src, 0, n0.children, 0, n0.size);
+            System.arraycopy(src, n0.size, n1.children, 0, n1.size);
+            System.arraycopy(src, n0.size + n1.size, n2.children, 0, n2.size);
 
             n0.updateRowColumn();
             n1.updateRowColumn();
@@ -557,7 +556,7 @@ public class SparseGrid {
         }
 
         boolean isBelowHalf() {
-            return size*2 < children.length;
+            return size * 2 < children.length;
         }
 
         Node split() {
@@ -573,14 +572,14 @@ public class SparseGrid {
             this.size = size1;
             this.updateRowColumn();
             this.next = newNode;
-            if(newNode.next != null) {
+            if (newNode.next != null) {
                 newNode.next.prev = newNode;
             }
             return newNode;
         }
 
         void updateRowColumn() {
-            Entry e = children[size-1];
+            Entry e = children[size - 1];
             this.row = e.row;
             this.column = e.column;
         }
@@ -592,7 +591,7 @@ public class SparseGrid {
 
         int compare(int row, int column) {
             int diff = this.row - row;
-            if(diff == 0) {
+            if (diff == 0) {
                 diff = this.column - column;
             }
             return diff;

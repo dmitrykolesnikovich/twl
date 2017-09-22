@@ -33,13 +33,13 @@ package de.matthiasmann.twl.model;
  * A genric property interface for use with the PropertySheet widget
  *
  * @param <T> The type of the property values
- * 
  * @author Matthias Mann
  */
 public interface Property<T> {
 
     /**
      * The property name as displayed in the UI
+     *
      * @return the property name
      */
     public String getName();
@@ -55,13 +55,14 @@ public interface Property<T> {
     /**
      * Returns true if this property can be set to null. This is similar to
      * a SQL null.
-     * 
+     *
      * @return true if this property can be null
      */
     public boolean canBeNull();
 
     /**
      * Retrieves the current property value
+     *
      * @return the current property value
      */
     public T getPropertyValue();
@@ -73,7 +74,7 @@ public interface Property<T> {
      *
      * @param value The new value
      * @throws IllegalArgumentException if the new value can't be accepted
-     * @throws NullPointerException if value is null and canBeNull returned false
+     * @throws NullPointerException     if value is null and canBeNull returned false
      * @see #canBeNull()
      */
     public void setPropertyValue(T value) throws IllegalArgumentException;

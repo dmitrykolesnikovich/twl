@@ -29,30 +29,38 @@
  */
 package bgtest;
 
-import de.matthiasmann.twl.DesktopArea;
-import de.matthiasmann.twl.Event;
-import de.matthiasmann.twl.FPSCounter;
-import de.matthiasmann.twl.GUI;
-import de.matthiasmann.twl.Label;
-import de.matthiasmann.twl.ThemeInfo;
+import de.matthiasmann.twl.*;
 import de.matthiasmann.twl.renderer.DynamicImage;
 import de.matthiasmann.twl.renderer.Image;
 import de.matthiasmann.twl.renderer.Renderer;
 import de.matthiasmann.twl.renderer.lwjgl.LWJGLRenderer;
 import de.matthiasmann.twl.theme.ThemeManager;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.IntBuffer;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
 import org.lwjgl.opengl.GL11;
 import test.TestUtils;
 
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.IntBuffer;
+
 /**
- *
  * @author Matthias Mann
  */
 public class BackgroundTest extends DesktopArea {
+
+    private final FPSCounter fpsCounter;
+    private final Label mouseCoords;
+    private Image gridBase;
+    private Image gridMask;
+    private DynamicImage lightImage;
+    public BackgroundTest() {
+        fpsCounter = new FPSCounter();
+        mouseCoords = new Label();
+
+        add(fpsCounter);
+        add(mouseCoords);
+    }
 
     public static void main(String[] args) {
         try {
@@ -69,7 +77,7 @@ public class BackgroundTest extends DesktopArea {
                     BackgroundTest.class.getResource("bgtest.xml"), renderer);
             gui.applyTheme(theme);
 
-            while(!Display.isCloseRequested()) {
+            while (!Display.isCloseRequested()) {
                 GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
 
                 gui.update();
@@ -83,21 +91,6 @@ public class BackgroundTest extends DesktopArea {
             TestUtils.showErrMsg(ex);
         }
         Display.destroy();
-    }
-
-    private final FPSCounter fpsCounter;
-    private final Label mouseCoords;
-
-    private Image gridBase;
-    private Image gridMask;
-    private DynamicImage lightImage;
-
-    public BackgroundTest() {
-        fpsCounter = new FPSCounter();
-        mouseCoords = new Label();
-
-        add(fpsCounter);
-        add(mouseCoords);
     }
 
     @Override
@@ -123,12 +116,12 @@ public class BackgroundTest extends DesktopArea {
 
     @Override
     protected void paintBackground(GUI gui) {
-        if(lightImage == null) {
+        if (lightImage == null) {
             createLightImage(gui.getRenderer());
         }
-        if(gridBase != null && gridMask != null) {
-            int time = (int)(gui.getCurrentTime() % 2000);
-            int offset = (time * (getInnerHeight() + 2*lightImage.getHeight()) / 2000) - lightImage.getHeight();
+        if (gridBase != null && gridMask != null) {
+            int time = (int) (gui.getCurrentTime() % 2000);
+            int offset = (time * (getInnerHeight() + 2 * lightImage.getHeight()) / 2000) - lightImage.getHeight();
             gridBase.draw(getAnimationState(), getInnerX(), getInnerY(), getInnerWidth(), getInnerHeight());
             GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE);
             lightImage.draw(getAnimationState(), getInnerX(), getInnerY() + offset, getInnerWidth(), lightImage.getHeight());
@@ -141,8 +134,8 @@ public class BackgroundTest extends DesktopArea {
         lightImage = renderer.createDynamicImage(1, 128);
         ByteBuffer bb = ByteBuffer.allocateDirect(128 * 4);
         IntBuffer ib = bb.order(ByteOrder.LITTLE_ENDIAN).asIntBuffer();
-        for(int i=0 ; i<128 ; i++) {
-            int value = (int)(255 * Math.sin(i * Math.PI / 127.0));
+        for (int i = 0; i < 128; i++) {
+            int value = (int) (255 * Math.sin(i * Math.PI / 127.0));
             ib.put(i, (value * 0x010101) | 0xFF000000);
         }
         lightImage.update(bb, DynamicImage.Format.BGRA);
@@ -150,7 +143,7 @@ public class BackgroundTest extends DesktopArea {
 
     @Override
     protected boolean handleEvent(Event evt) {
-        if(evt.isMouseEvent()) {
+        if (evt.isMouseEvent()) {
             mouseCoords.setText("x: " + evt.getMouseX() + "  y: " + evt.getMouseY());
         }
         return super.handleEvent(evt) || evt.isMouseEventNoWheel();

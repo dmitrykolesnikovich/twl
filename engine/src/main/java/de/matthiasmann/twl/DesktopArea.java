@@ -35,7 +35,7 @@ package de.matthiasmann.twl;
  * {@link ResizableFrame}.</p>
  * <p>This widget has the {@link #setFocusKeyEnabled(boolean) } disabled by
  * default so that the focus cycles within the current active child.</p>
- * 
+ *
  * @author Matthias Mann
  */
 public class DesktopArea extends Widget {
@@ -47,11 +47,11 @@ public class DesktopArea extends Widget {
     @Override
     protected void keyboardFocusChildChanged(Widget child) {
         super.keyboardFocusChildChanged(child);
-        if(child != null) {
+        if (child != null) {
             int fromIdx = getChildIndex(child);
             assert fromIdx >= 0;
             int numChildren = getNumChildren();
-            if(fromIdx < numChildren - 1) {
+            if (fromIdx < numChildren - 1) {
                 moveChild(fromIdx, numChildren - 1);
             }
         }
@@ -68,10 +68,10 @@ public class DesktopArea extends Widget {
         final int left = getInnerX();
         final int right = getInnerRight();
         final int bottom = getInnerBottom();
-        final int width = Math.max(0, right-left);
-        final int height = Math.max(0, bottom-top);
+        final int width = Math.max(0, right - left);
+        final int height = Math.max(0, bottom - top);
 
-        for(int i=0,n=getNumChildren() ; i<n ; i++) {
+        for (int i = 0, n = getNumChildren(); i < n; i++) {
             Widget w = getChild(i);
             w.setSize(
                     Math.min(Math.max(width, w.getMinWidth()), w.getWidth()),

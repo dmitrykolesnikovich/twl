@@ -35,6 +35,8 @@ package de.matthiasmann.twl.textarea;
  * @author Matthias Mann
  */
 public final class Value {
+    public static final Value ZERO_PX = new Value(0, Unit.PX);
+    public static final Value AUTO = new Value(0, Unit.AUTO);
     public final float value;
     public final Unit unit;
 
@@ -42,17 +44,17 @@ public final class Value {
         this.value = value;
         this.unit = unit;
 
-        if(unit == null) {
+        if (unit == null) {
             throw new NullPointerException("unit");
         }
-        if(unit == Unit.AUTO && value != 0f) {
+        if (unit == Unit.AUTO && value != 0f) {
             throw new IllegalArgumentException("value must be 0 for Unit.AUTO");
         }
     }
 
     @Override
     public String toString() {
-        if(unit == Unit.AUTO) {
+        if (unit == Unit.AUTO) {
             return unit.getPostfix();
         }
         return value + unit.getPostfix();
@@ -60,8 +62,8 @@ public final class Value {
 
     @Override
     public boolean equals(Object obj) {
-        if(obj instanceof Value) {
-            final Value other = (Value)obj;
+        if (obj instanceof Value) {
+            final Value other = (Value) obj;
             return (this.value == other.value) && (this.unit == other.unit);
         }
         return false;
@@ -75,9 +77,6 @@ public final class Value {
         return hash;
     }
 
-    public static final Value ZERO_PX = new Value(0, Unit.PX);
-    public static final Value AUTO = new Value(0, Unit.AUTO);
-    
     public enum Unit {
         PX(false, "px"),
         PT(false, "pt"),
@@ -88,6 +87,7 @@ public final class Value {
 
         final boolean fontBased;
         final String postfix;
+
         private Unit(boolean fontBased, String postfix) {
             this.fontBased = fontBased;
             this.postfix = postfix;

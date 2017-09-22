@@ -32,7 +32,6 @@ package de.matthiasmann.twl.model;
 import de.matthiasmann.twl.renderer.AnimationState.StateKey;
 
 /**
- *
  * @author Matthias Mann
  */
 public abstract class AbstractTableColumnHeaderModel implements TableColumnHeaderModel {

@@ -57,21 +57,21 @@ public class ValueAdjusterInt extends ValueAdjuster {
     }
 
     public int getMaxValue() {
-        if(model != null) {
+        if (model != null) {
             maxValue = model.getMaxValue();
         }
         return maxValue;
     }
 
     public int getMinValue() {
-        if(model != null) {
+        if (model != null) {
             minValue = model.getMinValue();
         }
         return minValue;
     }
 
     public void setMinMaxValue(int minValue, int maxValue) {
-        if(maxValue < minValue) {
+        if (maxValue < minValue) {
             throw new IllegalArgumentException("maxValue < minValue");
         }
         this.minValue = minValue;
@@ -85,9 +85,9 @@ public class ValueAdjusterInt extends ValueAdjuster {
 
     public void setValue(int value) {
         value = Math.max(getMinValue(), Math.min(getMaxValue(), value));
-        if(this.value != value) {
+        if (this.value != value) {
             this.value = value;
-            if(model != null) {
+            if (model != null) {
                 model.setValue(value);
             }
             setDisplayText();
@@ -99,18 +99,18 @@ public class ValueAdjusterInt extends ValueAdjuster {
     }
 
     public void setModel(IntegerModel model) {
-        if(this.model != model) {
+        if (this.model != model) {
             removeModelCallback();
             this.model = model;
-            if(model != null) {
+            if (model != null) {
                 this.minValue = model.getMinValue();
                 this.maxValue = model.getMaxValue();
                 addModelCallback();
             }
         }
     }
-    
-    
+
+
     @Override
     protected String onEditStart() {
         return formatText();
@@ -153,7 +153,7 @@ public class ValueAdjusterInt extends ValueAdjuster {
     @Override
     protected void onDragUpdate(int dragDelta) {
         int range = Math.max(1, Math.abs(getMaxValue() - getMinValue()));
-        setValue(dragStartValue + dragDelta/Math.max(3, getWidth()/range));
+        setValue(dragStartValue + dragDelta / Math.max(3, getWidth() / range));
     }
 
     @Override
@@ -197,14 +197,14 @@ public class ValueAdjusterInt extends ValueAdjuster {
     }
 
     protected void removeModelCallback() {
-        if(model != null && modelCallback != null) {
+        if (model != null && modelCallback != null) {
             model.removeCallback(modelCallback);
         }
     }
 
     protected void addModelCallback() {
-        if(model != null && getGUI() != null) {
-            if(modelCallback == null) {
+        if (model != null && getGUI() != null) {
+            if (modelCallback == null) {
                 modelCallback = new ModelCallback();
             }
             model.addCallback(modelCallback);

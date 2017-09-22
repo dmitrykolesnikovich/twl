@@ -33,11 +33,10 @@ import de.matthiasmann.twl.renderer.AnimationState;
 import de.matthiasmann.twl.renderer.Image;
 
 /**
- *
  * @author Matthias Mann
  */
 public interface GridImage extends Image {
-    
+
     public void draw(AnimationState as, float[] xy, int numVerticesX, int numVerticesY);
-    
+
 }

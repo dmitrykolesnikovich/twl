@@ -31,6 +31,7 @@ package de.matthiasmann.twl.model;
 
 /**
  * A simple boolean model
+ *
  * @author Matthias Mann
  */
 public class SimpleBooleanModel extends HasCallback implements BooleanModel {
@@ -50,7 +51,7 @@ public class SimpleBooleanModel extends HasCallback implements BooleanModel {
     }
 
     public void setValue(boolean value) {
-        if(this.value != value) {
+        if (this.value != value) {
             this.value = value;
             doCallback();
         }

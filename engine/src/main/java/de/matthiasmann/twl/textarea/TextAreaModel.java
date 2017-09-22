@@ -34,10 +34,24 @@ import java.util.Iterator;
 
 /**
  * Data model for the TextArea widget.
- * 
+ *
  * @author Matthias Mann
  */
 public interface TextAreaModel extends Iterable<TextAreaModel.Element> {
+
+    /**
+     * Adds a model change callback which is called when the model is modified.
+     *
+     * @param cb the callback - must not be null.
+     */
+    public void addCallback(Runnable cb);
+
+    /**
+     * Removes the specific callback.
+     *
+     * @param cb the callback that should be removed.
+     */
+    public void removeCallback(Runnable cb);
 
     public enum HAlignment {
         LEFT,
@@ -50,7 +64,7 @@ public interface TextAreaModel extends Iterable<TextAreaModel.Element> {
         INLINE,
         BLOCK
     }
-    
+
     public enum VAlignment {
         TOP,
         MIDDLE,
@@ -71,6 +85,8 @@ public interface TextAreaModel extends Iterable<TextAreaModel.Element> {
         RIGHT
     }
 
+    ;
+
     public abstract class Element {
         private Style style;
 
@@ -79,8 +95,15 @@ public interface TextAreaModel extends Iterable<TextAreaModel.Element> {
             this.style = style;
         }
 
+        static void notNull(Object o, String name) {
+            if (o == null) {
+                throw new NullPointerException(name);
+            }
+        }
+
         /**
          * Returns the style associated with this element
+         *
          * @return the style associated with this element
          */
         public Style getStyle() {
@@ -97,20 +120,14 @@ public interface TextAreaModel extends Iterable<TextAreaModel.Element> {
             notNull(style, "style");
             this.style = style;
         }
-
-        static void notNull(Object o, String name) {
-            if(o == null) {
-                throw new NullPointerException(name);
-            }
-        }
     }
 
     public class LineBreakElement extends Element {
         public LineBreakElement(Style style) {
             super(style);
         }
-    };
-    
+    }
+
     public class TextElement extends Element {
         private String text;
 
@@ -122,6 +139,7 @@ public interface TextAreaModel extends Iterable<TextAreaModel.Element> {
 
         /**
          * Returns ths text.
+         *
          * @return the text.
          */
         public String getText() {
@@ -156,6 +174,7 @@ public interface TextAreaModel extends Iterable<TextAreaModel.Element> {
 
         /**
          * Returns the image name for this image element.
+         *
          * @return the image name for this image element.
          */
         public String getImageName() {
@@ -164,6 +183,7 @@ public interface TextAreaModel extends Iterable<TextAreaModel.Element> {
 
         /**
          * Returns the tooltip or null for this image.
+         *
          * @return the tooltip or null for this image. Can be null.
          */
         public String getToolTip() {
@@ -205,7 +225,7 @@ public interface TextAreaModel extends Iterable<TextAreaModel.Element> {
         public Element getElement(int index) {
             return children.get(index);
         }
-        
+
         public int getNumElements() {
             return children.size();
         }
@@ -231,6 +251,7 @@ public interface TextAreaModel extends Iterable<TextAreaModel.Element> {
 
         /**
          * Returns the href of the link.
+         *
          * @return the href of the link. Can be null.
          */
         public String getHREF() {
@@ -247,7 +268,7 @@ public interface TextAreaModel extends Iterable<TextAreaModel.Element> {
             this.href = href;
         }
     }
-    
+
     /**
      * A list item in an unordered list
      */
@@ -295,7 +316,7 @@ public interface TextAreaModel extends Iterable<TextAreaModel.Element> {
             return colspan;
         }
     }
-    
+
     public class TableElement extends Element {
         private final int numColumns;
         private final int numRows;
@@ -306,10 +327,10 @@ public interface TextAreaModel extends Iterable<TextAreaModel.Element> {
 
         public TableElement(Style style, int numColumns, int numRows, int cellSpacing, int cellPadding) {
             super(style);
-            if(numColumns < 0 ) {
+            if (numColumns < 0) {
                 throw new IllegalArgumentException("numColumns");
             }
-            if(numRows < 0) {
+            if (numRows < 0) {
                 throw new IllegalArgumentException("numRows");
             }
 
@@ -338,10 +359,10 @@ public interface TextAreaModel extends Iterable<TextAreaModel.Element> {
         }
 
         public TableCellElement getCell(int row, int column) {
-            if(column < 0 || column >= numColumns) {
+            if (column < 0 || column >= numColumns) {
                 throw new IndexOutOfBoundsException("column");
             }
-            if(row < 0 || row >= numRows) {
+            if (row < 0 || row >= numRows) {
                 throw new IndexOutOfBoundsException("row");
             }
             return cells[row * numColumns + column];
@@ -352,10 +373,10 @@ public interface TextAreaModel extends Iterable<TextAreaModel.Element> {
         }
 
         public void setCell(int row, int column, TableCellElement cell) {
-            if(column < 0 || column >= numColumns) {
+            if (column < 0 || column >= numColumns) {
                 throw new IndexOutOfBoundsException("column");
             }
-            if(row < 0 || row >= numRows) {
+            if (row < 0 || row >= numRows) {
                 throw new IndexOutOfBoundsException("row");
             }
             cells[row * numColumns + column] = cell;
@@ -366,16 +387,4 @@ public interface TextAreaModel extends Iterable<TextAreaModel.Element> {
         }
     }
 
-    /**
-     * Adds a model change callback which is called when the model is modified.
-     * @param cb the callback - must not be null.
-     */
-    public void addCallback(Runnable cb);
-
-    /**
-     * Removes the specific callback.
-     * @param cb the callback that should be removed.
-     */
-    public void removeCallback(Runnable cb);
-    
 }

@@ -30,7 +30,6 @@
 package de.matthiasmann.twl;
 
 /**
- *
  * @author Matthias Mann
  */
 public class MenuSpacer extends MenuElement {

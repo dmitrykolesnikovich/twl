@@ -29,20 +29,20 @@
  */
 package de.matthiasmann.twl;
 
-import de.matthiasmann.twl.utils.TextUtil;
 import de.matthiasmann.twl.model.ButtonModel;
 import de.matthiasmann.twl.model.SimpleButtonModel;
 import de.matthiasmann.twl.renderer.AnimationState.StateKey;
+import de.matthiasmann.twl.utils.TextUtil;
 
 /**
  * A generic button. Behavior is defined by a ButtonModel.
- * 
+ * <p>
  * <p>To implement toggle or radio buttons use {@link ToggleButton}</p>
- * 
+ *
  * @author Matthias Mann
  */
 public class Button extends TextWidget {
-    
+
     public static final StateKey STATE_ARMED = StateKey.get("armed");
     public static final StateKey STATE_PRESSED = StateKey.get("pressed");
     public static final StateKey STATE_SELECTED = StateKey.get("selected");
@@ -74,7 +74,7 @@ public class Button extends TextWidget {
      * Creates a Button with a shared or inherited animation state
      *
      * @param animState the animation state to share or inherit, can be null
-     * @param inherit true if the animation state should be inherited false for sharing
+     * @param inherit   true if the animation state should be inherited false for sharing
      */
     public Button(AnimationState animState, boolean inherit) {
         this(animState, inherit, null);
@@ -90,7 +90,7 @@ public class Button extends TextWidget {
      * Creates a Button with a shared animation state
      *
      * @param animState the animation state to share, can be null
-     * @param model the button behavior model, if null a SimpleButtonModel is created
+     * @param model     the button behavior model, if null a SimpleButtonModel is created
      */
     public Button(AnimationState animState, ButtonModel model) {
         this(animState, false, model);
@@ -100,8 +100,8 @@ public class Button extends TextWidget {
      * Creates a Button with a shared or inherited animation state
      *
      * @param animState the animation state to share or inherit, can be null
-     * @param inherit true if the animation state should be inherited false for sharing
-     * @param model the button behavior model, if null a SimpleButtonModel is created
+     * @param inherit   true if the animation state should be inherited false for sharing
+     * @param model     the button behavior model, if null a SimpleButtonModel is created
      */
     @SuppressWarnings("OverridableMethodCallInConstructor")
     public Button(AnimationState animState, boolean inherit, ButtonModel model) {
@@ -112,7 +112,7 @@ public class Button extends TextWidget {
                 modelStateChanged();
             }
         };
-        if(model == null) {
+        if (model == null) {
             model = new SimpleButtonModel();
         }
         setModel(model);
@@ -124,19 +124,19 @@ public class Button extends TextWidget {
     }
 
     public void setModel(ButtonModel model) {
-        if(model == null) {
+        if (model == null) {
             throw new NullPointerException("model");
         }
         boolean isConnected = getGUI() != null;
-        if(this.model != null) {
-            if(isConnected) {
+        if (this.model != null) {
+            if (isConnected) {
                 this.model.disconnect();
             }
             this.model.removeStateCallback(stateChangedCB);
         }
         this.model = model;
         this.model.addStateCallback(stateChangedCB);
-        if(isConnected) {
+        if (isConnected) {
             this.model.connect();
         }
         modelStateChanged();
@@ -185,10 +185,11 @@ public class Button extends TextWidget {
     /**
      * Sets the mouse button to which this button should react.
      * The default is {@link Event#MOUSE_LBUTTON}
+     *
      * @param mouseButton the mouse button
      */
     public void setMouseButton(int mouseButton) {
-        if(mouseButton < Event.MOUSE_LBUTTON || mouseButton > Event.MOUSE_RBUTTON) {
+        if (mouseButton < Event.MOUSE_LBUTTON || mouseButton > Event.MOUSE_RBUTTON) {
             throw new IllegalArgumentException("mouseButton");
         }
         this.mouseButton = mouseButton;
@@ -208,14 +209,14 @@ public class Button extends TextWidget {
     @Override
     protected void afterAddToGUI(GUI gui) {
         super.afterAddToGUI(gui);
-        if(model != null) {
+        if (model != null) {
             model.connect();
         }
     }
 
     @Override
     protected void beforeRemoveFromGUI(GUI gui) {
-        if(model != null) {
+        if (model != null) {
             model.disconnect();
         }
         super.beforeRemoveFromGUI(gui);
@@ -238,7 +239,7 @@ public class Button extends TextWidget {
     @Override
     public void setVisible(boolean visible) {
         super.setVisible(visible);
-        if(!visible) {
+        if (!visible) {
             disarm();
         }
     }
@@ -260,7 +261,7 @@ public class Button extends TextWidget {
     }
 
     void updateText() {
-        if(text == null) {
+        if (text == null) {
             super.setCharSequence(TextUtil.notNull(themeText));
         } else {
             super.setCharSequence(text);
@@ -270,52 +271,52 @@ public class Button extends TextWidget {
 
     @Override
     protected boolean handleEvent(Event evt) {
-        if(evt.isMouseEvent()) {
+        if (evt.isMouseEvent()) {
             boolean hover = (evt.getType() != Event.Type.MOUSE_EXITED) && isMouseInside(evt);
             model.setHover(hover);
             model.setArmed(hover && model.isPressed());
         }
         switch (evt.getType()) {
-        case MOUSE_BTNDOWN:
-            if(evt.getMouseButton() == mouseButton) {
-                model.setPressed(true);
-                model.setArmed(true);
-            }
-            break;
-        case MOUSE_BTNUP:
-            if(evt.getMouseButton() == mouseButton) {
-                model.setPressed(false);
-                model.setArmed(false);
-            }
-            break;
-        case KEY_PRESSED:
-            switch (evt.getKeyCode()) {
-            case Event.KEY_RETURN:
-            case Event.KEY_SPACE:
-                if(!evt.isKeyRepeated()) {
+            case MOUSE_BTNDOWN:
+                if (evt.getMouseButton() == mouseButton) {
                     model.setPressed(true);
                     model.setArmed(true);
                 }
-                return true;
-            }
-            break;
-        case KEY_RELEASED:
-            switch (evt.getKeyCode()) {
-            case Event.KEY_RETURN:
-            case Event.KEY_SPACE:
-                model.setPressed(false);
-                model.setArmed(false);
-                return true;
-            }
-            break;
-        case POPUP_OPENED:
-            model.setHover(false);
-            break;
-        case MOUSE_WHEEL:
-            // ignore mouse wheel
-            return false;
+                break;
+            case MOUSE_BTNUP:
+                if (evt.getMouseButton() == mouseButton) {
+                    model.setPressed(false);
+                    model.setArmed(false);
+                }
+                break;
+            case KEY_PRESSED:
+                switch (evt.getKeyCode()) {
+                    case Event.KEY_RETURN:
+                    case Event.KEY_SPACE:
+                        if (!evt.isKeyRepeated()) {
+                            model.setPressed(true);
+                            model.setArmed(true);
+                        }
+                        return true;
+                }
+                break;
+            case KEY_RELEASED:
+                switch (evt.getKeyCode()) {
+                    case Event.KEY_RETURN:
+                    case Event.KEY_SPACE:
+                        model.setPressed(false);
+                        model.setArmed(false);
+                        return true;
+                }
+                break;
+            case POPUP_OPENED:
+                model.setHover(false);
+                break;
+            case MOUSE_WHEEL:
+                // ignore mouse wheel
+                return false;
         }
-        if(super.handleEvent(evt)) {
+        if (super.handleEvent(evt)) {
             return true;
         }
         // eat all mouse events - except moused wheel which was checked above

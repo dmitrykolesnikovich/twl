@@ -30,7 +30,6 @@
 package de.matthiasmann.twl.model;
 
 /**
- *
  * @author Matthias Mann
  */
 public interface TableSelectionModel {
@@ -38,7 +37,7 @@ public interface TableSelectionModel {
     public void rowsInserted(int index, int count);
 
     public void rowsDeleted(int index, int count);
-    
+
     public void clearSelection();
 
     /**
@@ -49,7 +48,7 @@ public interface TableSelectionModel {
      * @param index1 the end index of the interval.
      */
     public void setSelection(int index0, int index1);
-    
+
     /**
      * Adds the given interval (both indices inclusive) to the selection.
      * Single selection should use index1.
@@ -79,24 +78,24 @@ public interface TableSelectionModel {
 
     public int getLeadIndex();
 
-    public int getAnchorIndex();
-
     public void setLeadIndex(int index);
+
+    public int getAnchorIndex();
 
     public void setAnchorIndex(int index);
 
     public boolean isSelected(int index);
 
     public boolean hasSelection();
-    
+
     public int getFirstSelected();
 
     public int getLastSelected();
-    
+
     public int[] getSelection();
 
     public void addSelectionChangeListener(Runnable cb);
 
     public void removeSelectionChangeListener(Runnable cb);
-    
+
 }

@@ -32,18 +32,12 @@ package de.matthiasmann.twl;
 import de.matthiasmann.twl.model.TableSelectionModel;
 
 /**
- *
  * @author Matthias Mann
  */
 public interface TableSelectionManager {
 
-    public enum SelectionGranularity {
-        ROWS,
-        CELLS
-    }
-
     public TableSelectionModel getSelectionModel();
-    
+
     public void setAssociatedTable(TableBase base);
 
     public SelectionGranularity getSelectionGranularity();
@@ -59,9 +53,9 @@ public interface TableSelectionManager {
     public int getLeadRow();
 
     public int getLeadColumn();
-    
+
     public void modelChanged();
-    
+
     public void rowsInserted(int index, int count);
 
     public void rowsDeleted(int index, int count);
@@ -69,4 +63,9 @@ public interface TableSelectionManager {
     public void columnInserted(int index, int count);
 
     public void columnsDeleted(int index, int count);
+
+    public enum SelectionGranularity {
+        ROWS,
+        CELLS
+    }
 }

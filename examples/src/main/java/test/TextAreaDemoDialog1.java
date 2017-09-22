@@ -29,20 +29,20 @@
  */
 package test;
 
-import de.matthiasmann.twl.textarea.HTMLTextAreaModel;
 import de.matthiasmann.twl.Button;
 import de.matthiasmann.twl.GUI;
 import de.matthiasmann.twl.ScrollPane;
 import de.matthiasmann.twl.TextArea;
+import de.matthiasmann.twl.textarea.HTMLTextAreaModel;
+
 import java.io.IOException;
 
 /**
- *
  * @author Matthias Mann
  */
 public class TextAreaDemoDialog1 extends FadeFrame {
 
-    public TextAreaDemoDialog1()  {
+    public TextAreaDemoDialog1() {
         HTMLTextAreaModel tam = new HTMLTextAreaModel();
         try {
             tam.readHTMLFromURL(GUI.class.getResource("license.html"));
@@ -66,5 +66,5 @@ public class TextAreaDemoDialog1 extends FadeFrame {
         setTitle("TWL License");
         add(scrollPane2);
     }
-    
+
 }

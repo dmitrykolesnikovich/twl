@@ -40,20 +40,20 @@ public class BitfieldBooleanModel extends HasCallback implements BooleanModel {
     private final int bitmask;
 
     public BitfieldBooleanModel(IntegerModel bitfield, int bit) {
-        if(bitfield == null) {
+        if (bitfield == null) {
             throw new NullPointerException("bitfield");
         }
-        if(bit < 0 || bit > 30) {
+        if (bit < 0 || bit > 30) {
             throw new IllegalArgumentException("invalid bit index");
         }
-        if(bitfield.getMinValue() != 0) {
+        if (bitfield.getMinValue() != 0) {
             throw new IllegalArgumentException("bitfield.getMinValue() != 0");
         }
         int bitfieldMax = bitfield.getMaxValue();
-        if((bitfieldMax & (bitfieldMax+1)) != 0) {
+        if ((bitfieldMax & (bitfieldMax + 1)) != 0) {
             throw new IllegalArgumentException("bitfield.getmaxValue() must eb 2^x");
         }
-        if(bitfieldMax < (1 << bit)) {
+        if (bitfieldMax < (1 << bit)) {
             throw new IllegalArgumentException("bit index outside of bitfield range");
         }
         this.bitfield = bitfield;
@@ -64,11 +64,11 @@ public class BitfieldBooleanModel extends HasCallback implements BooleanModel {
     public boolean getValue() {
         return ((bitfield.getValue() & bitmask) != 0);
     }
-    
+
     public void setValue(boolean value) {
         int oldBFValue = bitfield.getValue();
         int newBFValue = value ? (oldBFValue | bitmask) : (oldBFValue & ~bitmask);
-        if(oldBFValue != newBFValue) {
+        if (oldBFValue != newBFValue) {
             bitfield.setValue(newBFValue);
             // bitfield's callback will call our callback
         }

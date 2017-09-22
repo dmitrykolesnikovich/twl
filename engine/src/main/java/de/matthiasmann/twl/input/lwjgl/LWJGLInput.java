@@ -46,28 +46,28 @@ public class LWJGLInput implements Input {
 
     public boolean pollInput(GUI gui) {
         boolean active = Display.isActive();
-        if(wasActive && !active) {
+        if (wasActive && !active) {
             wasActive = false;
             return false;
         }
         wasActive = active;
-        
-        if(Keyboard.isCreated()) {
-            while(Keyboard.next()) {
+
+        if (Keyboard.isCreated()) {
+            while (Keyboard.next()) {
                 gui.handleKey(
                         Keyboard.getEventKey(),
                         Keyboard.getEventCharacter(),
                         Keyboard.getEventKeyState());
             }
         }
-        if(Mouse.isCreated()) {
-            while(Mouse.next()) {
+        if (Mouse.isCreated()) {
+            while (Mouse.next()) {
                 gui.handleMouse(
                         Mouse.getEventX(), gui.getHeight() - Mouse.getEventY() - 1,
                         Mouse.getEventButton(), Mouse.getEventButtonState());
 
                 int wheelDelta = Mouse.getEventDWheel();
-                if(wheelDelta != 0) {
+                if (wheelDelta != 0) {
                     gui.handleMouseWheel(wheelDelta / 120);
                 }
             }

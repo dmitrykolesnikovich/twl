@@ -42,6 +42,13 @@ import java.util.prefs.Preferences;
  */
 public class AppletPreferences extends AbstractPreferences {
 
+    private static final AppletPreferences root = new AppletPreferences(null, "");
+    private final HashMap<String, String> values = new HashMap<String, String>();
+
+    private AppletPreferences(AbstractPreferences parent, String name) {
+        super(parent, name);
+    }
+
     public static Preferences userNodeForPackage(Class<?> clazz) {
         try {
             return Preferences.userNodeForPackage(clazz);
@@ -50,13 +57,6 @@ public class AppletPreferences extends AbstractPreferences {
         }
     }
 
-    private AppletPreferences(AbstractPreferences parent, String name) {
-        super(parent, name);
-    }
-
-    private static final AppletPreferences root = new AppletPreferences(null, "");
-    private final HashMap<String, String> values = new HashMap<String, String>();
-    
     @Override
     protected AbstractPreferences childSpi(String name) {
         // this depends on the kidCache in AbstractPreferences

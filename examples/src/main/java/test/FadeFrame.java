@@ -34,7 +34,6 @@ import de.matthiasmann.twl.Widget;
 import de.matthiasmann.twleffects.MinimizeEffect;
 
 /**
- *
  * @author Matthias Mann
  */
 public class FadeFrame extends ResizableFrame {
@@ -48,7 +47,7 @@ public class FadeFrame extends ResizableFrame {
     }
 
     public void hide() {
-        if(isVisible() && getFadeDurationHide() > 0) {
+        if (isVisible() && getFadeDurationHide() > 0) {
             MinimizeEffect minimizeEffect = new MinimizeEffect(this);
             minimizeEffect.setAnimationDuration(getFadeDurationHide());
             setRenderOffscreen(minimizeEffect);
@@ -59,8 +58,8 @@ public class FadeFrame extends ResizableFrame {
     public void center(float relX, float relY) {
         Widget p = getParent();
         setPosition(
-                p.getInnerX() + (int)((p.getInnerWidth() - getWidth()) * relX),
-                p.getInnerY() + (int)((p.getInnerHeight() - getHeight()) * relY));
+                p.getInnerX() + (int) ((p.getInnerWidth() - getWidth()) * relX),
+                p.getInnerY() + (int) ((p.getInnerHeight() - getHeight()) * relY));
     }
 
     public void addCloseCallback() {

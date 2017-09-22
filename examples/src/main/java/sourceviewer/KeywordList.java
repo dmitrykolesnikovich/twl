@@ -41,14 +41,15 @@ public class KeywordList {
 
     /**
      * Constructs a keyword list from an sorted list of keywords (sorted on char codes)
+     *
      * @param keywords the list of keywords
      */
-    public KeywordList(String ... keywords) {
+    public KeywordList(String... keywords) {
         int len = 0;
-        for(String kw : keywords) {
+        for (String kw : keywords) {
             len = Math.max(len, kw.length());
         }
-        
+
         this.keywords = keywords;
         this.maxLength = len;
     }
@@ -58,24 +59,24 @@ public class KeywordList {
     }
 
     public boolean isKeyword(char[] buf, int start, int len) {
-        if(len > maxLength) {
+        if (len > maxLength) {
             return false;
         }
         int kwidx = 0;
-        for(int chpos=0 ; chpos<len ; chpos++) {
+        for (int chpos = 0; chpos < len; chpos++) {
             char c = buf[start + chpos];
-            for(;;) {
+            for (; ; ) {
                 String kw = keywords[kwidx];
-                if(chpos < kw.length()) {
+                if (chpos < kw.length()) {
                     char kwc = kw.charAt(chpos);
-                    if(kwc == c) {
+                    if (kwc == c) {
                         break;
                     }
-                    if(kwc > c) {
+                    if (kwc > c) {
                         return false;
                     }
                 }
-                if(++kwidx == keywords.length) {
+                if (++kwidx == keywords.length) {
                     return false;
                 }
             }

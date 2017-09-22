@@ -38,28 +38,20 @@ import de.matthiasmann.twl.utils.TypeMapping;
  * A wheel widget.
  *
  * @param <T> The data type for the wheel items
- * 
  * @author Matthias Mann
  */
 public class WheelWidget<T> extends Widget {
-    
-    public interface ItemRenderer {
-        public Widget getRenderWidget(Object data);
-    }
-    
+
+    private static final int TIMER_INTERVAL = 30;
+    private static final int MIN_SPEED = 3;
+    private static final int MAX_SPEED = 100;
     private final TypeMapping<ItemRenderer> itemRenderer;
     private final L listener;
     private final R renderer;
     private final Runnable timerCB;
-    
     protected int itemHeight;
     protected int numVisibleItems;
     protected Image selectedOverlay;
-    
-    private static final int TIMER_INTERVAL = 30;
-    private static final int MIN_SPEED = 3;
-    private static final int MAX_SPEED = 100;
-
     protected Timer timer;
     protected int dragStartY;
     protected long lastDragTime;
@@ -69,12 +61,10 @@ public class WheelWidget<T> extends Widget {
     protected boolean dragActive;
     protected int scrollOffset;
     protected int scrollAmount;
-    
     protected ListModel<T> model;
     protected IntegerModel selectedModel;
     protected int selected;
     protected boolean cyclic;
-
     public WheelWidget() {
         this.itemRenderer = new TypeMapping<ItemRenderer>();
         this.listener = new L();
@@ -84,9 +74,9 @@ public class WheelWidget<T> extends Widget {
                 onTimer();
             }
         };
-        
+
         itemRenderer.put(String.class, new StringItemRenderer());
-        
+
         super.insertChild(renderer, 0);
         setCanAcceptKeyboardFocus(true);
     }
@@ -99,7 +89,7 @@ public class WheelWidget<T> extends Widget {
     public ListModel<T> getModel() {
         return model;
     }
-    
+
     public void setModel(ListModel<T> model) {
         removeListener();
         this.model = model;
@@ -120,18 +110,18 @@ public class WheelWidget<T> extends Widget {
     public int getSelected() {
         return selected;
     }
-    
+
     public void setSelected(int selected) {
         int oldSelected = this.selected;
-        if(oldSelected != selected) {
+        if (oldSelected != selected) {
             this.selected = selected;
-            if(selectedModel != null) {
+            if (selectedModel != null) {
                 selectedModel.setValue(selected);
             }
             firePropertyChange("selected", oldSelected, selected);
         }
     }
-    
+
     public boolean isCyclic() {
         return cyclic;
     }
@@ -149,14 +139,14 @@ public class WheelWidget<T> extends Widget {
     }
 
     public boolean removeItemRenderer(Class<? extends T> clazz) {
-        if(itemRenderer.remove(clazz)) {
+        if (itemRenderer.remove(clazz)) {
             super.removeAllChildren();
             invalidateLayout();
             return true;
         }
         return false;
     }
-    
+
     public void registerItemRenderer(Class<? extends T> clazz, ItemRenderer value) {
         itemRenderer.put(clazz, value);
         invalidateLayout();
@@ -166,48 +156,48 @@ public class WheelWidget<T> extends Widget {
         scrollInt(amount);
         scrollAmount = 0;
     }
-    
+
     protected void scrollInt(int amount) {
         int pos = selected;
         int half = itemHeight / 2;
-        
+
         scrollOffset += amount;
-        while(scrollOffset >= half) {
+        while (scrollOffset >= half) {
             scrollOffset -= itemHeight;
             pos++;
         }
-        while(scrollOffset <= -half) {
+        while (scrollOffset <= -half) {
             scrollOffset += itemHeight;
             pos--;
         }
-        
-        if(!cyclic) {
+
+        if (!cyclic) {
             int n = getNumEntries();
-            if(n > 0) {
-                while(pos >= n) {
+            if (n > 0) {
+                while (pos >= n) {
                     pos--;
                     scrollOffset += itemHeight;
                 }
             }
-            while(pos < 0) {
+            while (pos < 0) {
                 pos++;
                 scrollOffset -= itemHeight;
             }
             scrollOffset = Math.max(-itemHeight, Math.min(itemHeight, scrollOffset));
         }
-        
+
         setSelected(pos);
-        
-        if(scrollOffset == 0 && scrollAmount == 0) {
+
+        if (scrollOffset == 0 && scrollAmount == 0) {
             stopTimer();
         } else {
             startTimer();
         }
     }
-    
+
     public void autoScroll(int dir) {
-        if(dir != 0) {
-            if(scrollAmount != 0 && Integer.signum(scrollAmount) != Integer.signum(dir)) {
+        if (dir != 0) {
+            if (scrollAmount != 0 && Integer.signum(scrollAmount) != Integer.signum(dir)) {
                 scrollAmount = dir;
             } else {
                 scrollAmount += dir;
@@ -215,7 +205,7 @@ public class WheelWidget<T> extends Widget {
             startTimer();
         }
     }
-    
+
     @Override
     public int getPreferredInnerHeight() {
         return numVisibleItems * itemHeight;
@@ -224,9 +214,9 @@ public class WheelWidget<T> extends Widget {
     @Override
     public int getPreferredInnerWidth() {
         int width = 0;
-        for(int i=0,n=getNumEntries() ; i<n ; i++) {
+        for (int i = 0, n = getNumEntries(); i < n; i++) {
             Widget w = getItemRenderer(i);
-            if(w != null) {
+            if (w != null) {
                 width = Math.max(width, w.getPreferredWidth());
             }
         }
@@ -236,10 +226,10 @@ public class WheelWidget<T> extends Widget {
     @Override
     protected void paintOverlay(GUI gui) {
         super.paintOverlay(gui);
-        if(selectedOverlay != null) {
-            int y = getInnerY() + itemHeight * (numVisibleItems/2);
-            if((numVisibleItems & 1) == 0) {
-                y -= itemHeight/2;
+        if (selectedOverlay != null) {
+            int y = getInnerY() + itemHeight * (numVisibleItems / 2);
+            if ((numVisibleItems & 1) == 0) {
+                y -= itemHeight / 2;
             }
             selectedOverlay.draw(getAnimationState(), getX(), y, getWidth(), itemHeight);
         }
@@ -247,20 +237,20 @@ public class WheelWidget<T> extends Widget {
 
     @Override
     protected boolean handleEvent(Event evt) {
-        if(evt.isMouseDragEnd() && dragActive) {
+        if (evt.isMouseDragEnd() && dragActive) {
             int absDist = Math.abs(lastDragDist);
-            if(absDist > 3 && lastDragDelta > 0) {
-                int amount = (int)Math.min(1000, absDist * 100 / lastDragDelta);
+            if (absDist > 3 && lastDragDelta > 0) {
+                int amount = (int) Math.min(1000, absDist * 100 / lastDragDelta);
                 autoScroll(amount * Integer.signum(lastDragDist));
             }
-            
+
             hasDragStart = false;
             dragActive = false;
             return true;
         }
-        
-        if(evt.isMouseDragEvent()) {
-            if(hasDragStart) {
+
+        if (evt.isMouseDragEvent()) {
+            if (hasDragStart) {
                 long time = getTime();
                 dragActive = true;
                 lastDragDist = dragStartY - evt.getMouseY();
@@ -271,26 +261,26 @@ public class WheelWidget<T> extends Widget {
             }
             return true;
         }
-        
-        if(super.handleEvent(evt)) {
+
+        if (super.handleEvent(evt)) {
             return true;
         }
-        
-        switch(evt.getType()) {
+
+        switch (evt.getType()) {
             case MOUSE_WHEEL:
                 autoScroll(itemHeight * evt.getMouseWheelDelta());
                 return true;
-                
+
             case MOUSE_BTNDOWN:
-                if(evt.getMouseButton() == Event.MOUSE_LBUTTON) {
+                if (evt.getMouseButton() == Event.MOUSE_LBUTTON) {
                     dragStartY = evt.getMouseY();
                     lastDragTime = getTime();
                     hasDragStart = true;
                 }
                 return true;
-                
+
             case KEY_PRESSED:
-                switch(evt.getKeyCode()) {
+                switch (evt.getKeyCode()) {
                     case Event.KEY_UP:
                         autoScroll(-itemHeight);
                         return true;
@@ -300,27 +290,27 @@ public class WheelWidget<T> extends Widget {
                 }
                 return false;
         }
-        
+
         return evt.isMouseEvent();
     }
-    
+
     protected long getTime() {
         GUI gui = getGUI();
         return (gui != null) ? gui.getCurrentTime() : 0;
     }
-    
+
     protected int getNumEntries() {
         return (model == null) ? 0 : model.getNumEntries();
     }
-    
+
     protected Widget getItemRenderer(int i) {
         T item = model.getEntry(i);
-        if(item != null) {
+        if (item != null) {
             ItemRenderer ir = itemRenderer.get(item.getClass());
-            if(ir != null) {
+            if (ir != null) {
                 Widget w = ir.getRenderWidget(item);
-                if(w != null) {
-                    if(w.getParent() != renderer) {
+                if (w != null) {
+                    if (w.getParent() != renderer) {
                         w.setVisible(false);
                         renderer.add(w);
                     }
@@ -330,37 +320,37 @@ public class WheelWidget<T> extends Widget {
         }
         return null;
     }
-    
+
     protected void startTimer() {
-        if(timer != null && !timer.isRunning()) {
+        if (timer != null && !timer.isRunning()) {
             timer.start();
         }
     }
-    
+
     protected void stopTimer() {
-        if(timer != null) {
+        if (timer != null) {
             timer.stop();
         }
     }
-    
+
     protected void onTimer() {
         int amount = scrollAmount;
         int newAmount = amount;
-        
-        if(amount == 0 && !dragActive) {
+
+        if (amount == 0 && !dragActive) {
             amount = -scrollOffset;
         }
-        
-        if(amount != 0) {
+
+        if (amount != 0) {
             int absAmount = Math.abs(amount);
             int speed = absAmount * TIMER_INTERVAL / 200;
             int dir = Integer.signum(amount) * Math.min(absAmount,
                     Math.max(MIN_SPEED, Math.min(MAX_SPEED, speed)));
-            
-            if(newAmount != 0) {
+
+            if (newAmount != 0) {
                 newAmount -= dir;
             }
-            
+
             scrollAmount = newAmount;
             scrollInt(dir);
         }
@@ -370,20 +360,20 @@ public class WheelWidget<T> extends Widget {
     protected void layout() {
         layoutChildFullInnerArea(renderer);
     }
-    
+
     @Override
     protected void applyTheme(ThemeInfo themeInfo) {
         super.applyTheme(themeInfo);
         applyThemeWheel(themeInfo);
     }
-    
+
     protected void applyThemeWheel(ThemeInfo themeInfo) {
         itemHeight = themeInfo.getParameter("itemHeight", 10);
         numVisibleItems = themeInfo.getParameter("visibleItems", 5);
         selectedOverlay = themeInfo.getImage("selectedOverlay");
         invalidateLayout();
     }
-    
+
     @Override
     protected void afterAddToGUI(GUI gui) {
         super.afterAddToGUI(gui);
@@ -403,7 +393,7 @@ public class WheelWidget<T> extends Widget {
         removeSelectedListener();
         super.beforeRemoveFromGUI(gui);
     }
-    
+
     @Override
     public void insertChild(Widget child, int index) throws UnsupportedOperationException {
         throw new UnsupportedOperationException();
@@ -418,81 +408,104 @@ public class WheelWidget<T> extends Widget {
     public Widget removeChild(int index) throws UnsupportedOperationException {
         throw new UnsupportedOperationException();
     }
-    
+
     private void addListener() {
-        if(model != null) {
+        if (model != null) {
             model.addChangeListener(listener);
         }
     }
-    
+
     private void removeListener() {
-        if(model != null) {
+        if (model != null) {
             model.removeChangeListener(listener);
         }
     }
-    
+
     private void addSelectedListener() {
-        if(selectedModel != null) {
+        if (selectedModel != null) {
             selectedModel.addCallback(listener);
             syncSelected();
         }
     }
-    
+
     private void removeSelectedListener() {
-        if(selectedModel != null) {
+        if (selectedModel != null) {
             selectedModel.removeCallback(listener);
         }
     }
-    
+
     void syncSelected() {
         setSelected(selectedModel.getValue());
     }
-    
+
     void entriesDeleted(int first, int last) {
-        if(selected > first) {
-            if(selected > last) {
-                setSelected(selected - (last-first+1));
+        if (selected > first) {
+            if (selected > last) {
+                setSelected(selected - (last - first + 1));
             } else {
                 setSelected(first);
             }
         }
         invalidateLayout();
     }
-    
+
     void entriesInserted(int first, int last) {
-        if(selected >= first) {
-            setSelected(selected + (last-first+1));
+        if (selected >= first) {
+            setSelected(selected + (last - first + 1));
         }
         invalidateLayout();
     }
-    
+
+    public interface ItemRenderer {
+        public Widget getRenderWidget(Object data);
+    }
+
+    public static class StringItemRenderer extends Label implements WheelWidget.ItemRenderer {
+        public StringItemRenderer() {
+            setCache(false);
+        }
+
+        public Widget getRenderWidget(Object data) {
+            setText(String.valueOf(data));
+            return this;
+        }
+
+        @Override
+        protected void sizeChanged() {
+        }
+    }
+
     class L implements ListModel.ChangeListener, Runnable {
         public void allChanged() {
             invalidateLayout();
         }
+
         public void entriesChanged(int first, int last) {
             invalidateLayout();
         }
+
         public void entriesDeleted(int first, int last) {
             WheelWidget.this.entriesDeleted(first, last);
         }
+
         public void entriesInserted(int first, int last) {
             WheelWidget.this.entriesInserted(first, last);
         }
+
         public void run() {
             syncSelected();
         }
     }
-    
+
     class R extends Widget {
         public R() {
             setTheme("");
             setClip(true);
         }
-        
+
         @Override
         protected void paintWidget(GUI gui) {
-            if(model == null) {
+            if (model == null) {
                 return;
             }
 
@@ -501,45 +514,46 @@ public class WheelWidget<T> extends Widget {
             int y = getInnerY();
 
             int numItems = model.getNumEntries();
-            int numDraw  = numVisibleItems;
-            int startIdx = selected - numVisibleItems/2;
+            int numDraw = numVisibleItems;
+            int startIdx = selected - numVisibleItems / 2;
 
-            if((numDraw & 1) == 0) {
+            if ((numDraw & 1) == 0) {
                 y -= itemHeight / 2;
                 numDraw++;
             }
 
-            if(scrollOffset > 0) {
+            if (scrollOffset > 0) {
                 y -= scrollOffset;
                 numDraw++;
             }
-            if(scrollOffset < 0) {
+            if (scrollOffset < 0) {
                 y -= itemHeight + scrollOffset;
                 numDraw++;
                 startIdx--;
             }
 
-            main: for(int i=0 ; i<numDraw ; i++) {
+            main:
+            for (int i = 0; i < numDraw; i++) {
                 int idx = startIdx + i;
 
-                while(idx < 0) {
-                    if(!cyclic) {
+                while (idx < 0) {
+                    if (!cyclic) {
                         continue main;
                     }
                     idx += numItems;
                 }
 
-                while(idx >= numItems) {
-                    if(!cyclic) {
+                while (idx >= numItems) {
+                    if (!cyclic) {
                         continue main;
                     }
                     idx -= numItems;
                 }
 
                 Widget w = getItemRenderer(idx);
-                if(w != null) {
+                if (w != null) {
                     w.setSize(width, itemHeight);
-                    w.setPosition(x, y + i*itemHeight);
+                    w.setPosition(x, y + i * itemHeight);
                     w.validateLayout();
                     paintChild(gui, w);
                 }
@@ -548,21 +562,6 @@ public class WheelWidget<T> extends Widget {
 
         @Override
         public void invalidateLayout() {
-        }
-
-        @Override
-        protected void sizeChanged() {
-        }
-    }
-    
-    public static class StringItemRenderer extends Label implements WheelWidget.ItemRenderer {
-        public StringItemRenderer() {
-            setCache(false);
-        }
-        
-        public Widget getRenderWidget(Object data) {
-            setText(String.valueOf(data));
-            return this;
         }
 
         @Override

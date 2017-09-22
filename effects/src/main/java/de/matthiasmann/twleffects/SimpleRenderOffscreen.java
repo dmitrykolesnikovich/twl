@@ -34,7 +34,6 @@ import de.matthiasmann.twl.Widget;
 import de.matthiasmann.twl.renderer.OffscreenSurface;
 
 /**
- *
  * @author Matthias Mann
  */
 public class SimpleRenderOffscreen implements Widget.RenderOffscreen {
@@ -58,5 +57,5 @@ public class SimpleRenderOffscreen implements Widget.RenderOffscreen {
     public boolean needPainting(GUI gui, Widget widget, OffscreenSurface surface) {
         return true;
     }
-    
+
 }

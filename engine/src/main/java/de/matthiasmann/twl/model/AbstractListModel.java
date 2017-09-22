@@ -35,13 +35,12 @@ import de.matthiasmann.twl.utils.CallbackSupport;
  * Abstract base class to simplify implementating ListModels.
  *
  * @param <T> the type of a list entry
- *
  * @author Matthias Mann
  */
 public abstract class AbstractListModel<T> implements ListModel<T> {
 
     private ChangeListener[] listeners;
-    
+
     public void addChangeListener(ChangeListener listener) {
         listeners = CallbackSupport.addCallbackToList(listeners, listener, ChangeListener.class);
     }
@@ -51,32 +50,32 @@ public abstract class AbstractListModel<T> implements ListModel<T> {
     }
 
     protected void fireEntriesInserted(int first, int last) {
-        if(listeners != null) {
-            for(ChangeListener cl : listeners) {
+        if (listeners != null) {
+            for (ChangeListener cl : listeners) {
                 cl.entriesInserted(first, last);
             }
         }
     }
 
     protected void fireEntriesDeleted(int first, int last) {
-        if(listeners != null) {
-            for(ChangeListener cl : listeners) {
+        if (listeners != null) {
+            for (ChangeListener cl : listeners) {
                 cl.entriesDeleted(first, last);
             }
         }
     }
 
     protected void fireEntriesChanged(int first, int last) {
-        if(listeners != null) {
-            for(ChangeListener cl : listeners) {
+        if (listeners != null) {
+            for (ChangeListener cl : listeners) {
                 cl.entriesChanged(first, last);
             }
         }
     }
 
     protected void fireAllChanged() {
-        if(listeners != null) {
-            for(ChangeListener cl : listeners) {
+        if (listeners != null) {
+            for (ChangeListener cl : listeners) {
                 cl.allChanged();
             }
         }

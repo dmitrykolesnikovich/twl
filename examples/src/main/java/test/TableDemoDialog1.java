@@ -29,20 +29,11 @@
  */
 package test;
 
-import de.matthiasmann.twl.ComboBox;
-import de.matthiasmann.twl.ScrollPane;
-import de.matthiasmann.twl.Table;
+import de.matthiasmann.twl.*;
 import de.matthiasmann.twl.TableBase.CellWidgetCreator;
-import de.matthiasmann.twl.ThemeInfo;
-import de.matthiasmann.twl.Widget;
-import de.matthiasmann.twl.model.AbstractTableModel;
-import de.matthiasmann.twl.model.ListModel;
-import de.matthiasmann.twl.model.SimpleChangableListModel;
-import de.matthiasmann.twl.model.SimpleIntegerModel;
-import de.matthiasmann.twl.model.TableModel;
+import de.matthiasmann.twl.model.*;
 
 /**
- *
  * @author Matthias Mann
  */
 public class TableDemoDialog1 extends FadeFrame {
@@ -66,20 +57,20 @@ public class TableDemoDialog1 extends FadeFrame {
             }
 
             public Object getCell(int row, int column) {
-                if(row == 7 && column == 1) {
+                if (row == 7 && column == 1) {
                     // This cell will contain a ComboBoxValue - via registerCellRenderer
                     // below this will cause a comobox to appear
                     return cbv;
                 }
-                if(row == 6 && column == 1) {
+                if (row == 6 && column == 1) {
                     return "Selected: " + cbv.getValue();
                 }
-                return "Row " + row + (((row*getNumColumns()+column)%17 == 0)?"\n":"") + " Column " + column;
+                return "Row " + row + (((row * getNumColumns() + column) % 17 == 0) ? "\n" : "") + " Column " + column;
             }
 
             @Override
             public Object getTooltipContent(int row, int column) {
-                return "X:"+(column+1)+" Y:"+(row+1);
+                return "X:" + (column + 1) + " Y:" + (row + 1);
             }
 
         };
@@ -104,20 +95,21 @@ public class TableDemoDialog1 extends FadeFrame {
 
     public void centerScrollPane() {
         scrollPane.updateScrollbarSizes();
-        scrollPane.setScrollPositionX(scrollPane.getMaxScrollPosX()/2);
-        scrollPane.setScrollPositionY(scrollPane.getMaxScrollPosY()/2);
+        scrollPane.setScrollPositionX(scrollPane.getMaxScrollPosX() / 2);
+        scrollPane.setScrollPositionY(scrollPane.getMaxScrollPosY() / 2);
     }
 
     /**
      * This is a very simple model class which will store the currently selected
      * entry of the combobox and the model for the combobox.
-     *
+     * <p>
      * It is also the "key" type which will cause the cell to become a ComboBox
      */
     public static class ComboBoxValue extends SimpleIntegerModel {
         private final ListModel<String> model;
+
         public ComboBoxValue(int value, ListModel<String> model) {
-            super(0, model.getNumEntries()-1, value);
+            super(0, model.getNumEntries() - 1, value);
             this.model = model;
         }
 
@@ -130,10 +122,10 @@ public class TableDemoDialog1 extends FadeFrame {
      * A CellWidgetCreator instance is used to create and position the ComboBox
      * widget inside the table cell. This class is also responsible to connect
      * all listeners so that updates to/from the combobox can happen.
-     *
+     * <p>
      * Only a single ComboBoxCellWidgetCreator will be created per table. But it
      * can manage several widgets/cells.
-     *
+     * <p>
      * As this is a simple example only the listener ComboBox -> ComboBoxValue is
      * implemeted.
      */
@@ -153,12 +145,12 @@ public class TableDemoDialog1 extends FadeFrame {
          * Update or create the ComboBox widget.
          *
          * @param existingWidget null on first call per cell or the previous
-         *   widget when an update has been send to that cell.
+         *                       widget when an update has been send to that cell.
          * @return the widget to use for this cell
          */
         public Widget updateWidget(Widget existingWidget) {
-            MyComboBox cb = (MyComboBox)existingWidget;
-            if(cb == null) {
+            MyComboBox cb = (MyComboBox) existingWidget;
+            if (cb == null) {
                 cb = new MyComboBox();
             }
             // in this example there should be no update to cells
@@ -179,7 +171,7 @@ public class TableDemoDialog1 extends FadeFrame {
 
         public void setCellData(int row, int column, Object data) {
             // we have to remember the cell data for the next call of updateWidget
-            this.data = (ComboBoxValue)data;
+            this.data = (ComboBoxValue) data;
         }
 
         public Widget getCellRenderWidget(int x, int y, int width, int height, boolean isSelected) {
@@ -210,7 +202,7 @@ public class TableDemoDialog1 extends FadeFrame {
                 setTheme("combobox");   // keep default theme name
                 addCallback(this);
             }
-            
+
             void setData(ComboBoxValue data) {
                 this.data = null;
                 setModel(data.getModel());
@@ -219,7 +211,7 @@ public class TableDemoDialog1 extends FadeFrame {
             }
 
             public void run() {
-                if(data != null) {
+                if (data != null) {
                     data.setValue(getSelected());
                 }
             }

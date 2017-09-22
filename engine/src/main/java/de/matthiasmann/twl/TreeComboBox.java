@@ -41,42 +41,15 @@ import de.matthiasmann.twl.utils.CallbackSupport;
  */
 public class TreeComboBox extends ComboBoxBase {
 
-    public interface Callback {
-        /**
-         * The selected node has changed
-         *
-         * @param node the new selected node
-         * @param previousChildNode if the new selected node is a parent of the previous node,
-         *      then previousChildNode is a child of node which was selected before otherwise it's null
-         */
-        public void selectedNodeChanged(TreeTableNode node, TreeTableNode previousChildNode);
-    }
-
-    public interface PathResolver {
-        /**
-         * Tries to resolve the given string to a node
-         *
-         * @param model the tree model
-         * @param path the path to resolve
-         * @return A node - MUST NOT BE NULL
-         * @throws IllegalArgumentException when the path can't be resolved, the message is displayed
-         */
-        public TreeTableNode resolvePath(TreeTableModel model, String path) throws IllegalArgumentException;
-    }
-
     private static final String DEFAULT_POPUP_THEME = "treecomboboxPopup";
-
     final TableSingleSelectionModel selectionModel;
     final TreePathDisplay display;
     final TreeTable table;
-
+    boolean suppressTreeSelectionUpdating;
     private TreeTableModel model;
     private Callback[] callbacks;
     private PathResolver pathResolver;
     private boolean suppressCallback;
-
-    boolean suppressTreeSelectionUpdating;
-    
     public TreeComboBox() {
         selectionModel = new TableSingleSelectionModel();
         display = new TreePathDisplay();
@@ -85,7 +58,7 @@ public class TreeComboBox extends ComboBoxBase {
         table.setSelectionManager(new TableRowSelectionManager(selectionModel) {
             @Override
             protected boolean handleMouseClick(int row, int column, boolean isShift, boolean isCtrl) {
-                if(!isShift && !isCtrl && row >= 0 && row < getNumRows()) {
+                if (!isShift && !isCtrl && row >= 0 && row < getNumRows()) {
                     popup.closePopup();
                     return true;
                 }
@@ -106,7 +79,7 @@ public class TreeComboBox extends ComboBoxBase {
         selectionModel.addSelectionChangeListener(new Runnable() {
             public void run() {
                 int row = selectionModel.getFirstSelected();
-                if(row >= 0) {
+                if (row >= 0) {
                     suppressTreeSelectionUpdating = true;
                     try {
                         nodeChanged(table.getNodeFromRow(row));
@@ -119,7 +92,7 @@ public class TreeComboBox extends ComboBoxBase {
 
         ScrollPane scrollPane = new ScrollPane(table);
         scrollPane.setFixed(ScrollPane.Fixed.HORIZONTAL);
-        
+
         add(display);
         popup.setTheme(DEFAULT_POPUP_THEME);
         popup.add(scrollPane);
@@ -135,20 +108,10 @@ public class TreeComboBox extends ComboBoxBase {
     }
 
     public void setModel(TreeTableModel model) {
-        if(this.model != model) {
+        if (this.model != model) {
             this.model = model;
             table.setModel(model);
             display.setCurrentNode(model);
-        }
-    }
-    
-    public void setCurrentNode(TreeTableNode node) {
-        if(node == null) {
-            throw new NullPointerException("node");
-        }
-        display.setCurrentNode(node);
-        if(popup.isOpen()) {
-            tableSelectToCurrentNode();
         }
     }
 
@@ -156,12 +119,22 @@ public class TreeComboBox extends ComboBoxBase {
         return display.getCurrentNode();
     }
 
-    public void setSeparator(String separator) {
-        display.setSeparator(separator);
+    public void setCurrentNode(TreeTableNode node) {
+        if (node == null) {
+            throw new NullPointerException("node");
+        }
+        display.setCurrentNode(node);
+        if (popup.isOpen()) {
+            tableSelectToCurrentNode();
+        }
     }
 
     public String getSeparator() {
         return display.getSeparator();
+    }
+
+    public void setSeparator(String separator) {
+        display.setSeparator(separator);
     }
 
     public PathResolver getPathResolver() {
@@ -180,11 +153,11 @@ public class TreeComboBox extends ComboBoxBase {
     public EditField getEditField() {
         return display.getEditField();
     }
-    
+
     public void addCallback(Callback callback) {
         callbacks = CallbackSupport.addCallbackToList(callbacks, callback, Callback.class);
     }
-    
+
     public void removeCallback(Callback callback) {
         callbacks = CallbackSupport.removeCallbackFromList(callbacks, callback);
     }
@@ -205,15 +178,15 @@ public class TreeComboBox extends ComboBoxBase {
     }
 
     void fireSelectedNodeChanged(TreeTableNode node, TreeTableNode child) {
-        if(callbacks != null) {
-            for(Callback cb : callbacks) {
+        if (callbacks != null) {
+            for (Callback cb : callbacks) {
                 cb.selectedNodeChanged(node, child);
             }
         }
     }
 
     boolean resolvePath(String path) {
-        if(pathResolver != null) {
+        if (pathResolver != null) {
             try {
                 TreeTableNode node = pathResolver.resolvePath(model, path);
                 assert node != null;
@@ -229,20 +202,20 @@ public class TreeComboBox extends ComboBoxBase {
     void nodeChanged(TreeTableNode node) {
         TreeTableNode oldNode = display.getCurrentNode();
         display.setCurrentNode(node);
-        if(!suppressCallback) {
+        if (!suppressCallback) {
             fireSelectedNodeChanged(node, getChildOf(node, oldNode));
         }
     }
 
     private TreeTableNode getChildOf(TreeTableNode parent, TreeTableNode node) {
-        while(node != null && node != parent) {
+        while (node != null && node != parent) {
             node = node.getParent();
         }
         return node;
     }
 
     private void tableSelectToCurrentNode() {
-        if(!suppressTreeSelectionUpdating) {
+        if (!suppressTreeSelectionUpdating) {
             table.collapseAll();
             int idx = table.getRowFromNodeExpand(display.getCurrentNode());
             suppressCallback = true;
@@ -257,12 +230,35 @@ public class TreeComboBox extends ComboBoxBase {
 
     @Override
     protected boolean openPopup() {
-        if(super.openPopup()) {
+        if (super.openPopup()) {
             popup.validateLayout();
             tableSelectToCurrentNode();
             return true;
         }
         return false;
     }
-    
+
+    public interface Callback {
+        /**
+         * The selected node has changed
+         *
+         * @param node              the new selected node
+         * @param previousChildNode if the new selected node is a parent of the previous node,
+         *                          then previousChildNode is a child of node which was selected before otherwise it's null
+         */
+        public void selectedNodeChanged(TreeTableNode node, TreeTableNode previousChildNode);
+    }
+
+    public interface PathResolver {
+        /**
+         * Tries to resolve the given string to a node
+         *
+         * @param model the tree model
+         * @param path  the path to resolve
+         * @return A node - MUST NOT BE NULL
+         * @throws IllegalArgumentException when the path can't be resolved, the message is displayed
+         */
+        public TreeTableNode resolvePath(TreeTableModel model, String path) throws IllegalArgumentException;
+    }
+
 }
